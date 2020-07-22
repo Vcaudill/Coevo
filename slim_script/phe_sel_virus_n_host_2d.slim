@@ -1,0 +1,187 @@
+initialize() {
+	initializeSLiMModelType("nonWF"); // makinf a non wf model
+	initializeSLiMOptions(dimensionality="xy"); // Modeling phenotype, phenotype is a pseudo-spatial dimension pg 281
+	initializeTreeSeq(); // to make trees
+	//defineConstant("K", 100);	// pathogen carrying capacity
+	//defineConstant("hK", 100);	// host carrying capacity
+	
+	//QT and normalization
+	defineConstant("optimum", 5.0);
+	//defineConstant("sigma_K", 1.0); // tried diff value
+	//defineConstant("sigma_C", 0.4); // tried diff value
+	defineConstant("NORM", dnorm(0.0, mean=0, sd=sigma_C)); //how does it work?
+	
+	// neutral mutations, which are not allowed to fix?
+	initializeMutationType("m1", 0.5, "n", 0.0, 1.0);
+	initializeMutationType("m3", 0.5, "n", 0.0, 1.0);
+	m1.color = "red";
+	m1.convertToSubstitution = F;
+	
+	//host mutations
+	initializeMutationType("m2", 0.5, "n", 0.0, 1.0);
+	initializeMutationType("m4", 0.5, "n", 0.0, 1.0);
+	m2.color = "blue";
+	m2.convertToSubstitution = F;
+	
+	//Genomic Element
+	initializeGenomicElementType("g1", c(m1, m2, m3, m4), c(10, 1, 10, 1)); // mutation proportions
+	// right now # of mutations are even
+	//initializeGenomicElementType("g1", c(m1, m2), c(10/11, 1/11)); 
+	initializeGenomicElement(g1, 0, 99999);
+	initializeMutationRate(1e-7);
+	initializeRecombinationRate(1e-8);
+
+}
+
+// to make the mutions truly neutral?
+fitness(m1) { return 1.0; }
+fitness(m2) { return 1.0; }
+fitness(m3) { return 1.0; }
+fitness(m4) { return 1.0; }
+
+reproduction(p1) {
+	// pathogen reproduction need 2 to have exponential growth
+	p1.addRecombinant(genome1, NULL, NULL, NULL, NULL, NULL);
+	p1.addRecombinant(genome1, NULL, NULL, NULL, NULL, NULL);
+}
+
+reproduction(p2) {
+	//host reproduction 
+	p2.addCrossed(individual, p2.sampleIndividuals(1));
+}
+
+1 early() {
+	sim.addSubpop("p1", K); //pathogen initial population 
+	sim.addSubpop("p2", hK); //host initial population 
+	p1.setSpatialBounds(c(-10.0, -10.0, 10, 10)); // looking at the phenotype in color
+	p2.setSpatialBounds(c(-10.0, -10.0, 10, 10)); // looking at the phenotype 
+	//Colors correspond to fitness 
+}
+
+
+early() {
+	
+	// removing mutations that apear in the wrong population
+	muts1 = sim.mutationsOfType(m1);  // pathogen mutations
+	muts2 = sim.mutationsOfType(m2); // host mutations
+	p1.individuals.genomes.removeMutations(muts2);
+	p2.individuals.genomes.removeMutations(muts1);
+	muts1 = sim.mutationsOfType(m3);  // pathogen mutations
+	muts2 = sim.mutationsOfType(m4); // host mutations
+	p1.individuals.genomes.removeMutations(muts2);
+	p2.individuals.genomes.removeMutations(muts1);
+	
+	//	
+	//	inds = p1.individuals;
+	//	//inds[inds.age > 0].fitnessScaling = 0.0;
+	//	p1.fitnessScaling = K / sum(inds.age == 0);
+}
+
+1: early() {
+	// trying to relate number of m1 to number of m2
+	inds_p = p1.individuals;
+	inds_h = p2.individuals;
+	// which parasite infects each host
+	infects = sample(seqLen(p1.individualCount), p2.individualCount, replace=T);
+	
+	// construct phenotypes and fitness effects from QTLs 
+	phenotypes_hx = inds_h.sumOfMutationsOfType(m2);
+	phenotypes_px = inds_p.sumOfMutationsOfType(m1);
+	phenotypes_hy = inds_h.sumOfMutationsOfType(m4);
+	phenotypes_py = inds_p.sumOfMutationsOfType(m3);
+	inds_h.x = phenotypes_hx;
+	inds_p.x = phenotypes_px;
+	inds_h.y = phenotypes_hy;
+	inds_p.y = phenotypes_py;
+		
+	// outcome of infection	
+	dist = sqrt((phenotypes_hx - phenotypes_px[infects])^2 + (phenotypes_hy - phenotypes_py[infects])^2);
+	outcome = sqrt(2 * 3.1415 * sigma_K^2) * dnorm(dist, 0.0, sigma_K);
+
+	outcome_p = rep(0.0, p1.individualCount);
+	for (j in seqLen(p1.individualCount)) {
+		outcome_p[j] = sum(1 - outcome[infects == j]);
+	}
+
+	inds_h.fitnessScaling = 1 + outcome;
+	inds_p.fitnessScaling = 1 + outcome_p;
+	
+	// we want the sum of the fitness scalings to be hK:
+	p2.fitnessScaling = hK / sum(inds_h.fitnessScaling);
+	p1.fitnessScaling = K / sum(inds_p.fitnessScaling);
+}
+
+late() {
+	// fixed at 0.5 in the pathogen
+	muts = sim.mutationsOfType(m1);
+	mutst = sim.mutationsOfType(m3);
+	mutsh = sim.mutationsOfType(m2);
+	mutsht = sim.mutationsOfType(m4);
+	
+	freqs = 2 * sim.mutationFrequencies(p1, muts);
+	freqst = 2 * sim.mutationFrequencies(p1, mutst);
+	freqs_h = sim.mutationFrequencies(p2, mutsh);
+	freqs_ht = sim.mutationFrequencies(p2, mutsht);
+	
+	p_freq = 2 * sim.mutationFrequencies(p1);
+	h_freq = sim.mutationFrequencies(p2);
+	
+	
+//	if (any(freqs == 0.5))
+//		p1.genomes.removeMutations(muts[freqs == 0.5], F);
+//	if (any(freqst == 0.5))
+//		p1.genomes.removeMutations(mutst[freqst == 0.5], F);
+//	
+	inds_p = p1.individuals;
+	inds_h = p2.individuals;
+	
+	phenotypes_hx = inds_h.sumOfMutationsOfType(m2);
+	phenotypes_px = inds_p.sumOfMutationsOfType(m1);
+	phenotypes_hy = inds_h.sumOfMutationsOfType(m4);
+	phenotypes_py = inds_p.sumOfMutationsOfType(m3);
+	
+	eud = sqrt((mean(phenotypes_hx) - mean(phenotypes_px))^2+(mean(phenotypes_hy) - mean(phenotypes_py))^2);
+	
+	if (sim.generation == 1)
+	{catn( "gen	pheno_px	pheno_hx	pheno_py	pheno_hy	div_px	div_hx	div_py	div_hy	eud	div_h	div_p	ind_p	ind_h	sig_K	sig_C");
+	}
+	
+	cat(format("%5d ", sim.generation)); //gen
+	cat("	");
+	cat(format("%6.2f ", mean(phenotypes_px))); //pheno_px
+	cat("	");
+	cat(format("%6.2f", mean(phenotypes_hx))); //pheno_hx
+	cat("	");
+	cat(format("%6.2f ", mean(phenotypes_py))); //pheno_py
+	cat("	");
+	cat(format("%6.2f", mean(phenotypes_hy))); //pheno_hx
+	cat("	");
+	cat(format("%6.2f", sum(2 * freqs * (1-freqs)))); //div_px
+	cat("	");
+	cat(format("%6.2f", sum(2 * freqs_h * (1-freqs_h)))); //div_hx
+	cat("	");
+	cat(format("%6.2f", sum(2 * freqst * (1-freqst)))); //div_py
+	cat("	");
+	cat(format("%6.2f", sum(2 * freqs_ht * (1-freqs_ht)))); //div_hy
+	cat("	");
+	cat(format("%6.2f ", eud)); //Euclidean distance from the mean is there something better to measure?
+	cat(format("%6.2f", sum(2 * h_freq * (1-h_freq)))); //div_h
+	cat("	");
+	cat(format("%6.2f", sum(2 * p_freq * (1-p_freq)))); //div_p
+	cat("	");//tab to keep pop size from merging
+	cat(format("%5d", p1.individualCount));
+	cat("	");
+	cat(format("%5d", p2.individualCount));
+	cat(format("%6.2f", sigma_K));
+	cat(format("%6.2f \n", sigma_C));
+
+}
+
+
+
+50000 late() {
+	catn("done");
+	// sim.outputFixedMutations();
+	// sim.outputFull("~/Desktop/Rotation_2020/model_output.txt"); 
+	// sim.treeSeqOutput("~/Desktop/Rotation_2020/tree_test.trees"); 
+}
