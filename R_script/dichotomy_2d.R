@@ -1,110 +1,28 @@
-library(ggplot2)
-library(gridExtra)
-library(gtable)
-library(plotrix)
-library(viridis) 
 
-file_2d_info<- list.files("data/two_d_size/tests", pattern="exp") #new files that i turned off the remove lines
-place<-"data/two_d_size/tests/"
-file_2d_info<- list.files("raw_data/cut_data", pattern="exp_2d") #new files that i turned off the remove lines
-place_2d<-"raw_data/cut_data/"
+source("R_script/make_dataframe.R")
 
-dichotomy_2d<-data.frame(id= integer(length(file_2d_info)), name = character(length(file_2d_info)), v=integer(length(file_2d_info)), h=integer(length(file_2d_info)), sK=integer(length(file_2d_info)), sC=integer(length(file_2d_info)), d_mean = integer(length(file_2d_info)), sd = integer(length(file_2d_info)), se=integer(length(file_2d_info)),stringsAsFactors=FALSE)
+file_2d_info<- list.files("data/2d_size", pattern="exp") #new files that i turned off the remove lines
+place<-"data/2d_size/"
 
-for (i in 1:length(file_2d_info)){
-  print(file_2d_info[i])
-  if(i == 1){
-    #file=read.table(paste0("cut/tests/",file_2d_info[1]),header = TRUE)
-    file_2d=read.table(paste0(place,file_2d_info[1]),header = TRUE)
-    file_2d$trial <- strtoi(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[2], ".txt"))
-    file_2d$id<- i
-    file_2d$name<-file_2d_info[1]
-    file_2d$v<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[3])
-    file_2d$h<- as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[5])
-    file_2d$sK<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[8])
-    file_2d$sC<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[11])
-    
-    #file_2d$dif_pheno <- file_2d$pheno_p - file_2d$pheno_h
-    
-    dichotomy_2d$id[1] <- i
-    dichotomy_2d$name[1]<-file_2d_info[1]
-    dichotomy_2d$v[1]<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[3])
-    dichotomy_2d$h[1]<- as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[5])
-    dichotomy_2d$sK[1]<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[8])
-    dichotomy_2d$sC[1]<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[11])
-    
-    file_2d$dich = NA
-    last_0 = 1
-    close = 0
-    lessclose = 0
-    for(j in 1:nrow(file_2d)){
-      if (file_2d$eud[j] > -5 && file_2d$eud[j] < 5){
-        file_2d$dich[j] = file_2d$gen[j] - last_0
-        last_0 = file_2d$gen[j]
-      }
-      if (abs(file_2d$eud[j]) < 2*file_2d$sig_K[i]){
-        close = 1 + close
-      }
-      if (abs(file_2d$eud[j]) < 4*file_2d$sig_K[i]){
-        lessclose = 1 + lessclose
-      }
-      
-    }
-    dichotomy_2d$d_mean[1]=mean(file_2d$dich,na.rm=TRUE)
-    dichotomy_2d$sd[1]<-sd(file_2d$dich,na.rm=TRUE)
-    dichotomy_2d$se[1]<-std.error(file_2d$dich, na.rm=TRUE)
-    dichotomy_2d$close[1]<-close/nrow(file_2d)
-    dichotomy_2d$lessclose[1]<-lessclose/nrow(file_2d)
-  }
-  #tempfile <- read.table(paste0("cut/tests/",file_2d_info[i]), header = TRUE)
-  tempfile <- read.table(paste0(place,file_2d_info[i]), header = TRUE)
-  tempfile$trial <- strtoi(strsplit(unlist(strsplit(file_2d_info[i], "trial_"))[2], ".txt"))
-  tempfile$id <- i
-  tempfile$name<-file_2d_info[i]
-  tempfile$v<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[3])
-  tempfile$h<- as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[5])
-  tempfile$sK<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[8])
-  tempfile$sC<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[1], "trial_"))[1], "_"))[11])
-  
-  
-  dichotomy_2d$id[i] <- i
-  dichotomy_2d$name[i]<-file_2d_info[i]
-  dichotomy_2d$v[i]<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[i], "trial_"))[1], "_"))[3])
-  dichotomy_2d$h[i]<- as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[i], "trial_"))[1], "_"))[5])
-  dichotomy_2d$sK[i]<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[i], "trial_"))[1], "_"))[8])
-  dichotomy_2d$sC[i]<-as.numeric(unlist(strsplit(unlist(strsplit(file_2d_info[i], "trial_"))[1], "_"))[11])
-  
-  #tempfile$dif_pheno <- tempfile$pheno_p - tempfile$pheno_h
-  tempfile$dich = NA
-  last_0 = 1
-  close = 0 
-  lessclose = 0 
-  for(j in 1:nrow(tempfile)){
-    if (tempfile$eud[j] > -5 && tempfile$eud[j] < 5){
-      tempfile$dich[j] = tempfile$gen[j] - last_0
-      last_0 = tempfile$gen[j]
-    }
-    if (abs(tempfile$eud[j]) < 2*tempfile$sig_K[i]){
-      close = 1 + close
-    }
-    if (abs(tempfile$eud[j]) < 4*tempfile$sig_K[i]){
-      lessclose = 1 + lessclose
-    }
-  }
-  dichotomy_2d$d_mean[i]=mean(tempfile$dich, na.rm=TRUE)
-  dichotomy_2d$sd[i]<-sd(tempfile$dich, na.rm=TRUE)
-  dichotomy_2d$se[i]<-std.error(tempfile$dich, na.rm=TRUE)
-  dichotomy_2d$close[i]<-close/nrow(tempfile)
-  dichotomy_2d$lessclose[i]<-lessclose/nrow(tempfile)
-  file_2d<-rbind(file_2d,tempfile)
-}
+split_2d_df = make_2d_dichotomy(file_2d_info, place)
 
-file_2d$dif_pheno <- file_2d$pheno_p - file_2d$pheno_h
-file_2d$dif_pi <- file_2d$div_p - file_2d$div_h
+file1 <- "size_file_2d"
+file2 <- "size_dichotomy_2d"
+save_file<- "data/csv_files/"
+paste0(save_file, file1)
+write.csv(data.frame(split_2d_df[1]), paste0(save_file, file1, ".csv") )
+write.csv(data.frame(split_2d_df[2]), paste0(save_file, file2, ".csv"))
 
+save_space(file1, file2, save_file)
 
-dichotomy_2d<-dichotomy_2d[order(dichotomy$h),] 
-dichotomy_2d$idh<-c(1:nrow(dichotomy_2d))
+zip::unzip(paste0(save_file, file1, ".zip"), exdir = save_file)
+zip::unzip(paste0(save_file, file2, ".zip"), exdir = save_file)
+
+file_2d<-read.csv(paste0(save_file, file1, ".csv"))
+dichotomy_2d<-read.csv(paste0(save_file, file2, ".csv"))
+
+save_space(file1, file2, save_file)
+
 ggplot()+
   geom_point(data = dichotomy_2d, aes(x=id, y = d_mean, color = as.factor(paste0(dichotomy_2d$v,"x", dichotomy_2d$h))), size = 2)+
   geom_errorbar(data = dichotomy_2d, aes(x=idh, ymin=d_mean-sd, ymax=d_mean+sd,color = as.factor(v)), width=.5,
