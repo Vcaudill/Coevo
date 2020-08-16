@@ -1,0 +1,151 @@
+library("data.table")
+library(ggplot2)
+library(gridExtra)
+library(gtable)
+
+source("R_script/make_dataframe.R") # makes the dataframe(s)
+
+file_info<- list.files("data/sigma", pattern="exp_K") #new files that i turned off the remove lines
+place<-"data/sigma/"
+
+split_df_sig = make_dichotomy(file_info, place)
+
+
+file1 <- "sigma_file"
+file2 <- "sigma_dichotomy"
+save_file<- "data/csv_files/"
+
+write.csv(data.frame(split_df_sig[1]), paste0(save_file, file1, ".csv") )
+write.csv(data.frame(split_df_sig[2]), paste0(save_file, file2, ".csv"))
+
+save_space(file1, file2, save_file)
+
+zip::unzip(paste0(save_file, file1, ".zip"), exdir = save_file)
+zip::unzip(paste0(save_file, file2, ".zip"), exdir = save_file)
+
+#sigma_file <-read.csv(paste0(save_file, file1, ".csv"))
+sigma_file<-fread(paste0(save_file, file1, ".csv"))
+#sigma_dichotomy <-read.csv(paste0(save_file, file2, ".csv"))
+sigma_dichotomy <-fread(paste0(save_file, file2, ".csv"))
+save_space(file1, file2, save_file)
+
+#DT[i, j, by], DT = Data.table
+#Take DT, subset/reorder rows using i, then calculate j, grouped by by.
+# https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html
+
+steady_sig = sigma_file[sig_C == 0.4]
+steady_di = sigma_dichotomy[sC == 0.4]
+steady_di <- as.data.frame(steady_di)
+
+steady_sigK = sigma_file[sig_K == 1.]
+steady_diK = sigma_dichotomy[sK == 1.]
+
+#sample_df = file[sample(nrow(file), 1000), ]
+pdf(width=10,height=7,pointsize=12, paste0("figures/time_between_by_virus_dif_sigK.pdf")[1])
+ggplot(data = steady_di, aes(x=as.factor(h), y = d_mean, fill = as.factor(v) ))+
+  facet_wrap(~ sK)+
+  geom_boxplot()+
+  scale_fill_viridis_d(name="Host Population Size",option = "C")+
+  theme_bw() + # setting up the theme
+  theme(axis.text.x = element_text(size=18,colour="Black"),
+     axis.text.y = element_text(size=18,colour="Black"),
+       text = element_text(size=18),
+       panel.grid.minor = element_blank(),
+       legend.box.background = element_rect(),
+       legend.title = element_text(size=16),
+       legend.text = element_text(size = 14),
+       plot.title = element_text(size=22),
+       plot.subtitle = element_text(size=22),
+       #panel.grid = element_blank(),
+       panel.spacing.x = unit(0.5,"line"))+
+  xlab("Virus Population Size") + ylab("Time Between Intersection (Generation)")+
+  labs(title = "Dichotomy Plot as Sigma_K Changes")
+dev.off()
+
+pdf(width=10,height=7,pointsize=12, paste0("figures/close_by_virus_dif_sigK.pdf")[1])
+ggplot(data = steady_di, aes(x=as.factor(h), y = close, fill = as.factor(v) ))+
+  facet_wrap(~ sK)+
+  geom_boxplot()+
+  scale_fill_viridis_d(name="Host Population Size",option = "C")+
+  theme_bw() + # setting up the theme
+  theme(axis.text.x = element_text(size=18,colour="Black"),
+       axis.text.y = element_text(size=18,colour="Black"),
+       text = element_text(size=18),
+       panel.grid.minor = element_blank(),
+       legend.box.background = element_rect(),
+       legend.title = element_text(size=16),
+       legend.text = element_text(size = 14),
+       plot.title = element_text(size=22),
+       plot.subtitle = element_text(size=22),
+       #panel.grid = element_blank(),
+       panel.spacing.x = unit(0.5,"line"))+
+  xlab("Virus Population Size") + ylab("Close Phenotypes Percentage")+
+  labs(title = "Closeness Plot as Sigma_K Changes")
+dev.off()
+
+
+
+
+pdf(width=10,height=7,pointsize=12, paste0("figures/time_between_by_virus_dif_sigC.pdf")[1])
+ggplot(data = steady_diK, aes(x=as.factor(h), y = d_mean, fill = as.factor(v) ))+
+  facet_wrap(~ sC)+
+  geom_boxplot()+
+  scale_fill_viridis_d(name="Host Population Size",option = "C")+
+  theme_bw() + # setting up the theme
+  theme(axis.text.x = element_text(size=18,colour="Black"),
+       axis.text.y = element_text(size=18,colour="Black"),
+       text = element_text(size=18),
+       panel.grid.minor = element_blank(),
+       legend.box.background = element_rect(),
+       legend.title = element_text(size=16),
+       legend.text = element_text(size = 14),
+       plot.title = element_text(size=22),
+       plot.subtitle = element_text(size=22),
+       #panel.grid = element_blank(),
+       panel.spacing.x = unit(0.5,"line"))+
+  xlab("Virus Population Size") + ylab("Time Between Intersection (Generation)")+
+  labs(title = "Dichotomy Plot as Sigma_C Changes")
+dev.off()
+
+pdf(width=10,height=7,pointsize=12, paste0("figures/close_by_virus_dif_sigC.pdf")[1])
+ggplot(data = steady_diK, aes(x=as.factor(h), y = close, fill = as.factor(v) ))+
+  facet_wrap(~ sC)+
+  geom_boxplot()+
+  scale_fill_viridis_d(name="Host Population Size",option = "C")+
+  theme_bw() + # setting up the theme
+  theme(axis.text.x = element_text(size=18,colour="Black"),
+        axis.text.y = element_text(size=18,colour="Black"),
+       text = element_text(size=18),
+        panel.grid.minor = element_blank(),
+       legend.box.background = element_rect(),
+       legend.title = element_text(size=16),
+       legend.text = element_text(size = 14),
+       plot.title = element_text(size=22),
+       plot.subtitle = element_text(size=22),
+       #panel.grid = element_blank(),
+       panel.spacing.x = unit(0.5,"line"))+
+  xlab("Virus Population Size") + ylab("Close Phenotypes Percentage")+
+  labs(title = "Closeness Plot as Sigma_C Changes")
+dev.off()
+
+
+t.test(y1,y2)
+unique(steady_di$sK)
+length(steady_di$name[steady_di$sK==1.0])
+dichotomy$d_mean[dichotomy$sK==1.0]
+t.test(steady_di$d_mean[steady_di$sK==1.0], dichotomy$d_mean)
+unique(steady_diK$sC)
+
+with(steady_di, t.test(d_mean[sK==0.4], d_mean[sK==0.4]))
+with(steady_di, t.test(d_mean[sK==0.4], d_mean[sK==0.6]))
+with(steady_di, t.test(d_mean[sK==0.4], d_mean[sK==0.8]))
+with(steady_di, t.test(d_mean[sK==0.4], d_mean[sK==1.0]))
+with(steady_di, t.test(d_mean[sK==0.4], d_mean[sK==1.2]))
+with(steady_di, t.test(d_mean[sK==0.4], d_mean[sK==1.4]))
+with(steady_di, t.test(d_mean[sK==0.4], d_mean[sK==1.6]))
+
+with(steady_diK, t.test(d_mean[sC==0.4], d_mean[sC==0.2]))
+with(steady_diK, t.test(d_mean[sC==0.4], d_mean[sC==0.4]))
+with(steady_diK, t.test(d_mean[sC==0.4], d_mean[sC==0.6]))
+with(steady_diK, t.test(d_mean[sC==0.4], d_mean[sC==1.0]))
+

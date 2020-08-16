@@ -1,16 +1,17 @@
 initialize() {
+setSeed(1604481158968);
 	initializeSLiMModelType("nonWF"); // makinf a non wf model
 	initializeSLiMOptions(dimensionality="x"); // Modeling phenotype, phenotype is a pseudo-spatial dimension pg 281
 	//initializeTreeSeq();
-	//defineConstant("K", 10);	// pathogen carrying capacity
-	//defineConstant("hK", 100);	// host carrying capacity
+	defineConstant("K", 100);	// pathogen carrying capacity
+	defineConstant("hK", 100);	// host carrying capacity
 	
 	//QT and normalization
 	// evenually i want it to be depent on the number of mutations within eachother
 	defineConstant("optimum", 5.0);
-	//defineConstant("sigma_K", 1.0); // tried diff value
-	//defineConstant("sigma_C", 0.4); // tried diff value
-	defineConstant("NORM", dnorm(0.0, mean=0, sd=sigma_C)); //how does it work?
+	defineConstant("sigma_K", 0.7); // tried diff value
+//	defineConstant("sigma_C", 0.4); // tried diff value
+//	defineConstant("NORM", dnorm(0.0, mean=0, sd=sigma_C)); //how does it work?
 	
 	// neutral mutations, which are not allowed to fix?
 	initializeMutationType("m1", 0.5, "n", 0.0, 1.0);
@@ -48,8 +49,8 @@ reproduction(p2) {
 }
 
 1 early() {
-	sim.addSubpop("p1", 1000); //pathogen initial population 
-	sim.addSubpop("p2", 1000); //host initial population 
+	sim.addSubpop("p1", K); //pathogen initial population 
+	sim.addSubpop("p2", hK); //host initial population 
 	p1.setSpatialBounds(c(-100.0, 100.0)); // looking at the phenotype in color
 	p2.setSpatialBounds(c(-100.0, 100.0)); // looking at the phenotype 
 	//Colors correspond to fitness 
@@ -84,15 +85,30 @@ early() {
 	inds_p.x = phenotypes_p;
 	
 	// outcome of infection	
-	outcome = sqrt(2 * 3.1415 * sigma_K) * dnorm(phenotypes_h, phenotypes_p[infects], sigma_K);
+	//outcome = sqrt(2 * 3.1415 * sigma_K) * dnorm(phenotypes_h, phenotypes_p[infects], sigma_K);
+	outcome = exp(-(((phenotypes_h - phenotypes_p[infects])/sigma_K)^2)/2);
 	
+	//cat(format("%5d", sim.generation));
+	//cat(format("%6.2f ", min(outcome)));
+	//cat(format("%6.2f ", max(outcome)));
 	outcome_p = rep(0.0, p1.individualCount);
+	//cat(format("%6.2f", mean(outcome_p)));
+	//cat(format("%5d", seqLen(p1.individualCount)));
 	for (j in seqLen(p1.individualCount)) {
 		outcome_p[j] = sum(1 - outcome[infects == j]);
+		//cat(format("%6.2f ", outcome_p[j]));
+        if (outcome_p[j] <= -1.0) { catn("Whoops!: fitness scaling will be " + (1.0 + outcome_p[j]) + " because outcome[infects == j] is:"); catn(outcome[infects == j]); }
 	}
+	//cat(format("%6.2f \n", outcome_p));
+	//cat("1 pluss");
+	//cat(format("%6.2f \n", 1.0 + outcome_p));
+	//cat(format("%6.2f \n", min(outcome_p)));
 	
-	inds_h.fitnessScaling = 1 + outcome; //host
-	inds_p.fitnessScaling = 1 + outcome_p; //pathogen 
+	//catn(infects);
+	//catn(outcome_p);
+
+	inds_h.fitnessScaling = 1.0 + outcome; //host
+	inds_p.fitnessScaling = 1.0 + outcome_p; //pathogen 
 	
 	// we want the sum of the fitness scalings to be hK:
 	p2.fitnessScaling = hK / sum(inds_h.fitnessScaling);
@@ -100,32 +116,30 @@ early() {
 }
 
 late() {
-	// fixed at 0.5 in the pathogen, is this correct?
-	// print the pop 1 mut freq 
-	muts = sim.mutationsOfType(m1);
-	mutsh = sim.mutationsOfType(m2);
-	freqs = 2 * sim.mutationFrequencies(p1, muts);
-	freqs_h = sim.mutationFrequencies(p2, mutsh);
-//	if (any(freqs == 0.5))
-//		p1.genomes.removeMutations(muts[freqs == 0.5], F);
 //	
-	phenotypes_p = p1.individuals.x;
-	phenotypes_h = p2.individuals.x;
-	if (sim.generation == 1)
-	{catn( "gen	pheno_p	pheno_h	div_p	div_h	ind_p	ind_h	sig_K	sig_C");
-	}
-	
-	cat(format("%5d ", sim.generation));
-	cat(format("%6.2f ", mean(phenotypes_p)));
-	cat(format("%6.2f", mean(phenotypes_h)));
-	cat(format("%6.2f", sum(2 * freqs * (1-freqs))));
-	cat(format("%6.2f", sum(2 * freqs_h * (1-freqs_h))));
-	cat("	");
-	cat(format("%5d", p1.individualCount));
-	cat("	");
-	cat(format("%5d", p2.individualCount));
-	cat(format("%6.2f", sigma_K));
-	cat(format("%6.2f \n", sigma_C));
+//	muts = sim.mutationsOfType(m1);
+//	mutsh = sim.mutationsOfType(m2);
+//	
+//	freqs = 2 * sim.mutationFrequencies(p1, muts);
+//	freqs_h = sim.mutationFrequencies(p2, mutsh);
+
+//	phenotypes_p = p1.individuals.x;
+//	phenotypes_h = p2.individuals.x;
+//	if (sim.generation == 1)
+//	{catn( "gen	pheno_p	pheno_h	div_p	div_h	ind_p	ind_h	sig_K	sig_C");
+//	}
+//	
+//	cat(format("%5d ", sim.generation));
+//	cat(format("%6.2f ", mean(phenotypes_p)));
+//	cat(format("%6.2f", mean(phenotypes_h)));
+//	cat(format("%6.2f", sum(2 * freqs * (1-freqs))));
+//	cat(format("%6.2f", sum(2 * freqs_h * (1-freqs_h))));
+//	cat("	");
+//	cat(format("%5d", p1.individualCount));
+//	cat("	");
+//	cat(format("%5d", p2.individualCount));
+//	cat(format("%6.2f", sigma_K));
+//	cat(format("%6.2f \n", sigma_C));
 //	if (sim.generation % 100 == 1)
 //	{
 //		phenotypes_p = p1.individuals.x;
