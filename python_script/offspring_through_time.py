@@ -1,28 +1,29 @@
 import pandas as pd
 import numpy as np
 import pyslim
-import sys
 import os
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-print(sys.version)
 # for filename in os.listdir('/Users/victoria/Desktop/Rotation_2020/bias_test_data/'):
 for filename in os.listdir('/Users/victoria/Desktop/trackall'):
-    print(filename)
-    if filename.endswith(".trees"):
+    if filename.endswith("1626980074634_late_10000_.trees"):
 
         myfile = filename.split(".trees")[0]
         print("myfile", myfile)
         # tree = pyslim.SlimTreeSequence.load('/Users/victoria/Desktop/biased_mig/trees/' + filename)
-        ts = pyslim.load('/Users/victoria/Desktop/trackall/' + filename)
+        #ts = pyslim.load('/Users/victoria/Desktop/trackall/' + filename)
+        ts = pyslim.load(
+            '/Users/victoria/Desktop/trackall/Bias_0.5_sigma_1_ID_1626980074634_late_10000_.trees')
         # ts = pyslim.load(
         #     '/Users/victoria/Desktop/trackall/Bias_0_sigma_0.35_ID_2708593720942_late_1000_.trees')
-        today = np.where(ts.individual_times == 0)[0]  # year you want to end "they are alive today"
-        ind_then = np.where(ts.individual_times == 10)[0]  # year you want to begin
-        print("this is today", today, "today length", len(today))
+        # today = np.where(ts.individual_times == 0)[0]  # year you want to end "they are alive today"
+        # ind_then = np.where(ts.individual_times == 10)[0]  # year you want to begin
+    #    print("this is today", today, "today length", len(today))
         # alive = ts.individuals_alive_at(0)
-        alive = np.where(ts.individual_times == (ts.slim_generation - 9800))[0]
-        # print("this is alive", alive, "alive length", len(alive))
+        timepoints = ts.slim_generation - 1
+        alive = np.where(ts.individual_times == (timepoints))[0]
+        print('slim_generation', ts.slim_generation)
+        #print("this is alive", alive, "alive length", len(alive))
         inds = ts.individuals_alive_at(99)
         # print("inds", inds, "length", len(in
         edges = ts.tables.edges
@@ -34,6 +35,7 @@ for filename in os.listdir('/Users/victoria/Desktop/trackall'):
         def find_the_kids(a, child_list):
             for child in child_list:
                 if child not in full_kid_list:
+                    #print("full_kid_list length", len(full_kid_list))
                     child_list = np.unique(sf.child[sf.parent == child].tolist())
                     full_kid_list.append(child)
                     # print("parent node", a, "new parent", child, "child(ren)", child_list)
@@ -108,7 +110,7 @@ for filename in os.listdir('/Users/victoria/Desktop/trackall'):
 
         kidos = []
         existing_sam = []
-        for year in reversed(range(0, 100, 1)):
+        for year in reversed(range(0, timepoints, 1)):
             kid_num = kid_by_year(year, dictOfkids)
             kidos.append(kid_num)
             ato = zero_to_nan(alive_sam, kid_num)
@@ -117,11 +119,11 @@ for filename in os.listdir('/Users/victoria/Desktop/trackall'):
             # print(year)
             # print("num_parents", len(alive_sam), "num_of_kids", kidos[99 - year], "at year", 99 - year)
             # print(max(kidos[99 - year]), sum(kidos[99 - year]))
-        print(existing_sam)
+        # print(existing_sam)
 
-        def update(year):
+        def update(frame_number):
             # for year in range(9, 100, 10):
-
+            year = frame_number % timepoints
             Pointsize = np.ma.masked_equal(kidos[year], 0)
             scat.set_sizes(Pointsize)
             # scat.set_offsets(locs[alive_sam, 0], locs[alive_sam, 1])
@@ -133,14 +135,14 @@ for filename in os.listdir('/Users/victoria/Desktop/trackall'):
             ax.set_title("Generation %d" % year)
             ax.set_ylabel(filename)
 
-        t = list(range(0, 100, 1))
+        t = list(range(0, timepoints, 1))
         Pointsize = [10] * 3
         Points = np.zeros(samplesize, dtype=[('xy', float, 2)])
         ax.scatter(locs[alive_sam, 0], locs[alive_sam, 1])
-        animation = FuncAnimation(fig, update, interval=10, frames=99)
+        animation = FuncAnimation(fig, update, interval=600, frames=timepoints)
         scat = ax.scatter(0, 0,
                           s=1, edgecolors='none', color="red")
 
-        animation.save('/Users/victoria/Desktop/' + filename + "_samplesize_" + str(samplesize) + '2.gif',
-                       writer='imagemagick', fps=30)
-    #    plt.show()
+        animation.save('/Users/victoria/Desktop/' + filename + "_samplesize_" +
+                       str(samplesize) + "_timepoints_" + str(timepoints) + '.gif', writer='imagemagick', fps=10)
+#        plt.show()

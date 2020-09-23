@@ -4,12 +4,12 @@ setSeed(1604481158968);
 	initializeSLiMOptions(dimensionality="x"); // Modeling phenotype, phenotype is a pseudo-spatial dimension pg 281
 	//initializeTreeSeq();
 	defineConstant("K", 100);	// pathogen carrying capacity
-	defineConstant("hK", 100);	// host carrying capacity
+	defineConstant("hK", 1000);	// host carrying capacity
 	
 	//QT and normalization
 	// evenually i want it to be depent on the number of mutations within eachother
 	defineConstant("optimum", 5.0);
-	defineConstant("sigma_K", 0.7); // tried diff value
+	defineConstant("sigma_K", 0.33); // tried diff value
 //	defineConstant("sigma_C", 0.4); // tried diff value
 //	defineConstant("NORM", dnorm(0.0, mean=0, sd=sigma_C)); //how does it work?
 	
