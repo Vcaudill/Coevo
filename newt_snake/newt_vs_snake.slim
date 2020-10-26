@@ -1,0 +1,147 @@
+initialize() {
+	
+	initializeSLiMModelType("nonWF");
+	initializeSLiMOptions(dimensionality="xy");
+	sigma_i =1; // area for individulas to mate with might condider 2
+	recomb=1e-8;
+	
+	defineConstant("K", 3);  // carrying-capacity per unit square (roughly)
+	defineConstant("SD", sigma_i);  // sigma_D, the dispersal distance
+	defineConstant("SI", sigma_i);  // sigma_I, the spatial interaction distance
+	defineConstant("SM", SI);  // sigma_M, the mate choice distance
+	defineConstant("L", 4);    // mean lifetime at stationarity
+	defineConstant("W", 35.0);  // width and height of the simulated area
+	defineConstant("G", 1e8);  // genome length
+	defineConstant("FECUN", 1/L); // mean fecundity
+	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
+	
+	initializeMutationType("m1", 0.5, "n", 0.0, 1.0);
+	initializeMutationType("m2", 0.5, "n", 0.0, 1.0);
+	initializeGenomicElementType("g1", c(m1, m2), c(1, 1)); // mutation proportions
+	initializeGenomicElement(g1, 0, G-1);
+	initializeMutationRate(0.0);
+	initializeRecombinationRate(recomb);
+	
+	// spatial competition
+	initializeInteractionType(1, "xy", reciprocal=T, maxDistance=SI * 3);
+	i1.setInteractionFunction("n", 1.0/(2*PI*SI^2), SI);
+	
+	// mate choice
+	initializeInteractionType(2, "xy", reciprocal=T, maxDistance=SM * 3);
+	i2.setInteractionFunction("n", 1.0/(2*PI*SM^2), SM);
+
+}
+
+// to make the mutions truly neutral?
+fitness(m1) { return 1.0; }
+fitness(m2) { return 1.0; }
+
+reproduction(p1) {
+	// choose our nearest neighbor as a mate, within the max distance
+	// How to do this by sub-population 
+	mate = i2.drawByStrength(individual, 1);
+	if (mate.size()) {
+		nOff = rpois(1, FECUN);
+		//individual.tag = individual.tag + nOff;  // DEBUG
+		for (i in seqLen(nOff)) {
+			pos = individual.spatialPosition + rnorm(2, SD); // add biased dispersal
+			if (p1.pointInBounds(pos)) {
+				offspring = subpop.addCrossed(individual, mate);
+				offspring.setSpatialPosition(p1.pointReflected(pos));
+				//offspring.tag = 0; 
+			}
+		}
+	}
+	return;
+}
+
+reproduction(p2) {
+	// choose our nearest neighbor as a mate, within the max distance
+	// How to do this by sub-population 
+	mate = i2.drawByStrength(individual, 1);
+	if (mate.size()) {
+		nOff = rpois(1, FECUN);
+		//individual.tag = individual.tag + nOff;  // DEBUG
+		for (i in seqLen(nOff)) {
+			pos = individual.spatialPosition + rnorm(2, SD); // add biased dispersal
+			if (p2.pointInBounds(pos)) {
+				offspring = subpop.addCrossed(individual, mate);
+				offspring.setSpatialPosition(p2.pointReflected(pos));
+				//offspring.tag = 0; 
+			}
+		}
+	}
+	return;
+}
+
+
+1 early() {
+	sim.addSubpop("p1", asInteger(K * W * W));
+	sim.addSubpop("p2", asInteger(K * W * W));
+	p1.setSpatialBounds(c(0, 0, W, W));
+	p2.setSpatialBounds(c(0, 0, W, W));
+	// random initial positions
+	for (ind in p1.individuals) {
+		ind.setSpatialPosition(p1.pointUniform());
+	}
+	for (ind in p2.individuals) {
+		ind.setSpatialPosition(p2.pointUniform());
+	}
+	i1.evaluate();
+}
+
+
+early() {
+	
+	// removing mutations that apear in the wrong population
+	muts1 = sim.mutationsOfType(m1);  // pathogen mutations
+	muts2 = sim.mutationsOfType(m2); // host mutations
+	p1.individuals.genomes.removeMutations(muts2);
+	p2.individuals.genomes.removeMutations(muts1);
+}
+
+
+
+early() { //competition
+	i1.evaluate(p1);
+	inds = p1.individuals;
+	competition = i1.totalOfNeighborStrengths(inds);
+	inds.tagF = competition;  // DEBUG
+	inds.fitnessScaling = pmin(0.95, 1/(1 + RHO * competition));
+	// avoid edge effects
+	inds.fitnessScaling = inds.fitnessScaling * pmin(sqrt(inds.x/SI), 1.0) * pmin(sqrt(inds.y/SI), 1.0) * pmin(sqrt((W - inds.x)/SI), 1.0) * pmin(sqrt((W - inds.y)/SI), 1.0); // corner is bad
+}
+
+early() { //competition
+	i1.evaluate(p2);
+	inds = p2.individuals;
+	competition = i1.totalOfNeighborStrengths(inds);
+	inds.tagF = competition;  // DEBUG
+	inds.fitnessScaling = pmin(0.95, 1/(1 + RHO * competition));
+	// avoid edge effects
+	inds.fitnessScaling = inds.fitnessScaling * pmin(sqrt(inds.x/SI), 1.0) * pmin(sqrt(inds.y/SI), 1.0) * pmin(sqrt((W - inds.x)/SI), 1.0) * pmin(sqrt((W - inds.y)/SI), 1.0); // corner is bad
+}
+
+
+1: late() {
+	// to be ready for mate choice
+	i2.evaluate(p1);
+	i2.evaluate(p2);
+}
+
+
+
+2: late() {
+	
+	for (ind in p1.individuals) {
+		ind.color = "blue";
+	}
+	for (ind in p2.individuals) {
+		ind.color = "red";
+	}
+}
+
+
+1000 late() {
+	sim.simulationFinished();
+}
