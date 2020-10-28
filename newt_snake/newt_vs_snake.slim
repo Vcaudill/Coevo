@@ -2,7 +2,7 @@ initialize() {
 	
 	initializeSLiMModelType("nonWF");
 	initializeSLiMOptions(dimensionality="xy");
-	sigma_i =1; // area for individulas to mate with might condider 2
+	sigma_i = 1; // area for individulas to mate with might condider 2
 	recomb=1e-8;
 	
 	defineConstant("K", 3);  // carrying-capacity per unit square (roughly)
@@ -44,7 +44,7 @@ reproduction(p1) {
 		nOff = rpois(1, FECUN);
 		//individual.tag = individual.tag + nOff;  // DEBUG
 		for (i in seqLen(nOff)) {
-			pos = individual.spatialPosition + rnorm(2, SD); // add biased dispersal
+			pos = individual.spatialPosition + rnorm(2, SD); // add dispersal
 			if (p1.pointInBounds(pos)) {
 				offspring = subpop.addCrossed(individual, mate);
 				offspring.setSpatialPosition(p1.pointReflected(pos));
@@ -63,7 +63,7 @@ reproduction(p2) {
 		nOff = rpois(1, FECUN);
 		//individual.tag = individual.tag + nOff;  // DEBUG
 		for (i in seqLen(nOff)) {
-			pos = individual.spatialPosition + rnorm(2, SD); // add biased dispersal
+			pos = individual.spatialPosition + rnorm(2, SD); // add dispersal
 			if (p2.pointInBounds(pos)) {
 				offspring = subpop.addCrossed(individual, mate);
 				offspring.setSpatialPosition(p2.pointReflected(pos));
@@ -80,6 +80,7 @@ reproduction(p2) {
 	sim.addSubpop("p2", asInteger(K * W * W));
 	p1.setSpatialBounds(c(0, 0, W, W));
 	p2.setSpatialBounds(c(0, 0, W, W));
+	// would it be better to add them on the same plot
 	// random initial positions
 	for (ind in p1.individuals) {
 		ind.setSpatialPosition(p1.pointUniform());
@@ -94,19 +95,18 @@ reproduction(p2) {
 early() {
 	
 	// removing mutations that apear in the wrong population
-	muts1 = sim.mutationsOfType(m1);  // pathogen mutations
-	muts2 = sim.mutationsOfType(m2); // host mutations
+	muts1 = sim.mutationsOfType(m1);  // newt mutations
+	muts2 = sim.mutationsOfType(m2); // snake mutations
 	p1.individuals.genomes.removeMutations(muts2);
 	p2.individuals.genomes.removeMutations(muts1);
 }
 
 
-
+//update competition to be density dependent for the combo of both populations
 early() { //competition
 	i1.evaluate(p1);
-	inds = p1.individuals;
+	inds = p1.individuals; // would sim.individuals work
 	competition = i1.totalOfNeighborStrengths(inds);
-	inds.tagF = competition;  // DEBUG
 	inds.fitnessScaling = pmin(0.95, 1/(1 + RHO * competition));
 	// avoid edge effects
 	inds.fitnessScaling = inds.fitnessScaling * pmin(sqrt(inds.x/SI), 1.0) * pmin(sqrt(inds.y/SI), 1.0) * pmin(sqrt((W - inds.x)/SI), 1.0) * pmin(sqrt((W - inds.y)/SI), 1.0); // corner is bad
@@ -116,12 +116,14 @@ early() { //competition
 	i1.evaluate(p2);
 	inds = p2.individuals;
 	competition = i1.totalOfNeighborStrengths(inds);
-	inds.tagF = competition;  // DEBUG
 	inds.fitnessScaling = pmin(0.95, 1/(1 + RHO * competition));
 	// avoid edge effects
 	inds.fitnessScaling = inds.fitnessScaling * pmin(sqrt(inds.x/SI), 1.0) * pmin(sqrt(inds.y/SI), 1.0) * pmin(sqrt((W - inds.x)/SI), 1.0) * pmin(sqrt((W - inds.y)/SI), 1.0); // corner is bad
 }
 
+
+//1: early() {} // the interaction of snake and newt, how to combine with density dependent competition (one function with random effectiveness???)
+//Create the different selection areas 
 
 1: late() {
 	// to be ready for mate choice
@@ -132,7 +134,7 @@ early() { //competition
 
 
 2: late() {
-	
+	//for coloring it would be cool to see the phenotype
 	for (ind in p1.individuals) {
 		ind.color = "blue";
 	}
