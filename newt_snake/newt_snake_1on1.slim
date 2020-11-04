@@ -99,77 +99,26 @@ early() {
 	p2.individuals.genomes.removeMutations(muts1);
 }
 
-
-//update competition to be density dependent for the combo of both populations
-//early() { //competition
-//	i1.evaluate(p1);
-//	inds = p1.individuals; // would sim.individuals work
-//	competition = i1.totalOfNeighborStrengths(inds);
-//	inds.fitnessScaling = pmin(0.95, 1/(1 + RHO * competition));
-//	// avoid edge effects
-//	inds.fitnessScaling = inds.fitnessScaling * pmin(sqrt(inds.x/SI), 1.0) * pmin(sqrt(inds.y/SI), 1.0) * pmin(sqrt((W - inds.x)/SI), 1.0) * pmin(sqrt((W - inds.y)/SI), 1.0); // corner is bad
-//}
-
-//loop over newts to get their postions
-//compute a map of local snake density
-//if there are lots of snakes newts are in trouble
-
-//would this be reversed for snakes? like more newts = full snakes
-
-//but what about posion levels? like if all the newts near are unable to be eaten?
-
-
-early() { //competition	// pre-calculate adult density matrix for faster queries
-	i1.evaluate(p1);
-	i2.evaluate(p2);
-	inds_n = p1.individuals;
-	inds_s = p2.individuals;
-	
-	phenotypes_n = inds_n.sumOfMutationsOfType(m1);
-	phenotypes_s = inds_s.sumOfMutationsOfType(m2);
-	
-	bounds = p2.spatialBounds;
-	m = float(100);
-	i = 0;
-	for (y in seq(from=bounds[1], to=bounds[3], length=10))
-	{
-		for (x in seq(from=bounds[0], to=bounds[2], length=10))
-		{
-			mPoint = c(x,y);
-			snakeNeighbors = i2.nearestNeighborsOfPoint(p2, mPoint, count=1000000);
-			who_snakeNeighbor = sample(snakeNeighbors, length(snakeNeighbors));//which snake
-			distances = i2.distanceToPoint(snakeNeighbors, mPoint); //far they are from point
-			strengths = dnorm(distances, mean=0.0, sd=0.1); //sd 1/4 dis between points
-			//catn(phenotypes_s[who_snakeNeighbor]);/// problem i want to know the phenotype of the snakes 
-			//pheno_strength = strengths * phenotypes_s[who_snakeNeighbor];// strength * posion phonotype 
-			density = sum(strengths);
-			m[i] = density;
-			i = i + 1;
-		}
-	}
-	p1.defineSpatialMap("density", "xy", c(10,10), m, interpolate=T);
-	
-	for (ind in p1.individuals) {
-		density = p1.spatialMapValue("density", ind.spatialPosition);
-		catn(density);
-		// do something with density
-		// is make somthing like a probablity of the newt dying if there are a lot of snakes near by with high resistance 
-		
-	}
+early() {
+    // survival probabilities
+    p1.fitnessScaling = 1-0.1;
+    p2.fitnessScaling = 1-0.1;
 }
 
-//early() { //competition
-//	i1.evaluate(p2);
-//	inds = p2.individuals;
-//	competition = i1.totalOfNeighborStrengths(inds);
-//	inds.fitnessScaling = pmin(0.95, 1/(1 + RHO * competition));
-//	// avoid edge effects
-//	inds.fitnessScaling = inds.fitnessScaling * pmin(sqrt(inds.x/SI), 1.0) * pmin(sqrt(inds.y/SI), 1.0) * pmin(sqrt((W - inds.x)/SI), 1.0) * pmin(sqrt((W - inds.y)/SI), 1.0); // corner is bad
-//}
-
-
-//1: early() {} // the interaction of snake and newt, how to combine with density dependent competition (one function with random effectiveness???)
-//Create the different selection areas 
+early() {
+	i1.evaluate();
+	i2.evaluate();
+	// num_predators = p2.individualCount;
+	// fatal_encounters = rbinom(p1.individualCount, num_predators, A * C);
+	for (snake in p2.individuals) {
+		newt = i2.nearestNeighborsOfPoint(p1, snake.spatialPosition); // this is everyone with 3 sigma
+		num_fatal_encounters = rbinom(1, size(newt), 0.5); // but i want it to depend on the sourounding posion levels of the newt
+		if (num_fatal_encounters > 0) {
+			newt = sample(newt, 1);
+			snake.fitnessScaling = 0.0;
+		}
+	}
+}
 
 1: late() {
 	// to be ready for mate choice
