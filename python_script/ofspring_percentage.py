@@ -9,7 +9,7 @@ from matplotlib.animation import FuncAnimation
 # this file I use sort to potentally sole the problem of missmatching of children
 # for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
 for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
-    if filename.endswith(".trees"):
+    if filename.endswith("10_.trees"):
 
         myfile = filename.split(".trees")[0]
         print("myfile", myfile)
@@ -45,7 +45,7 @@ for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
             first_gen_nodes.extend(ts.individual(ind).nodes)
         first_gen_nodes = np.sort(np.array(first_gen_nodes))  # CAN BE SORTED TOO
         target_time = 5
-        print("sort")  # tested sort on talapas
+        print("sort")  # tested sort on talapas dot position did change
         # num_paths[i, j] = number of paths through the pedigree from node j to node i,
         #   for each j in first_gen
         # my_rando_sample_test = np.random.randint(0, len(first_gen_nodes), size=sample_size)
@@ -94,58 +94,59 @@ for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
             kidos.append(kid_num)
             print("Calculating offspring for generation", year)
         # print("kidos", kidos)
-    '''
-    import numpy as np
-    a = np.array([3, 4, 5])
-    print(np.where(a == 5))
-    for t in range(ts.slim_generation - 1, 0, -1):
-        print(num_paths_to(t)[my_rando_sample], len(num_paths_to(t)))
+        '''
+        import numpy as np
+        a = np.array([3, 4, 5])
+        print(np.where(a == 5))
+        for t in range(ts.slim_generation - 1, 0, -1):
+            print(num_paths_to(t)[my_rando_sample], len(num_paths_to(t)))
 
-    '''
-    ran_sample = []
-    for i_node in my_rando_sample:  # this is node
-            # truns nodes into individuals
-        ran_sample_ind = int(nodes.individual[i_node])  # dont need int
-        ran_sample.append(int(ran_sample_ind))
-        # ran_sample = ran_sample.append(ran_sample_ind)
-        ###################
-        # i think the postion problem is here when i convert nodes back into individuls
-        # should i be adding number of decedents back together?
+        '''
+        ran_sample = []
+        for i_node in my_rando_sample:  # this is node
+                # truns nodes into individuals
+            ran_sample_ind = int(nodes.individual[i_node])  # dont need int
+            ran_sample.append(int(ran_sample_ind))
+            # ran_sample = ran_sample.append(ran_sample_ind)
+            ###################
+            # i think the postion problem is here when i convert nodes back into individuls
+            # should i be adding number of decedents back together?
+            # or could we just repeat the individual - but then there would be overlapping circles
 
-    print("ran_sample length", len(ran_sample))
-    print("kidos length", len(kidos[1]))
+        print("ran_sample length", len(ran_sample))
+        print("kidos length", len(kidos[1]))
 
-    def update(frame_number):
-        # for year in range(9, 100, 10):
-        year = frame_number % ts.slim_generation
-        # means = statistics.mean(kidos[year])
-        average = kidos[year][np.nonzero(kidos[year])].mean()
-        Pointsize = np.ma.masked_equal((kidos[year] / average) * 10, 0)
-        scat.set_sizes(Pointsize)
-        # scat.set_offsets(locs[alive_sam, 0], locs[alive_sam, 1])
-        Points['xy'][:, 0] = locs[ran_sample, 0]
-        Points['xy'][:, 1] = locs[ran_sample, 1]
-        scat.set_sizes(Pointsize)
-        scat.set_offsets(Points['xy'])
-        scat.set_array(np.array(kidos[year]))
-        ax.set_title("Generation %d" % year)
+        def update(frame_number):
+            # for year in range(9, 100, 10):
+            year = frame_number % ts.slim_generation
+            # means = statistics.mean(kidos[year])
+            average = kidos[year][np.nonzero(kidos[year])].mean()
+            Pointsize = np.ma.masked_equal((kidos[year] / average) * 10, 0)
+            scat.set_sizes(Pointsize)
+            # scat.set_offsets(locs[alive_sam, 0], locs[alive_sam, 1])
+            Points['xy'][:, 0] = locs[ran_sample, 0]
+            Points['xy'][:, 1] = locs[ran_sample, 1]
+            scat.set_sizes(Pointsize)
+            scat.set_offsets(Points['xy'])
+            scat.set_array(np.array(kidos[year]))
+            ax.set_title("Generation %d" % year)
 
-    fig = plt.figure(figsize=(9, 9))
-    ax = fig.add_subplot(111)
-    locs = ts.individual_locations
-    xmax = np.ceil(max(locs[:, 0]))
-    ymax = np.ceil(max(locs[:, 1]))
-    ax.set_xlim(0, xmax)
-    ax.set_ylim(0, ymax)
+        fig = plt.figure(figsize=(9, 9))
+        ax = fig.add_subplot(111)
+        locs = ts.individual_locations
+        xmax = np.ceil(max(locs[:, 0]))
+        ymax = np.ceil(max(locs[:, 1]))
+        ax.set_xlim(0, xmax)
+        ax.set_ylim(0, ymax)
 
-    t = list(range(0, ts.slim_generation, 1))
-    Pointsize = [10] * 3
-    Points = np.zeros(sample_size, dtype=[('xy', float, 2)])
-    # ax.scatter(locs[ran_sample, 0], locs[ran_sample, 1])  # blue points
-    ax.set_ylabel(myfile)
-    animation = FuncAnimation(fig, update, interval=600, frames=ts.slim_generation)
-    scat = ax.scatter(0, 0,
-                      s=1, edgecolors='none', color="red")
+        t = list(range(0, ts.slim_generation, 1))
+        Pointsize = [10] * 3
+        Points = np.zeros(sample_size, dtype=[('xy', float, 2)])
+        # ax.scatter(locs[ran_sample, 0], locs[ran_sample, 1])  # blue points
+        ax.set_ylabel(myfile)
+        animation = FuncAnimation(fig, update, interval=600, frames=ts.slim_generation)
+        scat = ax.scatter(0, 0,
+                          s=1, edgecolors='none', color="red")
 
-    animation.save('/Users/victoria/Desktop/test_' + myfile + "_samplesize_" +
-                   str(sample_size) + "_timepoints_" + str(ts.slim_generation) + '.gif', writer='imagemagick', fps=10)
+        animation.save('/Users/victoria/Desktop/test_' + myfile + "_samplesize_" +
+                       str(sample_size) + "_timepoints_" + str(ts.slim_generation) + '.gif', writer='imagemagick', fps=10)
