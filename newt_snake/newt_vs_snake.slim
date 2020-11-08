@@ -137,12 +137,13 @@ early() { //competition	// pre-calculate adult density matrix for faster queries
 		{
 			mPoint = c(x,y);
 			snakeNeighbors = i2.nearestNeighborsOfPoint(p2, mPoint, count=1000000);
+			//catn(snakeNeighbors);
 			who_snakeNeighbor = sample(snakeNeighbors, length(snakeNeighbors));//which snake
 			distances = i2.distanceToPoint(snakeNeighbors, mPoint); //far they are from point
 			strengths = dnorm(distances, mean=0.0, sd=0.1); //sd 1/4 dis between points
-			//catn(phenotypes_s[who_snakeNeighbor]);/// problem i want to know the phenotype of the snakes 
-			//pheno_strength = strengths * phenotypes_s[who_snakeNeighbor];// strength * posion phonotype 
-			density = sum(strengths);
+			//catn(phenotypes_s[snakeNeighbors.index]);/// problem i want to know the phenotype of the snakes 
+			pheno_strength = strengths * phenotypes_s[snakeNeighbors.index];// strength * posion phonotype 
+			density = sum(pheno_strength);
 			m[i] = density;
 			i = i + 1;
 		}
@@ -150,9 +151,9 @@ early() { //competition	// pre-calculate adult density matrix for faster queries
 	p1.defineSpatialMap("density", "xy", c(10,10), m, interpolate=T);
 	
 	for (ind in p1.individuals) {
-		density = p1.spatialMapValue("density", ind.spatialPosition);
-		catn(density);
-		// do something with density
+		snake_res_density = p1.spatialMapValue("density", ind.spatialPosition); //ind p1.individuals
+		//e^-x slopes down
+		ind.fitnessScaling = exp(-snake_res_density); //the fitness goes down as snake resistance goes up 
 		// is make somthing like a probablity of the newt dying if there are a lot of snakes near by with high resistance 
 		
 	}

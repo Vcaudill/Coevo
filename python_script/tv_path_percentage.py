@@ -8,29 +8,16 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 # this file I use sort to potentally sole the problem of missmatching of children
 # for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
-for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
-    if filename.endswith("10_.trees"):
+for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
+    if filename.endswith("_500_.trees"):
 
         myfile = filename.split(".trees")[0]
         print("myfile", myfile)
         # tree = pyslim.SlimTreeSequence.load('/Users/victoria/Desktop/biased_mig/trees/' + filename)
-        # ts = pyslim.load('/home/vcaudill/kernlab/animate_center/files/' + filename)
-        ts = pyslim.load('/Users/victoria/Desktop/bias_test_data/' + filename)
-# this file only has 10 generations for testing
-        '''
-        ts = pyslim.load(
-            "/Users/victoria/Desktop/bias_test_data/Bias_0.1_sigma_1_ID_1820680293725_late_50000_.trees")
-
-        ts = pyslim.load(
-            '/Users/victoria/Desktop/bias_test_data/Bias_0.15_sigma_0.8_ID_1602158267717_late_100_.trees')
-        '''
+        ts = pyslim.load('/home/vcaudill/kernlab/animate_center/files/' + filename)
         sample_size = 2 * len(ts.individuals_alive_at(ts.slim_generation - 1))
         print("sample_size", sample_size)
-        # sample_size = 200
-        #filename = "100_gen_test"
-        # NODES:
-        # find children of first_gen at target time
-        # where "children" means number paths to anyone alive at target time
+
         # NODES:
         # find children of first_gen at target time
         # where "children" means number paths to anyone alive at target time
@@ -143,5 +130,5 @@ for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
         scat = ax.scatter(0, 0,
                           s=1, edgecolors='none', color="red")
 
-        animation.save('/Users/victoria/Desktop/test_' + myfile + "_samplesize_" +
+        animation.save('/home/vcaudill/kernlab/animate_center/sort_dub/an_' + myfile + "_samplesize_" +
                        str(sample_size) + "_timepoints_" + str(ts.slim_generation) + '.gif', writer='imagemagick', fps=10)
