@@ -104,7 +104,7 @@ for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
             # means = statistics.mean(kidos[year])
             average = kidos[year][np.nonzero(kidos[year])].mean()
             Pointsize = np.ma.masked_equal((kidos[year] / average) * 10, 0)
-            scat.set_sizes(Pointsize)
+            scat.set_sizes(Pointsize)  # I added np.array(Pointsize)
             # scat.set_offsets(locs[alive_sam, 0], locs[alive_sam, 1])
             Points['xy'][:, 0] = locs[ind_to_plot, 0]
             Points['xy'][:, 1] = locs[ind_to_plot, 1]
