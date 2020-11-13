@@ -91,6 +91,8 @@ for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
             kidos.append(np.array(kid_num_by_ind))
             print("Calculating offspring for generation", year)
         # print("kidos", kidos)
+        np.savetxt('/home/vcaudill/kernlab/animate_center/csv/' + myfile + "_samplesize_" +
+                   str(sample_size / 2) + "_timepoints_" + str(ts.slim_generation) + '.csv', kidos, delimiter=",")
 
         ind_to_plot = []
         for i_node in my_rand_node_sample:

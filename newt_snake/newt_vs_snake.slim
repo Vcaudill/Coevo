@@ -19,7 +19,7 @@ initialize() {
 	initializeMutationType("m2", 0.5, "n", 0.0, 1.0);
 	initializeGenomicElementType("g1", c(m1, m2), c(1, 1)); // mutation proportions
 	initializeGenomicElement(g1, 0, G-1);
-	initializeMutationRate(0.0);
+	initializeMutationRate(1e-8);
 	initializeRecombinationRate(recomb);
 	
 	// spatial competition
@@ -129,7 +129,7 @@ early() {
 //but what about posion levels? like if all the newts near are unable to be eaten?
 
 
-early() { //competition	// pre-calculate adult density matrix to relate the populations posion/resistance levels and do competetion
+early() { //competition	// pre-calculate adult density matrix to relate the populations posion/resistance levels and do competetion within a population 
 	i1.evaluate(p1);
 	i2.evaluate(p2);
 	inds_n = p1.individuals;
@@ -138,8 +138,8 @@ early() { //competition	// pre-calculate adult density matrix to relate the popu
 	newt_competition = i1.totalOfNeighborStrengths(inds_n);
 	snake_competition = i2.totalOfNeighborStrengths(inds_s);
 	
-	phenotypes_n = inds_n.sumOfMutationsOfType(m1);
-	phenotypes_s = inds_s.sumOfMutationsOfType(m2);
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); //no neagtive phenotype
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10);
 	
 	inds_n.fitnessScaling = pmin(0.95, 1/(1 + RHO * newt_competition));
 	inds_s.fitnessScaling = pmin(0.95, 1/(1 + RHO * snake_competition));
@@ -184,17 +184,15 @@ early() { //competition	// pre-calculate adult density matrix to relate the popu
 	for (ind in p1.individuals) {
 		snake_res_density = p1.spatialMapValue("snakedensity", ind.spatialPosition); //ind p1.individuals
 		//e^-x slopes down
-		ind.fitnessScaling = ind.fitnessScaling + exp(-snake_res_density); //the fitness goes down as snake resistance goes up 
-		
-		//also include neagtive fitness if there are too many snakes or newts
-		
+		ind.fitnessScaling = ind.fitnessScaling * exp(- (snake_res_density)); //the fitness goes down as snake resistance goes up 
+				
 		// is make somthing like a probablity of the newt dying if there are a lot of snakes near by with high resistance 
 	
 	}
 	for (ind in p2.individuals) {
 		newt_res_density = p2.spatialMapValue("newtdensity", ind.spatialPosition);
 		//e^-x slopes down
-		ind.fitnessScaling = ind.fitnessScaling + exp(-newt_res_density); //the fitness goes down as newt posion goes up 
+		ind.fitnessScaling = ind.fitnessScaling * exp(- (newt_res_density)); //the fitness goes down as newt posion goes up 
 	
 	
 	}
@@ -202,8 +200,6 @@ early() { //competition	// pre-calculate adult density matrix to relate the popu
 
 
 
-
-//1: early() {} // the interaction of snake and newt, how to combine with density dependent competition (one function with random effectiveness???)
 //Create the different selection areas 
 
 1: late() {
@@ -214,15 +210,15 @@ early() { //competition	// pre-calculate adult density matrix to relate the popu
 
 
 
-2: late() {
-	//for coloring it would be cool to see the phenotype
-	for (ind in p1.individuals) {
-		ind.color = "blue";
-	}
-	for (ind in p2.individuals) {
-		ind.color = "red";
-	}
-}
+//2: late() {
+//	//for coloring it would be cool to see the phenotype
+//	for (ind in p1.individuals) {
+//		ind.color = "blue";
+//	}
+//	for (ind in p2.individuals) {
+//		ind.color = "red";
+//	}
+//}
 
 
 1000 late() {

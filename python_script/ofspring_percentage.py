@@ -104,6 +104,10 @@ for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
             kidos.append(np.array(kid_num_by_ind))
             print("Calculating offspring for generation", year)
         # print("kidos", kidos)
+        #np.savetxt("foo.csv", kidos, delimiter=",")
+
+        kidos[5] = np.repeat(0, len(kidos[5]))
+        #kidos[5] = np.append(kidos[5], 1)
 
         ind_to_plot = []
         for i_node in my_rand_node_sample:
@@ -121,6 +125,7 @@ for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
             # scat.set_offsets(locs[alive_sam, 0], locs[alive_sam, 1])
             Points['xy'][:, 0] = locs[ind_to_plot, 0]
             Points['xy'][:, 1] = locs[ind_to_plot, 1]
+            print(Pointsize)
             scat.set_sizes(Pointsize)
             scat.set_offsets(Points['xy'])
             scat.set_array(np.array(kidos[year]))
