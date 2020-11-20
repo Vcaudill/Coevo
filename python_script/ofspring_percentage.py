@@ -101,13 +101,13 @@ for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
             kid_num_by_ind = [int(sum(kid_num_by_nodes[current: current + 1]))
                               for current in range(0, len(kid_num_by_nodes), 2)]
 
-            kidos.append(np.array(kid_num_by_ind))
+            kidos.append(np.array(kid_num_by_ind).astype(np.float))
             print("Calculating offspring for generation", year)
         # print("kidos", kidos)
         #np.savetxt("foo.csv", kidos, delimiter=",")
 
-        kidos[5] = np.repeat(0, len(kidos[5]))
-        #kidos[5] = np.append(kidos[5], 1)
+        kidos[5] = np.repeat(1000000e119, len(kidos[5]))
+        kidos[7] = np.repeat("300", len(kidos[5]))
 
         ind_to_plot = []
         for i_node in my_rand_node_sample:
@@ -118,9 +118,12 @@ for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
         def update(frame_number):
                 # for year in range(9, 100, 10):
             year = frame_number % ts.slim_generation
+            print("year", year)
             # means = statistics.mean(kidos[year])
+            print("kido of year type", kidos[year].dtype)
             average = kidos[year][np.nonzero(kidos[year])].mean()
             Pointsize = np.ma.masked_equal((kidos[year] / average) * 10, 0)
+            print("Pointsize dtpye", Pointsize.dtype)
             scat.set_sizes(np.array(Pointsize))
             # scat.set_offsets(locs[alive_sam, 0], locs[alive_sam, 1])
             Points['xy'][:, 0] = locs[ind_to_plot, 0]

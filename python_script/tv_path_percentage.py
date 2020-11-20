@@ -88,7 +88,7 @@ for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
             kid_num_by_ind = [int(sum(kid_num_by_nodes[current: current + 1]))
                               for current in range(0, len(kid_num_by_nodes), 2)]
 
-            kidos.append(np.array(kid_num_by_ind))
+            kidos.append(np.array(kid_num_by_ind).astype(np.float))
             print("Calculating offspring for generation", year)
         # print("kidos", kidos)
         np.savetxt('/home/vcaudill/kernlab/animate_center/csv/' + myfile + "_samplesize_" +
@@ -104,8 +104,10 @@ for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
                 # for year in range(9, 100, 10):
             year = frame_number % ts.slim_generation
             # means = statistics.mean(kidos[year])
+            print(kidos[year].dtype)
             average = kidos[year][np.nonzero(kidos[year])].mean()
             Pointsize = np.ma.masked_equal((kidos[year] / average) * 10, 0)
+            print(Pointsize.dtype)
             scat.set_sizes(Pointsize)  # I added np.array(Pointsize)
             # scat.set_offsets(locs[alive_sam, 0], locs[alive_sam, 1])
             Points['xy'][:, 0] = locs[ind_to_plot, 0]
