@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 '''
-So I have been geeting an error:
+So I have been geeting an error: 
 
 AttributeError: 'float' object has no attribute 'sqrt'
 
