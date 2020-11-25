@@ -6,7 +6,7 @@ initialize() {
 	recomb=1e-8;
 	sigma_in = 0.5; // i want more of a decrease in fitness when there are too many neighbors!
 	
-	defineConstant("K", 5);  // carrying-capacity per unit square (roughly)
+	defineConstant("K", 1);  // carrying-capacity per unit square (roughly)
 	defineConstant("SD", sigma_in);  // sigma_D, the dispersal distance
 	defineConstant("SI", sigma_in);  // sigma_I, the spatial interaction distance
 	defineConstant("SM", SI);  // sigma_M, the mate choice distance
@@ -170,7 +170,10 @@ early() { //competition within and between populations
 		snake_res_density = p1.spatialMapValue("snakedensity", ind.spatialPosition); //ind p1.individuals
 		//e^-x slopes down
 		//here i want the fitness of the newt to be determined by how many newt neghibors, resistant snake neghibors, and get a bonus for being super posionous 
-		ind.fitnessScaling = ind.fitnessScaling * exp(- (snake_res_density)) * ind.z; //the fitness goes down as snake resistance goes up 
+		ind.fitnessScaling = ind.fitnessScaling * exp(-max(c(0, ind.z - snake_res_density))/10); //the fitness goes down as snake resistance goes up can devid by a number like 10
+		// exp(ind.z - nearby snakes pheotype)
+		//exp(-max(0, ind.z - snake_res_density)) fitness goes up with phenotype but it will get a cost if its not posious enough
+		
 		hue = ((ind.z + 1) / (1 * 2)) * 0.66;
 		ind.color = rgb2color(hsv2rgb(c(hue, 1.0, 1.0)));
 		// is make somthing like a probablity of the newt dying if there are a lot of snakes near by with high resistance 
@@ -180,9 +183,9 @@ early() { //competition within and between populations
 		newt_res_density = p2.spatialMapValue("newtdensity", ind.spatialPosition);
 		//e^-x slopes down
 		//here i want the fitness of the snake to be determined by how many snake neghibors, posionius newt neghibors, and get a bonus for able to eat posionous newts
-		ind.fitnessScaling = ind.fitnessScaling * exp(- (newt_res_density)) * ind.z; //the fitness goes down as newt posion goes up 
+		ind.fitnessScaling = ind.fitnessScaling * exp(-max(c(0, ind.z - newt_res_density))/10); //the fitness goes down as newt posion goes up 
 		hue = ((ind.z + 1) / (1 * 2)) * 0.66;
-		ind.color = rgb2color(hsv2rgb(c(1.0, hue, 1.0)));
+		ind.color = rgb2color(hsv2rgb(c(hue, 1.0, 1.0)));
 	
 	}
 }
