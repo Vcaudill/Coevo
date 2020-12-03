@@ -13,7 +13,7 @@ initialize() {
 	
 	recomb=1e-8;
 	
-	defineConstant("K", 10);  // carrying-capacity per unit square (roughly)
+	defineConstant("K", 5);  // carrying-capacity per unit square (roughly)
 	//defineConstant("K", 10);
 	defineConstant("SD", sigma_i);  // sigma_D, the dispersal distance
 	defineConstant("SI", sigma_i);  // sigma_I, the spatial interaction distance
@@ -39,6 +39,9 @@ initialize() {
 	// mate choice
 	initializeInteractionType(2, "xy", reciprocal=T, maxDistance=SM * 3);
 	i2.setInteractionFunction("n", 1.0/(2*PI*SM^2), SM);
+	
+	defineConstant("simID", getSeed());
+	//sim.addSubpop("p9", 3);  
 
 }
 
@@ -62,7 +65,7 @@ reproduction() {
 }
 
 1 early() {
-	sim.addSubpop("p1", K);
+	sim.addSubpop("p1", 10);
 	p1.setSpatialBounds(c(0, 0, W, W));
 	// random initial positions
 	for (ind in p1.individuals) {
@@ -73,13 +76,15 @@ reproduction() {
 	// header info
 	cat("gen" + "	" + "decdents");
 	catn();
-		zeros = rep(0, p1.individualCount);
+	zeros = rep(0, p1.individualCount);
 	for (k in seqLen(p1.individualCount)) {
 		ind = p1.individuals[k];
 		x = zeros;
 		x[k] = 1;
 		ind.setValue("inheritance", x);
 	}
+
+
 }
 
 early() { //competition
@@ -90,25 +95,46 @@ early() { //competition
 	inds.fitnessScaling = pmin(0.95, 1/(1 + RHO * competition));
 	// avoid edge effects
 	inds.fitnessScaling = inds.fitnessScaling * pmin(sqrt(inds.x/SI), 1.0) * pmin(sqrt(inds.y/SI), 1.0) * pmin(sqrt((W - inds.x)/SI), 1.0) * pmin(sqrt((W - inds.y)/SI), 1.0); // corner is bad
-
+	
+	catn();
+	cat(sim.generation);
+	cat("	");
+	zeros = rep(0, 10); //asInteger(K * W * W)
+	if (sim.generation == 1) {
+		writeFile(outpath+"loc_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", "loc_x	loc_y",append=T);
+		for (ind in sim.subpopulations.individuals){
+			spot_x = asString(ind.x);
+			spot_y = asString(ind.y);
+			writeFile(outpath+"loc_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", spot_x+" "+spot_y,append=T);
+		}
+		writeFile(outpath+"des_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", "gen    descendants",append=T);
+		
+		
+		for (ind in sim.subpopulations.individuals){
+			//sum the vectors 
+			zeros = zeros + ind.getValue("inheritance");
+			//catn(new);
+		}
+		cat(zeros);
+		writeFile(outpath+"des_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", asString(sim.generation)+"    "+paste(asString(zeros), sep=" "),append=T);
+	}
 }
 
 1: late() {
 	// to be ready for mate choice
 	i2.evaluate(p1);
 	//remeber ancestry of each individual
-	sim.treeSeqRememberIndividuals(sim.subpopulations.individuals);
-	catn();
-	cat(sim.generation);
-	cat("	");
-	zeros = rep(0, 10);
-	
-	for (ind in sim.subpopulations.individuals){
-	 //sum the vectors 
-	zeros = zeros + ind.getValue("inheritance");
-	//catn(new);
+	sim.treeSeqRememberIndividuals(sim.subpopulations.individuals);//why is this in late and will it change things?
+	zeros = rep(0, 10); //asInteger(K * W * W)
+	if (sim.generation != 1) {
+		for (ind in sim.subpopulations.individuals){
+			//sum the vectors 
+			zeros = zeros + ind.getValue("inheritance");
+			//catn(new);
+		}
+		cat(zeros);
+		writeFile(outpath+"des_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", asString(sim.generation)+"    "+paste(asString(zeros), sep=" "),append=T);
 	}
-	cat(zeros);
 }
 
 
@@ -139,14 +165,8 @@ early() { //competition
 	}
 }
 
-1 {
-	
-	defineConstant("simID", getSeed());
-	//sim.addSubpop("p9", 3);  
-}
-
 10 late() {
-	sim.treeSeqOutput(outpath+"test_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_10" + "_.trees");
+	sim.treeSeqOutput(outpath+"test_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_"+asString(sim.generation) + "_.trees");
 	//sim.treeSeqOutput(outpath);
 	sim.simulationFinished();
 }

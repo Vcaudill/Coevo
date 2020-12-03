@@ -8,14 +8,15 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 # this file I use sort to potentally sole the problem of missmatching of children
 # for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
-for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
+file_dir = '/Users/victoria/Desktop/bias_test_data/test_10_2/'
+for filename in os.listdir(file_dir):
     if filename.endswith("10_.trees"):
 
         myfile = filename.split(".trees")[0]
         print("myfile", myfile)
         # tree = pyslim.SlimTreeSequence.load('/Users/victoria/Desktop/biased_mig/trees/' + filename)
         # ts = pyslim.load('/home/vcaudill/kernlab/animate_center/files/' + filename)
-        ts = pyslim.load('/Users/victoria/Desktop/bias_test_data/' + filename)
+        ts = pyslim.load(file_dir + filename)
 # this file only has 10 generations for testing
         '''
         ts = pyslim.load(
@@ -104,31 +105,36 @@ for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
             kidos.append(np.array(kid_num_by_ind).astype(np.float))
             print("Calculating offspring for generation", year)
         # print("kidos", kidos)
-        #np.savetxt("foo.csv", kidos, delimiter=",")
 
-        kidos[5] = np.repeat(1000000e119, len(kidos[5]))
-        kidos[7] = np.repeat("300", len(kidos[5]))
+        # saving the table of decendents should be ancestor by generations (c, r)
+        np.savetxt(file_dir + 'csv/dec_' + myfile + "_samplesize_" +
+                   str(sample_size / 2) + "_timepoints_" + str(ts.slim_generation) + '.csv', kidos, delimiter=",")
 
         ind_to_plot = []
-        for i_node in my_rand_node_sample:
+        for i_node in range(0, len(my_rand_node_sample), 2):
                 # truns nodes into individuals
-            ind_to_plot_ind = nodes.individual[i_node]
+            ind_to_plot_ind = nodes.individual[my_rand_node_sample[i_node]]
             ind_to_plot.append(ind_to_plot_ind)
+        print("ind to plot", ind_to_plot)
+        print("ind to plot first gen", first_gen)
+        # saving location of the first generation
+        np.savetxt(file_dir + 'csv/loc_' + myfile + "_samplesize_" +
+                   str(sample_size / 2) + "_timepoints_" + str(ts.slim_generation) + '.csv', ts.individual_locations[ind_to_plot], delimiter=",")
 
         def update(frame_number):
-                # for year in range(9, 100, 10):
+                    # for year in range(9, 100, 10):
             year = frame_number % ts.slim_generation
             print("year", year)
             # means = statistics.mean(kidos[year])
-            print("kido of year type", kidos[year].dtype)
+            #print("kido of year type", kidos[year].dtype)
             average = kidos[year][np.nonzero(kidos[year])].mean()
             Pointsize = np.ma.masked_equal((kidos[year] / average) * 10, 0)
-            print("Pointsize dtpye", Pointsize.dtype)
+            #print("Pointsize dtpye", Pointsize.dtype)
             scat.set_sizes(np.array(Pointsize))
             # scat.set_offsets(locs[alive_sam, 0], locs[alive_sam, 1])
             Points['xy'][:, 0] = locs[ind_to_plot, 0]
             Points['xy'][:, 1] = locs[ind_to_plot, 1]
-            print(Pointsize)
+            # print(Pointsize)
             scat.set_sizes(Pointsize)
             scat.set_offsets(Points['xy'])
             scat.set_array(np.array(kidos[year]))
@@ -144,12 +150,14 @@ for filename in os.listdir('/Users/victoria/Desktop/bias_test_data/'):
 
         t = list(range(0, ts.slim_generation, 1))
         Pointsize = [10] * 3
-        Points = np.zeros(sample_size, dtype=[('xy', float, 2)])
+
+        Points = np.zeros(len(ts.individuals_alive_at(ts.slim_generation - 1)),
+                          dtype=[('xy', float, 2)])
         # ax.scatter(locs[ind_to_plot, 0], locs[ind_to_plot, 1])  # blue points
         ax.set_ylabel(myfile)
         animation = FuncAnimation(fig, update, interval=600, frames=ts.slim_generation)
         scat = ax.scatter(0, 0,
                           s=1, edgecolors='none', color="red")
 
-        animation.save('/Users/victoria/Desktop/test_' + myfile + "_samplesize_" +
+        animation.save(file_dir + myfile + "_samplesize_" +
                        str(sample_size) + "_timepoints_" + str(ts.slim_generation) + '.gif', writer='imagemagick', fps=10)
