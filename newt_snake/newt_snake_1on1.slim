@@ -4,22 +4,24 @@ initialize() {
 	initializeSLiMOptions(dimensionality="xy");
 	sigma_i = 1; // area for individulas to mate with might condider 2
 	recomb=1e-8;
+	sigma_in = 0.5; // i want more of a decrease in fitness when there are too many neighbors!
 	
-	defineConstant("K", 3);  // carrying-capacity per unit square (roughly)
-	defineConstant("SD", sigma_i);  // sigma_D, the dispersal distance
-	defineConstant("SI", sigma_i);  // sigma_I, the spatial interaction distance
+	defineConstant("sigma_M", 0.33); // the meeting interaction term
+	defineConstant("K", 1);  // carrying-capacity per unit square (roughly)
+	defineConstant("SD", sigma_in);  // sigma_D, the dispersal distance
+	defineConstant("SI", sigma_in);  // sigma_I, the spatial interaction distance
 	defineConstant("SM", SI);  // sigma_M, the mate choice distance
 	defineConstant("L", 4);    // mean lifetime at stationarity
 	defineConstant("W", 35.0);  // width and height of the simulated area
 	defineConstant("G", 1e8);  // genome length
-	defineConstant("FECUN", 1/L); // mean fecundity
+	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
 	
 	initializeMutationType("m1", 0.5, "n", 0.0, 1.0);
 	initializeMutationType("m2", 0.5, "n", 0.0, 1.0);
 	initializeGenomicElementType("g1", c(m1, m2), c(1, 1)); // mutation proportions
 	initializeGenomicElement(g1, 0, G-1);
-	initializeMutationRate(0.0);
+	initializeMutationRate(1e-8);
 	initializeRecombinationRate(recomb);
 	
 	// spatial competition
@@ -99,26 +101,54 @@ early() {
 	p2.individuals.genomes.removeMutations(muts1);
 }
 
-early() {
-    // survival probabilities
-    p1.fitnessScaling = 1-0.1;
-    p2.fitnessScaling = 1-0.1;
+
+
+early() { //competition within and between populations
+	// pre-calculate adult density matrix to relate the populations posion/resistance levels and do competetion within a population 
+	i1.evaluate(p1);
+	i2.evaluate(p2);
+	inds_n = p1.individuals;
+	inds_s = p2.individuals;
+	
+	newt_competition = i1.totalOfNeighborStrengths(inds_n);
+	snake_competition = i2.totalOfNeighborStrengths(inds_s);
+	
+	// caculating the phenotype, but usinf the exponet to only have postive phenotypes
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10);
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10);
+	
+	// construct phenotypes and fitness effects from QTLs 
+	inds_n.z = phenotypes_n;
+	inds_s.z = phenotypes_s;
+	
+	
+	inds_n.fitnessScaling = pmin(0.95, 1/(1 + RHO * newt_competition));
+	inds_s.fitnessScaling = pmin(0.95, 1/(1 + RHO * snake_competition));
+	
+	
+	// avoid edge effects
+	inds_n.fitnessScaling = inds_n.fitnessScaling * pmin(sqrt(inds_n.x/SI), 1.0) * pmin(sqrt(inds_n.y/SI), 1.0) * pmin(sqrt((W - inds_n.x)/SI), 1.0) * pmin(sqrt((W - inds_n.y)/SI), 1.0); // * effects
+	inds_s.fitnessScaling = inds_s.fitnessScaling * pmin(sqrt(inds_s.x/SI), 1.0) * pmin(sqrt(inds_s.y/SI), 1.0) * pmin(sqrt((W - inds_s.x)/SI), 1.0) * pmin(sqrt((W - inds_s.y)/SI), 1.0);
+	
+	
+	//Snake and Newt 1on1 interaction how do i do an interaction from nearby????
+	meet = sample(seqLen(p1.individualCount), p2.individualCount, replace=T); //get the snakes that find a newt
+	outcome = exp(-(((phenotypes_s - phenotypes_n[meet])/sigma_M)^2)/2); //defining the outcome where snake might die if newt is more toxic but I also want the newt to increase in toxin if they are more toxic than the snake can handel
+	outcome_n = rep(0.0, p1.individualCount);
+	for (j in seqLen(p1.individualCount)) {
+		outcome_n[j] = sum(1 - outcome[meet == j]);
+		//cat(format("%6.2f ", outcome_p[j]));
+		if (outcome_n[j] <= -1.0) { catn("Whoops!: fitness scaling will be " + (1.0 + outcome_n[j]) + " because outcome[infects == j] is:"); catn(outcome[meet == j]); }
+	}
+	
+	//fitness based off compitention within species and with the random interactions
+	//Some other problems here
+	inds_s.fitnessScaling = inds_s.fitnessScaling * outcome; //snake
+	inds_n.fitnessScaling = inds_n.fitnessScaling + outcome_n; //newt 
+
 }
 
-early() {
-	i1.evaluate();
-	i2.evaluate();
-	// num_predators = p2.individualCount;
-	// fatal_encounters = rbinom(p1.individualCount, num_predators, A * C);
-	for (snake in p2.individuals) {
-		newt = i2.nearestNeighborsOfPoint(p1, snake.spatialPosition); // this is everyone with 3 sigma
-		num_fatal_encounters = rbinom(1, size(newt), 0.5); // but i want it to depend on the sourounding posion levels of the newt
-		if (num_fatal_encounters > 0) {
-			newt = sample(newt, 1);
-			snake.fitnessScaling = 0.0;
-		}
-	}
-}
+//Create the different selection areas 
 
 1: late() {
 	// to be ready for mate choice
@@ -128,15 +158,6 @@ early() {
 
 
 
-2: late() {
-	//for coloring it would be cool to see the phenotype
-	for (ind in p1.individuals) {
-		ind.color = "blue";
-	}
-	for (ind in p2.individuals) {
-		ind.color = "red";
-	}
-}
 
 
 1000 late() {
