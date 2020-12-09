@@ -132,20 +132,45 @@ early() { //competition within and between populations
 	
 	
 	//Snake and Newt 1on1 interaction how do i do an interaction from nearby????
-	meet = sample(seqLen(p1.individualCount), p2.individualCount, replace=T); //get the snakes that find a newt
-	outcome = exp(-(((phenotypes_s - phenotypes_n[meet])/sigma_M)^2)/2); //defining the outcome where snake might die if newt is more toxic but I also want the newt to increase in toxin if they are more toxic than the snake can handel
-	outcome_n = rep(0.0, p1.individualCount);
-	for (j in seqLen(p1.individualCount)) {
-		outcome_n[j] = sum(1 - outcome[meet == j]);
-		//cat(format("%6.2f ", outcome_p[j]));
-		if (outcome_n[j] <= -1.0) { catn("Whoops!: fitness scaling will be " + (1.0 + outcome_n[j]) + " because outcome[infects == j] is:"); catn(outcome[meet == j]); }
+	//meet = sample(seqLen(p1.individualCount), p2.individualCount, replace=T); //get the snakes that find a newt how can I base this on more newt dence places
+	
+	
+	//want to put a higher change on sankes encountering a newt if there are a lot of newts near by
+	bounds = p2.spatialBounds;
+	//m = rep(0, size(p2.individuals));
+	m = float(p2.individualCount); // finding the number of newts near the snake
+	catn(p2.individualCount);
+	i = 0;
+	for (ind_snake in p2.individuals){
+		
+		mPoint = c(ind_snake.x,ind_snake.y);
+		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);
+		catn(newtNeighbors); // it would be good to choose one newt nehibor to use in the phenotype matching in the outcome section
+		m[i] = length(newtNeighbors);
+		
+		i = i + 1;
+		//m = c(m,length(newtNeighbors));
+	
 	}
 	
+	catn(length(m));
+	
+	meet = sample(seqLen(p2.individualCount), p1.individualCount, replace=T, weights=m); // to sample snakes that from the population with a weight of how many nearby newts there are
+	
+	//outcome we will have each snake from the meet sample run into a nearby newt
+	//I will need 2 neutral fitness vectors of 1? The replace the 1 for the newts and the snakes from the results of the interactions 
+	
+	outcome_n = rep(1.0, p1.individualCount);
+	outcome_s = rep(1.0, p2.individualCount);
+	
+	
+	outcome = exp(-(((phenotypes_n - phenotypes_s[meet])/sigma_M)^2)/2); //defining the outcome where snake might die if newt is more toxic but I also want the newt to increase in toxin if they are more toxic than the snake can handel
+	
+
 	//fitness based off compitention within species and with the random interactions
 	//Some other problems here
-	inds_s.fitnessScaling = inds_s.fitnessScaling * outcome; //snake
-	inds_n.fitnessScaling = inds_n.fitnessScaling + outcome_n; //newt 
-
+	inds_s.fitnessScaling = inds_s.fitnessScaling * outcome_s; //snake
+	inds_n.fitnessScaling = inds_n.fitnessScaling * outcome_n; //newt 
 }
 
 //Create the different selection areas 
