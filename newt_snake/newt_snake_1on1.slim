@@ -104,16 +104,17 @@ early() {
 
 
 early() { //competition within and between populations
-	// pre-calculate adult density matrix to relate the populations posion/resistance levels and do competetion within a population 
+	// relate the populations posion/resistance levels with individual interactions and do competetion within a population 
 	i1.evaluate(p1);
 	i2.evaluate(p2);
 	inds_n = p1.individuals;
 	inds_s = p2.individuals;
 	
-	newt_competition = i1.totalOfNeighborStrengths(inds_n);
+	newt_competition = i1.totalOfNeighborStrengths(inds_n); // find number of newt neighbors for each newt
 	snake_competition = i2.totalOfNeighborStrengths(inds_s);
 	
 	// caculating the phenotype, but usinf the exponet to only have postive phenotypes
+	// might change with 1 on 1 interaction
 	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10);
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10);
 	
@@ -132,20 +133,22 @@ early() { //competition within and between populations
 	
 	
 	//Snake and Newt 1on1 interaction how do i do an interaction from nearby????
-	//meet = sample(seqLen(p1.individualCount), p2.individualCount, replace=T); //get the snakes that find a newt how can I base this on more newt dence places
-	
+	//meet = sample(seqLen(p1.individualCount), p2.individualCount, replace=T); //get the snakes that find a newt how can I base this on more newt dence places	
 	
 	//want to put a higher change on sankes encountering a newt if there are a lot of newts near by
 	bounds = p2.spatialBounds;
 	//m = rep(0, size(p2.individuals));
-	m = float(p2.individualCount); // finding the number of newts near the snake
-	catn(p2.individualCount);
+	// using snakes to find the newt, do snakes activly look for eatable newts?
+	m = float(p2.individualCount); // vector for finding the number of newts near the snake
+	//catn(p2.individualCount);
 	i = 0;
+	// find number of newts near each snake and also choose a random newt from near by for a potental interaction
 	for (ind_snake in p2.individuals){
 		
 		mPoint = c(ind_snake.x,ind_snake.y);
 		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);
-		catn(newtNeighbors); // it would be good to choose one newt nehibor to use in the phenotype matching in the outcome section
+		catn(newtNeighbors); // it would be good to choose one newt neighbor to use in the phenotype matching in the outcome section
+		//newtNeighbors is an object how do i get the individual out????? I think it should be a vector the same length as the snakes with newt individuals (but what would happen if there is a 2 snakes who go for the same newt?)
 		m[i] = length(newtNeighbors);
 		
 		i = i + 1;
@@ -158,8 +161,8 @@ early() { //competition within and between populations
 	meet = sample(seqLen(p2.individualCount), p1.individualCount, replace=T, weights=m); // to sample snakes that from the population with a weight of how many nearby newts there are
 	
 	//outcome we will have each snake from the meet sample run into a nearby newt
-	//I will need 2 neutral fitness vectors of 1? The replace the 1 for the newts and the snakes from the results of the interactions 
-	
+	//I will need 2 neutral fitness vectors of 1? The replace the 1 for the newts and the snakes from the results of the interactions  
+	//neutral outcome if no interaction takes place
 	outcome_n = rep(1.0, p1.individualCount);
 	outcome_s = rep(1.0, p2.individualCount);
 	
