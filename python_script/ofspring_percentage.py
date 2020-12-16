@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 # this file I use sort to potentally sole the problem of missmatching of children
 # for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
-file_dir = '/Users/victoria/Desktop/bias_test_data/test_10_2/'
+file_dir = '/Users/victoria/Desktop/bias_test_data/test_10_4/'
 for filename in os.listdir(file_dir):
     if filename.endswith("10_.trees"):
 
@@ -36,8 +36,12 @@ for filename in os.listdir(file_dir):
         # find children of first_gen at target time
         # where "children" means number paths to anyone alive at target time
         first_gen = ts.individuals_alive_at(ts.slim_generation - 1)
+        isthisfirstgendifferent = ts.first_generation_individuals()
+
         print("first_gen", first_gen)  # these are the individuals
+        print("first_gen dif?", isthisfirstgendifferent)  # these are the individuals
         first_gen_nodes = []
+        first_gen_nodes_dif = []
 
         nodes = ts.tables.nodes
         times = nodes.time
@@ -47,6 +51,12 @@ for filename in os.listdir(file_dir):
             first_gen_nodes.extend(ts.individual(ind).nodes)
         first_gen_nodes = np.sort(np.array(first_gen_nodes))  # CAN BE SORTED TOO
         print("first_gen_nodes", len(first_gen_nodes))
+
+        for ind in isthisfirstgendifferent:
+            first_gen_nodes_dif.extend(ts.individual(ind).nodes)
+        first_gen_nodes_dif = np.sort(np.array(first_gen_nodes))  # CAN BE SORTED TOO
+        print("first_gen_nodes dif", len(first_gen_nodes_dif))
+
         target_time = 5
         print("sorted!")  # tested sort on talapas dot position did change
         # num_paths[i, j] = number of paths through the pedigree from node j to node i,
@@ -59,6 +69,7 @@ for filename in os.listdir(file_dir):
         num_paths = np.zeros((ts.num_nodes, len(first_gen_nodes)))
         # num_paths row in nodes, colmn in first gen nodes
         # if i was only taking a sample of this can I make the table from the sample
+        # what is this code doing
         for j, n in enumerate(first_gen_nodes):
             num_paths[n, j] = 1
         for t in range(ts.slim_generation - 2, -1, -1):
@@ -72,6 +83,8 @@ for filename in os.listdir(file_dir):
                     # for each newborn node its row in numpath to be equal to its parents
                     num_paths[n, :] += num_paths[p, :]
         num_rows, num_cols = num_paths.shape
+        np.savetxt(file_dir + 'table_' + myfile + "_samplesize_" +
+                   str(sample_size / 2) + "_timepoints_" + str(ts.slim_generation) + '.txt', num_paths, delimiter="    ", fmt='%d')
 
         def num_paths_to(t):
             # return a vector of length first_gen_nodes
@@ -108,7 +121,7 @@ for filename in os.listdir(file_dir):
 
         # saving the table of decendents should be ancestor by generations (c, r)
         np.savetxt(file_dir + 'csv/dec_' + myfile + "_samplesize_" +
-                   str(sample_size / 2) + "_timepoints_" + str(ts.slim_generation) + '.csv', kidos, delimiter=",")
+                   str(sample_size / 2) + "_timepoints_" + str(ts.slim_generation) + '.txt', kidos, delimiter="    ", fmt='%d')
 
         ind_to_plot = []
         for i_node in range(0, len(my_rand_node_sample), 2):
@@ -119,7 +132,7 @@ for filename in os.listdir(file_dir):
         print("ind to plot first gen", first_gen)
         # saving location of the first generation
         np.savetxt(file_dir + 'csv/loc_' + myfile + "_samplesize_" +
-                   str(sample_size / 2) + "_timepoints_" + str(ts.slim_generation) + '.csv', ts.individual_locations[ind_to_plot], delimiter=",")
+                   str(sample_size / 2) + "_timepoints_" + str(ts.slim_generation) + '.txt', ts.individual_locations[ind_to_plot], delimiter="    ", fmt='%d')
 
         def update(frame_number):
                     # for year in range(9, 100, 10):

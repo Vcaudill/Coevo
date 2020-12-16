@@ -101,13 +101,13 @@ early() { //competition
 	cat("	");
 	zeros = rep(0, 10); //asInteger(K * W * W)
 	if (sim.generation == 1) {
-		writeFile(outpath+"loc_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", "loc_x	loc_y",append=T);
+		writeFile(outpath+"loc_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_10" + ".txt", "loc_x	loc_y",append=T);
 		for (ind in sim.subpopulations.individuals){
 			spot_x = asString(ind.x);
 			spot_y = asString(ind.y);
-			writeFile(outpath+"loc_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", spot_x+" "+spot_y,append=T);
+			writeFile(outpath+"loc_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_10" + ".txt", spot_x+" "+spot_y,append=T);
 		}
-		writeFile(outpath+"des_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", "gen    descendants",append=T);
+		writeFile(outpath+"des_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_10" + ".txt", "gen    descendants",append=T);
 		
 		
 		for (ind in sim.subpopulations.individuals){
@@ -116,7 +116,7 @@ early() { //competition
 			//catn(new);
 		}
 		cat(zeros);
-		writeFile(outpath+"des_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", asString(sim.generation)+"    "+paste(asString(zeros), sep=" "),append=T);
+		writeFile(outpath+"des_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_10" + ".txt", asString(sim.generation)+"    "+paste(asString(zeros), sep=" "),append=T);
 	}
 }
 
@@ -124,17 +124,7 @@ early() { //competition
 	// to be ready for mate choice
 	i2.evaluate(p1);
 	//remeber ancestry of each individual
-	sim.treeSeqRememberIndividuals(sim.subpopulations.individuals);//why is this in late and will it change things?
-	zeros = rep(0, 10); //asInteger(K * W * W)
-	if (sim.generation != 1) {
-		for (ind in sim.subpopulations.individuals){
-			//sum the vectors 
-			zeros = zeros + ind.getValue("inheritance");
-			//catn(new);
-		}
-		cat(zeros);
-		writeFile(outpath+"des_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_100" + ".txt", asString(sim.generation)+"    "+paste(asString(zeros), sep=" "),append=T);
-	}
+	//sim.treeSeqRememberIndividuals(sim.subpopulations.individuals);//why is this in late and will it change things?
 }
 
 
@@ -147,6 +137,8 @@ early() { //competition
 }
 
 2: late() {
+	
+	
 	if ((sim.generation % 20) == 0) {
 		cat(sim.generation + " " + "late " + " " + mean(p1.individuals.age) + " " + p1.individualCount/W^2);
 		cat(" " + mean(p1.individuals.tagF) + " " + 1/mean(1/p1.individuals.tagF) + " " + mean(p1.individuals.tag)+" "+var(p1.individuals.tag));
@@ -163,6 +155,19 @@ early() { //competition
 	for (ind in p1.individuals) {
 		ind.color = rgb2color(c(ind.tag/max_n, ind.tagF/max_f, ind.age/max_a));
 	}
+	
+	zeros = rep(0, 10); //asInteger(K * W * W)
+	if (sim.generation != 1) {
+		for (ind in sim.subpopulations.individuals){
+			//sum the vectors 
+			zeros = zeros + ind.getValue("inheritance");
+			//catn(new);
+		}
+		cat(zeros);
+		writeFile(outpath+"des_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_10" + ".txt", asString(sim.generation)+"    "+paste(asString(zeros), sep=" "),append=T);
+	}
+	//remeber ancestry of each individual
+	sim.treeSeqRememberIndividuals(sim.subpopulations.individuals);//why is this in late and will it change things?
 }
 
 10 late() {
