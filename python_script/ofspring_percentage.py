@@ -10,7 +10,7 @@ from matplotlib.animation import FuncAnimation
 # for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
 file_dir = '/Users/victoria/Desktop/bias_test_data/test_10_4/'
 for filename in os.listdir(file_dir):
-    if filename.endswith("10_.trees"):
+    if filename.endswith("2478_late_10_.trees"):
 
         myfile = filename.split(".trees")[0]
         print("myfile", myfile)
@@ -37,11 +37,12 @@ for filename in os.listdir(file_dir):
         # where "children" means number paths to anyone alive at target time
         first_gen = ts.individuals_alive_at(ts.slim_generation - 1)
         isthisfirstgendifferent = ts.first_generation_individuals()
-
+        print("Total Number of individuals", ts.num_individuals)
         print("first_gen", first_gen)  # these are the individuals
         print("first_gen dif?", isthisfirstgendifferent)  # these are the individuals
         first_gen_nodes = []
         first_gen_nodes_dif = []
+        print(ts.individual_parents())
 
         nodes = ts.tables.nodes
         times = nodes.time
@@ -86,6 +87,8 @@ for filename in os.listdir(file_dir):
         np.savetxt(file_dir + 'table_' + myfile + "_samplesize_" +
                    str(sample_size / 2) + "_timepoints_" + str(ts.slim_generation) + '.txt', num_paths, delimiter="    ", fmt='%d')
 
+        # try to set up the table by individual
+        # look up the individual to node, node parent to indivdual
         def num_paths_to(t):
             # return a vector of length first_gen_nodes
             # whose k-th entry is the total number of paths

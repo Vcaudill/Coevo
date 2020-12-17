@@ -1,7 +1,7 @@
 //This sumlation is to test how i am caculating the decendents by having slim collect data and graphing it 
 
 initialize() {
-	
+	setSeed(1614334322478);
 	initializeSLiMModelType("nonWF");
 	initializeSLiMOptions(dimensionality="xy");
 	initializeTreeSeq();
@@ -86,7 +86,8 @@ reproduction() {
 
 
 }
-
+//try doing everthing in early
+// try having slim print out parents and what gen it happens
 early() { //competition
 	i1.evaluate(p1);
 	inds = p1.individuals;
@@ -101,6 +102,8 @@ early() { //competition
 	cat("	");
 	zeros = rep(0, 10); //asInteger(K * W * W)
 	if (sim.generation == 1) {
+		//remeber ancestry of each individual
+		sim.treeSeqRememberIndividuals(sim.subpopulations.individuals); // starting from the first gen
 		writeFile(outpath+"loc_Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_10" + ".txt", "loc_x	loc_y",append=T);
 		for (ind in sim.subpopulations.individuals){
 			spot_x = asString(ind.x);
