@@ -48,6 +48,9 @@ for filename in os.listdir(file_dir):
         times = nodes.time
         my_nodes = nodes.individual
 
+        for time in reversed(range(0, ts.slim_generation, 1)):
+            print("generation ", time, " ", ts.individuals_alive_at(time))
+
         for ind in first_gen:
             first_gen_nodes.extend(ts.individual(ind).nodes)
         first_gen_nodes = np.sort(np.array(first_gen_nodes))  # CAN BE SORTED TOO
