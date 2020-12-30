@@ -31,7 +31,7 @@ for filename in os.listdir(file_dir):
         parent_table = ts.individual_parents()
         print(parent_table.all(0))
         find = np.where(parent_table == 8)
-        parent_dict = {}
+        parent_dict = {}  # making a dictionary
         for a, b in parent_table:
             if b not in parent_dict:
                 parent_dict[b] = []
