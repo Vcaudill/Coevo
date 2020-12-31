@@ -10,7 +10,7 @@ from matplotlib.animation import FuncAnimation
 # for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
 file_dir = '/Users/victoria/Desktop/bias_test_data/test_10_4/'
 for filename in os.listdir(file_dir):
-    if filename.endswith("2478_late_10_.trees"):
+    if filename.endswith("late_10_.trees"):
 
         myfile = filename.split(".trees")[0]
         print("myfile", myfile)
@@ -25,11 +25,13 @@ for filename in os.listdir(file_dir):
         first_gen = ts.individuals_alive_at(ts.slim_generation - 1)
 
         print("Total Number of individuals", ts.num_individuals)
+        '''
         print("first_gen", first_gen)  # these are the individuals
-
         print(ts.individual_parents())
+        '''
         parent_table = ts.individual_parents()
-        print(parent_table.all(0))
+        # print(parent_table.all(0))
+        '''
         find = np.where(parent_table == 8)
         parent_dict = {}  # making a dictionary might not need
         for a, b in parent_table:
@@ -52,11 +54,12 @@ for filename in os.listdir(file_dir):
 
         print("result: {}".format(result))
         print(parent_table[25][0])
+        '''
+        # printing out the individuals who where alive a time
+        # for time in reversed(range(0, ts.slim_generation, 1)):
+        # print("generation ", time, " ", ts.individuals_alive_at(time))
 
-        for time in reversed(range(0, ts.slim_generation, 1)):
-            print("generation ", time, " ", ts.individuals_alive_at(time))
-
-        num_paths = np.zeros((ts.num_nodes, len(first_gen)))
+        num_paths = np.zeros((ts.num_individuals, len(first_gen)))  # ts.num_nodes
         # num_paths row in ind, colmn in first gen individual
         # if i was only taking a sample of this can I make the table from the sample
         # what is this code doing
@@ -64,14 +67,11 @@ for filename in os.listdir(file_dir):
             num_paths[n, j] = 1
         for t in range(ts.slim_generation - 2, -1, -1):
             # we will set these ones values in num_paths now
-
             newborn_ind = np.setdiff1d(ts.individuals_alive_at(t), ts.individuals_alive_at(t + 1))
             # equal to the sum of their parent(s)
             for n in newborn_ind:
-
                 parent_ind = parent_table[parent_table[:, 1] == n, 0]
                 # print(parent_table[10][[1]])
-
                 for p in set(parent_ind):
                     # for each newborn ind its row in numpath to be equal to its parents
                     num_paths[n, :] += num_paths[p, :]
@@ -89,7 +89,7 @@ for filename in os.listdir(file_dir):
             target_ind = np.array(ts.individuals_alive_at(t))
 
             return np.sum(num_paths[target_ind, :], axis=0)  # in order of first gen
-        print("rows colm", num_rows, num_cols)
+        #print("rows colm", num_rows, num_cols)
 
         kidos = []
         for year in reversed(range(0, ts.slim_generation, 1)):

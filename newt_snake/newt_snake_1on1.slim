@@ -142,26 +142,51 @@ early() { //competition within and between populations
 	m = float(p2.individualCount); // vector for finding the number of newts near the snake
 	//catn(p2.individualCount);
 	i = 0;
-		// find number of newts near each snake and also choose a random newt from near by for a potental interaction
+	// find number of newts near each snake and also choose a random newt from near by for a potental interaction
 	for (ind_snake in p2.individuals){
 		// does a snake meet a newt 
 		
 		mPoint = c(ind_snake.x,ind_snake.y);
 		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);
 		// sample number of newts baised on a draw from a possion dis
-		newt_meet_snake = sample(newtNeighbors, 1); //newt to interact with snake
-		//catn(newtNeighbors); // it would be good to choose one newt neighbor to use in the phenotype matching in the outcome section
-		//newtNeighbors is an object how do i get the individual out????? I think it should be a vector the same length as the snakes with newt individuals (but what would happen if there is a 2 snakes who go for the same newt?)
-		m[i] = length(newtNeighbors); // number of newts near by
-		//define interaction
-		// chance of eating the newt depends on the phyotype of the snake and the newt get a probblity of eating 
-		// if newt get eatten its fitness goes down to 0 
-		// how does go through each newt if there is more than one?
+		//catn(length(newtNeighbors));
+		if (length(newtNeighbors) > 0){
+			newt_meet_snake = sample(newtNeighbors, 1); //newt to interact with snake rpois(n, lambda) n-number of near neighbors and lambda - 1
+			//catn(newtNeighbors); // it would be good to choose one newt neighbor to use in the phenotype matching in the outcome section
+			//newtNeighbors is an object how do i get the individual out????? I think it should be a vector the same length as the snakes with newt individuals (but what would happen if there is a 2 snakes who go for the same newt?)
+			m[i] = length(newtNeighbors); // number of newts near by
+			//define interaction
+			// chance of eating the newt depends on the phyotype of the snake and the newt get a probblity of eating 
+			// if newt get eatten its fitness goes down to 0 
+			// how does go through each newt if there is more than one?
+			compair_pheno = phenotypes_s[ind_snake.index] - phenotypes_n[newt_meet_snake.index];
+			if (compair_pheno < 0){
+				outcome_s = 0;}
+			if (compair_pheno == 0){
+				outcome_s = 1;} //random number selection of alive or dead
+			if (compair_pheno > 0){
+				outcome_s = compair_pheno;}
+			
+			ind_snake.fitnessScaling = ind_snake.fitnessScaling * outcome_s; //snake ind_snake
+			
+			//newt_meet_snake for loop
+			for(ind_newt in newt_meet_snake){
+				compair_pheno_n = phenotypes_s[ind_snake.index] - phenotypes_n[ind_newt.index];
+				if (compair_pheno_n > 0){
+					outcome_n = 0;}
+				if (compair_pheno_n == 0){
+					outcome_n = 1;}
+				if (compair_pheno_n < 0){
+					outcome_n = compair_pheno*(-1);}
+				//catn(outcome_n);
+				ind_newt.fitnessScaling = ind_newt.fitnessScaling * outcome_n;} //newt 
+		}
+		if (length(newtNeighbors) == 0){
+			m[i] = length(newtNeighbors); // number of newts near by
+			outcome_s = 1;
+			ind_snake.fitnessScaling = ind_snake.fitnessScaling * outcome_s; //snake ind_snake
 		
-		inds_s.fitnessScaling = inds_s.fitnessScaling * outcome_s; //snake ind_snake
-		
-		//newt_meet_snake for loop
-		inds_n.fitnessScaling = inds_n.fitnessScaling * outcome_n; //newt 
+		}
 		
 		i = i + 1;
 		//m = c(m,length(newtNeighbors));
@@ -173,7 +198,7 @@ early() { //competition within and between populations
 	
 	outcome_n = rep(1.0, p1.individualCount);
 	outcome_s = rep(1.0, p2.individualCount);
-	
+
 }
 
 //Create the different selection areas 
