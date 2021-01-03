@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 # this file I use sort to potentally sole the problem of missmatching of children
 # for filename in os.listdir('/home/vcaudill/kernlab/animate_center/files/'):
-file_dir = '/Users/victoria/Desktop/bias_test_data/test_10_4/'
+file_dir = '/Users/victoria/Desktop/bias_test_data/test_100/'
 for filename in os.listdir(file_dir):
-    if filename.endswith("late_10_.trees"):
+    if filename.endswith(".trees"):
 
         myfile = filename.split(".trees")[0]
         print("myfile", myfile)

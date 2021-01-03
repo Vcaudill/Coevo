@@ -19,7 +19,7 @@ initialize() {
 	
 	initializeMutationType("m1", 0.5, "n", 0.0, 1.0);
 	initializeMutationType("m2", 0.5, "n", 0.0, 1.0);
-	initializeGenomicElementType("g1", c(m1, m2), c(1, 1)); // mutation proportions
+	initializeGenomicElementType("g1", c(m1, m2), c(2, 1)); // mutation proportions
 	initializeGenomicElement(g1, 0, G-1);
 	initializeMutationRate(1e-8);
 	initializeRecombinationRate(recomb);
@@ -151,6 +151,8 @@ early() { //competition within and between populations
 		// sample number of newts baised on a draw from a possion dis
 		//catn(length(newtNeighbors));
 		if (length(newtNeighbors) > 0){
+		//catn(length(newtNeighbors));
+			//catn(rpois(1, length(newtNeighbors)));
 			newt_meet_snake = sample(newtNeighbors, 1); //newt to interact with snake rpois(n, lambda) n-number of near neighbors and lambda - 1
 			//catn(newtNeighbors); // it would be good to choose one newt neighbor to use in the phenotype matching in the outcome section
 			//newtNeighbors is an object how do i get the individual out????? I think it should be a vector the same length as the snakes with newt individuals (but what would happen if there is a 2 snakes who go for the same newt?)
@@ -167,7 +169,7 @@ early() { //competition within and between populations
 			if (compair_pheno > 0){
 				outcome_s = compair_pheno;}
 			
-			ind_snake.fitnessScaling = ind_snake.fitnessScaling * outcome_s; //snake ind_snake
+			ind_snake.fitnessScaling = ind_snake.fitnessScaling + (outcome_s/100); //snake ind_snake
 			
 			//newt_meet_snake for loop
 			for(ind_newt in newt_meet_snake){
@@ -177,14 +179,14 @@ early() { //competition within and between populations
 				if (compair_pheno_n == 0){
 					outcome_n = 1;}
 				if (compair_pheno_n < 0){
-					outcome_n = compair_pheno*(-1);}
+					outcome_n = compair_pheno_n*(-1);}
 				//catn(outcome_n);
-				ind_newt.fitnessScaling = ind_newt.fitnessScaling * outcome_n;} //newt 
+				ind_newt.fitnessScaling = ind_newt.fitnessScaling + (outcome_n/100);} //newt 
 		}
 		if (length(newtNeighbors) == 0){
 			m[i] = length(newtNeighbors); // number of newts near by
 			outcome_s = 1;
-			ind_snake.fitnessScaling = ind_snake.fitnessScaling * outcome_s; //snake ind_snake
+			ind_snake.fitnessScaling = ind_snake.fitnessScaling + (outcome_s/100); //snake ind_snake
 		
 		}
 		
