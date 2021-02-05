@@ -19,7 +19,7 @@ initialize() {
 	
 	initializeMutationType("m1", 0.5, "n", 0.0, 1.0);
 	initializeMutationType("m2", 0.5, "n", 0.0, 1.0);
-	initializeGenomicElementType("g1", c(m1, m2), c(2, 1)); // mutation proportions
+	initializeGenomicElementType("g1", c(m1, m2), c(1, 1)); // mutation proportions
 	initializeGenomicElement(g1, 0, G-1);
 	initializeMutationRate(1e-8);
 	initializeRecombinationRate(recomb);
@@ -39,7 +39,6 @@ fitness(m1) { return 1.0; }
 fitness(m2) { return 1.0; }
 
 
-//why does it avoid the bottom left corner?
 reproduction(p1) {
 	// choose our nearest neighbor as a mate, within the max distance
 	// How to do this by sub-population 
@@ -115,8 +114,8 @@ early() { //competition within and between populations
 	
 	// caculating the phenotype, but usinf the exponet to only have postive phenotypes
 	// might change with 1 on 1 interaction
-	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10);
-	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10);
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
 	// construct phenotypes and fitness effects from QTLs 
 	inds_n.z = phenotypes_n;
@@ -132,8 +131,8 @@ early() { //competition within and between populations
 	inds_s.fitnessScaling = inds_s.fitnessScaling * pmin(sqrt(inds_s.x/SI), 1.0) * pmin(sqrt(inds_s.y/SI), 1.0) * pmin(sqrt((W - inds_s.x)/SI), 1.0) * pmin(sqrt((W - inds_s.y)/SI), 1.0);
 	
 	
-	//Snake and Newt 1on1 interaction how do i do an interaction from nearby????
-	//meet = sample(seqLen(p1.individualCount), p2.individualCount, replace=T); //get the snakes that find a newt how can I base this on more newt dence places	
+	//Snake and Newt 1on1 interaction
+
 	
 	//want to put a higher change on sankes encountering a newt if there are a lot of newts near by
 	bounds = p2.spatialBounds;
@@ -169,7 +168,7 @@ early() { //competition within and between populations
 			if (compair_pheno > 0){
 				outcome_s = compair_pheno;}
 			
-			ind_snake.fitnessScaling = ind_snake.fitnessScaling + (outcome_s/100); //snake ind_snake
+			ind_snake.fitnessScaling = ind_snake.fitnessScaling * outcome_s; //snake ind_snake
 			
 			//newt_meet_snake for loop
 			for(ind_newt in newt_meet_snake){
@@ -181,12 +180,12 @@ early() { //competition within and between populations
 				if (compair_pheno_n < 0){
 					outcome_n = compair_pheno_n*(-1);}
 				//catn(outcome_n);
-				ind_newt.fitnessScaling = ind_newt.fitnessScaling + (outcome_n/100);} //newt 
+				ind_newt.fitnessScaling = ind_newt.fitnessScaling * outcome_n;} //newt 
 		}
 		if (length(newtNeighbors) == 0){
 			m[i] = length(newtNeighbors); // number of newts near by
 			outcome_s = 1;
-			ind_snake.fitnessScaling = ind_snake.fitnessScaling + (outcome_s/100); //snake ind_snake
+			ind_snake.fitnessScaling = ind_snake.fitnessScaling * outcome_s; //snake ind_snake
 		
 		}
 		
