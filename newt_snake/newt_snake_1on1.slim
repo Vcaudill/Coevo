@@ -148,7 +148,7 @@ early() { //competition within and between populations
 		// does a snake meet a newt 
 		
 		mPoint = c(ind_snake.x,ind_snake.y);
-		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);
+		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);// could make count smaller 
 		// sample number of newts baised on a draw from a possion dis
 		//catn(length(newtNeighbors));
 		if (length(newtNeighbors) > 0){
@@ -156,6 +156,8 @@ early() { //competition within and between populations
 			cat("             ");
 			cat(rpois(1, length(newtNeighbors)/2));
 			cat("        ");
+			// uniform dist based on the distance (how close they are) if they are going to interact, steping trough each of the newtneighbor and picking which one to eat p could be 0.1 like 10% chance of snake running into newt 
+			// make sure same newt is not eaten by more than one snake? can chaeck if newt has fitness 0 
 			newt_meet_snake = sample(newtNeighbors, rpois(1, length(newtNeighbors)/2), replace=T); //newt to interact with snake rpois(n, lambda) n-number of near neighbors and lambda - 1
 			cat(length(newt_meet_snake));
 			catn(" ");
