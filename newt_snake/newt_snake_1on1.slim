@@ -157,16 +157,21 @@ early() { //competition within and between populations
 			// What I want the code to do....
 			
 			// I would to make a list of which newts the snake will try to eat (should it be in a certain order?). It will take a uniform distribution and a probablity of interacting
-			newt_meet_snake = runif() * probablity ; //list of newts snake will try to eat
+			distance = i1.distanceToPoint(newtNeighbors, mPoint)// vector of distances 
+			probablity = that equation with e and the distance 
+			
+			newt_meet_snake = runif(leanth(newtNeighbors)) * probablity ; //list of newts snake will try to eat
 			// then go one newt at a time and see the outcome of the interaction which is dependent on phenotypes (check to make sure newt is still alive)
 			for(ind_newt in newt_meet_snake){
 				//check to see if newt is alive 
-				if(ind_newt.fitnessScaling>1){
+				if(ind_newt.fitnessScaling > 0){
 					//Could the snake eat the newt?
 					compair_pheno = phenotypes_s[ind_snake.index] - phenotypes_n[ind_newt.index]; // compairing the snake phentype to the newt phenotype
 					//Did the snake eat the newt?
 					//potential outcomes are death for newt or snake, how do we make the survival curve? 
-					outcome = (PE)/(1+exp(-((compair_pheno-c)/w)));// snake outcome, PE is the positive effect of eating the newt
+					prob_of_survive = (PE)1/(1+exp(-((compair_pheno-c)/w)));// snake outcome, PE is the positive effect of eating the newt add the coin flip od 1
+					//compare T AND F, for survuvile and do some if statements
+					//one will die for sure add in both survive later???
 					outcome_n = 1; //newt outcome how does this compare to the curve?
 					
 					//fitness scaling for newt and snake
