@@ -10,13 +10,14 @@ initialize() {
 	defineConstant("K", 1);  // carrying-capacity per unit square (roughly)
 	defineConstant("SD", sigma_in);  // sigma_D, the dispersal distance
 	defineConstant("SI", sigma_in);  // sigma_I, the spatial interaction distance
+	defineConstant("surs", sigma_in);  // surs, the surviver distance
 	defineConstant("SM", SI);  // sigma_M, the mate choice distance
 	defineConstant("L", 4);    // mean lifetime at stationarity
 	defineConstant("W", 35.0);  // width and height of the simulated area
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	
+	defineConstant("interaction_rate", 0.6);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 0.1); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 2*w); // is the mean change 2w or 3w
@@ -157,10 +158,10 @@ early() { //competition within and between populations
 			// What I want the code to do....
 			
 			// I would to make a list of which newts the snake will try to eat (should it be in a certain order?). It will take a uniform distribution and a probablity of interacting
-			distance = i1.distanceToPoint(newtNeighbors, mPoint)// vector of distances 
-			probablity = that equation with e and the distance 
+			distance = i1.distanceToPoint(newtNeighbors, mPoint);// vector of distances 
+			probablity = interaction_rate*exp(-(distance^2)/(2*(surs^2))); //curve of the interaction based on the distance of the newt
 			
-			newt_meet_snake = runif(leanth(newtNeighbors)) * probablity ; //list of newts snake will try to eat
+			newt_meet_snake = newtNeighbors[runif(length(newtNeighbors)) < probablity] ; //list of newts snake will try to eat
 			// then go one newt at a time and see the outcome of the interaction which is dependent on phenotypes (check to make sure newt is still alive)
 			for(ind_newt in newt_meet_snake){
 				//check to see if newt is alive 
@@ -169,71 +170,26 @@ early() { //competition within and between populations
 					compair_pheno = phenotypes_s[ind_snake.index] - phenotypes_n[ind_newt.index]; // compairing the snake phentype to the newt phenotype
 					//Did the snake eat the newt?
 					//potential outcomes are death for newt or snake, how do we make the survival curve? 
-					prob_of_survive = (PE)1/(1+exp(-((compair_pheno-c)/w)));// snake outcome, PE is the positive effect of eating the newt add the coin flip od 1
-					//compare T AND F, for survuvile and do some if statements
-					//one will die for sure add in both survive later???
-					outcome_n = 1; //newt outcome how does this compare to the curve?
-					
-					//fitness scaling for newt and snake
-					//assign a fitness of 0 if one dies, if it is the snake go to the next snake
-					ind_snake.fitnessScaling = ind_snake.fitnessScaling * outcome; //snake 
-					ind_newt.fitnessScaling = ind_newt.fitnessScaling * outcome_n;//newt
-					
-					//break if snake dies
+					prob_of_survive = 0.95/(1+exp(-((compair_pheno-c)/w)));// snakes probablity of survival, should it equeal 1?  
+					catn(prob_of_survive);
+					//compare T AND F, for survuvile and do some if statements //fitness scaling for newt and snake
+					survive = runif(1) < prob_of_survive; //did the snake survive? //one will die for sure add in both survive later???
+					if(survive==T){
+						if(compair_pheno > 0.1){ // if hte phenotypes are too close then the snake eats the newt ans the newt dies
+							ind_snake.fitnessScaling = ind_snake.fitnessScaling + PE; //snake with eating newt bonus 
+							ind_newt.fitnessScaling = 0; //newt
+						}
+					}
+					if(survive==F){
+						ind_snake.fitnessScaling = 0; //snake 
+						break; //break if snake dies
+					}
+				
 				}
 			
 			}
 			
 			
-			
-			
-			// old possion version
-			
-			
-			//			
-			//			newt_meet_snake = sample(newtNeighbors, rpois(1, length(newtNeighbors)/2), replace=T); //newt to interact with snake rpois(n, lambda) n-number of near neighbors and lambda - 1
-			//			//catn(rpois(1, length(newtNeighbors)));
-			
-			//			outcome_ni = float(length(newt_meet_snake)); // number of newts to interact with
-			//			if(length(newt_meet_snake) > 0){
-			//				compair_pheno = phenotypes_s[ind_snake.index] - phenotypes_n[newt_meet_snake.index]; //snake
-			//				
-			//				outcome_s = mean(compair_pheno);
-			//				true_outcome = ind_snake.fitnessScaling * outcome_s;
-			//				
-			//				if(true_outcome < 0){
-			//					true_outcome = 0; // snake to die if newt is too posionious 
-			//				}
-			//				ind_snake.fitnessScaling = true_outcome; //snake ind_snake
-			//			
-			//			}
-			
-			//			//define interaction
-			//			// chance of eating the newt depends on the phyotype of the snake and the newt get a probablity of eating 
-			//			// if newt get eatten its fitness goes down to 0 
-			//			// how does go through each newt if there is more than one?
-			//			
-			//			i = 0;
-			//			//newt_meet_snake for loop
-			//			for(ind_newt in newt_meet_snake){
-			//				compair_pheno_n = phenotypes_n[ind_newt.index] - phenotypes_s[ind_snake.index];
-			//				outcome_n = 1/(1+exp(-((compair_pheno_n-c)/w)));
-			//				ind_newt.fitnessScaling = ind_newt.fitnessScaling * outcome_n;//newt
-			//				
-			//				
-			//				//outcome_ni[i] = (PE)/(1+exp(-((compair_pheno-c)/w)));
-			//				//i = i + 1;
-			//			}
-			//		
-			//		
-			//		}
-			
-			
-			
-			//m = c(m,length(newtNeighbors));
-			
-			//interactingNeighborCount() getting total number of neighbors 
-			//drawByStrength() not an option
 			
 			outcome_n = rep(1.0, p1.individualCount);
 			outcome_s = rep(1.0, p2.individualCount);
@@ -254,6 +210,6 @@ early() { //competition within and between populations
 
 
 
-1000 late() {
+10000 late() {
 	sim.simulationFinished();
 }
