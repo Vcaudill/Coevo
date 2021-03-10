@@ -17,10 +17,10 @@ initialize() {
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.6);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.05);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
-	defineConstant("w", 0.1); //the width of the logistic curve, change in phyenotype at any state
-	defineConstant("c", 2*w); // is the mean change 2w or 3w
+	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
+	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
 	
 	initializeMutationType("m1", 0.5, "n", 0.0, 1.0);
 	initializeMutationType("m2", 0.5, "n", 0.0, 1.0);
@@ -170,15 +170,14 @@ early() { //competition within and between populations
 					compair_pheno = phenotypes_s[ind_snake.index] - phenotypes_n[ind_newt.index]; // compairing the snake phentype to the newt phenotype
 					//Did the snake eat the newt?
 					//potential outcomes are death for newt or snake, how do we make the survival curve? 
-					prob_of_survive = 0.95/(1+exp(-((compair_pheno-c)/w)));// snakes probablity of survival, should it equeal 1?  
+					prob_of_survive = 1.0/(1+exp(-((compair_pheno-c)/w)));// snakes probablity of survival, should it equeal 1?  
 					catn(prob_of_survive);
 					//compare T AND F, for survuvile and do some if statements //fitness scaling for newt and snake
 					survive = runif(1) < prob_of_survive; //did the snake survive? //one will die for sure add in both survive later???
 					if(survive==T){
-						if(compair_pheno > 0.1){ // if hte phenotypes are too close then the snake eats the newt ans the newt dies
-							ind_snake.fitnessScaling = ind_snake.fitnessScaling + PE; //snake with eating newt bonus 
-							ind_newt.fitnessScaling = 0; //newt
-						}
+						ind_snake.fitnessScaling = ind_snake.fitnessScaling + PE; //snake with eating newt bonus 
+						ind_newt.fitnessScaling = 0; //newt
+					
 					}
 					if(survive==F){
 						ind_snake.fitnessScaling = 0; //snake 
@@ -204,9 +203,22 @@ early() { //competition within and between populations
 	// to be ready for mate choice
 	i2.evaluate(p1);
 	i2.evaluate(p2);
+	for (ind_snake in p2.individuals){
+		
+		hue = ((ind_snake.z + 1) / (1 * 2)) * 0.66;
+		ind_snake.color = rgb2color(hsv2rgb(c(hue, 1.0, 1.0)));
+	}
+	for (ind_newt in p1.individuals){
+		
+		hue = ((ind_newt.z + 1) / (1 * 2)) * 0.66;
+		ind_newt.color = rgb2color(hsv2rgb(c(hue, 1.0, 1.0)));
+	}
 }
 
-
+//if(compair_pheno > 0.1){ // if hte phenotypes are too close then the snake eats the newt ans the newt dies
+//							ind_snake.fitnessScaling = ind_snake.fitnessScaling + PE; //snake with eating newt bonus 
+//							ind_newt.fitnessScaling = 0; //newt
+//						}
 
 
 
