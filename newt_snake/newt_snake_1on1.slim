@@ -22,11 +22,11 @@ initialize() {
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
 	
-	initializeMutationType("m1", 0.5, "n", 0.0, 1.0);
-	initializeMutationType("m2", 0.5, "n", 0.0, 1.0);
-	initializeGenomicElementType("g1", c(m1, m2), c(1, 1)); // mutation proportions
+	initializeMutationType("m1", 0.5, "e", 1/100);
+	initializeMutationType("m2", 0.5, "e", 1/2);
+	initializeGenomicElementType("g1", c(m1, m2), c(50, 1)); // mutation proportions add the proportion (the target mutation rate)
 	initializeGenomicElement(g1, 0, G-1);
-	initializeMutationRate(1e-8);
+	initializeMutationRate(1e-10); //times genome * G-1 p*mu 
 	initializeRecombinationRate(recomb);
 	
 	// spatial competition
@@ -95,6 +95,13 @@ reproduction(p2) {
 	i1.evaluate();
 }
 
+//1 late() { 
+//		I will need to use the coalescent simulations for newts and snakes
+//		Then give the "neutral" mutations a selection coefficent
+//		I will also add demographic location
+//    sim.readFromPopulationFile("snakes_annotated.init.trees");
+//    sim.treeSeqRememberIndividuals(p0.individuals);
+//}
 
 early() {
 	
@@ -205,13 +212,13 @@ early() { //competition within and between populations
 	i2.evaluate(p2);
 	for (ind_snake in p2.individuals){
 		
-		hue = ((ind_snake.z + 1) / (1 * 2)) * 0.66;
-		ind_snake.color = rgb2color(hsv2rgb(c(hue, 1.0, 1.0)));
+		hue = ((ind_snake.z + 1) / (1 * 2)) * 0.45;
+		ind_snake.color = rgb2color(hsv2rgb(c(hue%1, 1.0, 1.0)));
 	}
 	for (ind_newt in p1.individuals){
 		
 		hue = ((ind_newt.z + 1) / (1 * 2)) * 0.66;
-		ind_newt.color = rgb2color(hsv2rgb(c(hue, 1.0, 1.0)));
+		ind_newt.color = rgb2color(hsv2rgb(c(hue%1, 1.0, 1.0)));
 	}
 }
 

@@ -6,4 +6,5 @@
 #keep data file out of git
 */data/*
 data/*
-
+*/msprime_explore/*
+msprime_explore/*
