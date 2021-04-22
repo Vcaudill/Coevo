@@ -9,7 +9,7 @@ import subprocess
 breaks = [0, 33333334, 66666667, 100000000]  # the length of the genome?
 recomb_map = msprime.RateMap(
     position=breaks,
-    rate=[5e-8, 0.5e-8, 5e-8])  # why do we set the recombination rate this way?
+    rate=[1e-8, 1e-8, 1e-8])  # why do we set the recombination rate this way?
 demog_model = msprime.Demography()
 demog_model.add_population(initial_size=10000)
 ots = msprime.sim_ancestry(
@@ -23,7 +23,7 @@ ots = pyslim.annotate_defaults(ots, model_type="nonWF", slim_generation=1)
 
 mut_map = msprime.RateMap(
     position=breaks,
-    rate=[0.03e-8, 0.003e-8, 0.03e-8])  # what rate(s) would I put in here
+    rate=[1e-10, 1e-10, 1e-10])  # what rate(s) would I put in here
 mut_model = msprime.SLiMMutationModel(type=2)  # mutation "m2"
 ots = msprime.sim_mutations(
     ots,
