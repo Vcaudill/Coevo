@@ -4,6 +4,7 @@ import msprime
 from IPython.display import SVG
 import numpy as np
 import subprocess
+import os
 #import util
 # Neutral burn in with msprime, coalescent simulation
 breaks = [0, 33333334, 66666667, 100000000]  # the length of the genome?
@@ -62,7 +63,11 @@ ts_metadata = tables.metadata
 ts_metadata["SLiM"]["model_type"] = "nonWF"
 tables.metadata = ts_metadata
 ots = tables.tree_sequence()
-ots.dump("/data/newts_annotated.init.trees")
+try:
+    os.mkdir("newt_snake/data")
+except FileExistsError:
+    pass
+ots.dump("newt_snake/data/newts_annotated.init.trees")
 
 print(ots.sequence_length)
 print(tables.metadata)
