@@ -2,6 +2,7 @@ initialize() {
 	
 	initializeSLiMModelType("nonWF");
 	initializeSLiMOptions(dimensionality="xy");
+	initializeTreeSeq();
 	sigma_i = 1; // area for individulas to mate with might condider 2
 	recomb=1e-8;
 	sigma_in = 0.5; // i want more of a decrease in fitness when there are too many neighbors!
@@ -95,13 +96,13 @@ reproduction(p2) {
 	i1.evaluate();
 }
 
-//1 late() { 
+1 late() { 
 //		I will need to use the coalescent simulations for newts and snakes
 //		Then give the "neutral" mutations a selection coefficent
 //		I will also add demographic location
-//    sim.readFromPopulationFile("snakes_annotated.init.trees");
-//    sim.treeSeqRememberIndividuals(p0.individuals);
-//}
+    sim.readFromPopulationFile("Coevo/data/snakes_annotated.init.trees");
+    sim.treeSeqRememberIndividuals(p0.individuals);
+}
 
 early() {
 	

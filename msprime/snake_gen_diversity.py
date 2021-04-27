@@ -62,7 +62,7 @@ ts_metadata = tables.metadata
 ts_metadata["SLiM"]["model_type"] = "nonWF"
 tables.metadata = ts_metadata
 ots = tables.tree_sequence()
-ots.dump("snakes_annotated.init.trees")
+ots.dump("newt_snake/data/snakes_annotated.init.trees")
 
 print(ots.sequence_length)
 print(tables.metadata)
