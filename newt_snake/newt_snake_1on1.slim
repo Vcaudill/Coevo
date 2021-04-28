@@ -62,7 +62,7 @@ reproduction(p1) {
 	return;
 }
 
-reproduction(p2) {
+reproduction(p0) {
 	// choose our nearest neighbor as a mate, within the max distance
 	// How to do this by sub-population 
 	mate = i2.drawByStrength(individual, 1);
@@ -70,39 +70,52 @@ reproduction(p2) {
 		nOff = rpois(1, FECUN);
 		for (i in seqLen(nOff)) {
 			pos = individual.spatialPosition + rnorm(2, 0, SD); // add dispersal
-			if (p2.pointInBounds(pos)) {
+			if (p0.pointInBounds(pos)) {
 				offspring = subpop.addCrossed(individual, mate);
-				offspring.setSpatialPosition(p2.pointReflected(pos));
+				offspring.setSpatialPosition(p0.pointReflected(pos));
 			}
 		}
 	}
 	return;
 }
+// "p2" were repaced with "p0" both are for snakes
 
+//1 early() {
+//	sim.addSubpop("p1", asInteger(K * W * W));
+//	sim.addSubpop("p0", asInteger(K * W * W));
+//	p1.setSpatialBounds(c(0, 0, W, W));
+//	p0.setSpatialBounds(c(0, 0, W, W));
+//	// would it be better to add them on the same plot
+//	// random initial positions
+//	for (ind in p1.individuals) {
+//		ind.setSpatialPosition(p1.pointUniform());
+//	}
+//	for (ind in p0.individuals) {
+//		ind.setSpatialPosition(p0.pointUniform());
+//	}
+//	i1.evaluate();
+//}
 
 1 early() {
-	sim.addSubpop("p1", asInteger(K * W * W));
-	sim.addSubpop("p2", asInteger(K * W * W));
+	//		I will need to use the coalescent simulations for newts and snakes
+	//		Then give the "neutral" mutations a selection coefficent
+	//		I will also add demographic location
+	sim.readFromPopulationFile("Coevo/newt_snake/data/snakes_annotated.init.trees");
+	sim.treeSeqRememberIndividuals(p0.individuals);
+	sim.readFromPopulationFile("Coevo/newt_snake/data/newts_annotated.init.trees");
+	sim.treeSeqRememberIndividuals(p1.individuals);
+	
 	p1.setSpatialBounds(c(0, 0, W, W));
-	p2.setSpatialBounds(c(0, 0, W, W));
-	// would it be better to add them on the same plot
-	// random initial positions
+	p0.setSpatialBounds(c(0, 0, W, W));
+//	// would it be better to add them on the same plot
+//	// random initial positions
 	for (ind in p1.individuals) {
 		ind.setSpatialPosition(p1.pointUniform());
 	}
-	for (ind in p2.individuals) {
-		ind.setSpatialPosition(p2.pointUniform());
+	for (ind in p0.individuals) {
+		ind.setSpatialPosition(p0.pointUniform());
 	}
 	i1.evaluate();
-}
-
-1 late() { 
-//		I will need to use the coalescent simulations for newts and snakes
-//		Then give the "neutral" mutations a selection coefficent
-//		I will also add demographic location
-    sim.readFromPopulationFile("Coevo/newt_snake/data/snakes_annotated.init.trees");
-//    sim.readFromPopulationFile("Coevo/newt_snake/data/newts_annotated.init.trees");
-    sim.treeSeqRememberIndividuals(p0.individuals);
 }
 
 early() {
@@ -110,8 +123,8 @@ early() {
 	// removing mutations that apear in the wrong population
 	muts1 = sim.mutationsOfType(m1);  // newt mutations
 	muts2 = sim.mutationsOfType(m2); // snake mutations
-	p1.individuals.genomes.removeMutations(muts2);
-	p2.individuals.genomes.removeMutations(muts1);
+	p0.individuals.genomes.removeMutations(muts2);
+	p1.individuals.genomes.removeMutations(muts1);
 }
 
 
@@ -119,9 +132,9 @@ early() {
 early() { //competition within and between populations
 	// relate the populations posion/resistance levels with individual interactions and do competetion within a population 
 	i1.evaluate(p1);
-	i2.evaluate(p2);
+	i2.evaluate(p0);
 	inds_n = p1.individuals;
-	inds_s = p2.individuals;
+	inds_s = p0.individuals;
 	
 	newt_competition = i1.totalOfNeighborStrengths(inds_n); // find number of newt neighbors for each newt
 	snake_competition = i2.totalOfNeighborStrengths(inds_s);
@@ -146,14 +159,14 @@ early() { //competition within and between populations
 	
 	
 	//Snake and Newt 1on1 interaction
-	bounds = p2.spatialBounds;
+	bounds = p0.spatialBounds;
 	
 	
 	// find number of newts near each snake and choose a random newt from nearby for a potental interaction
 	// uniform dist based on the distance (how close they are) if they are going to interact, stepping through each of the newtneighbor and picking which one to eat. p could be 0.1 like 10% chance of snake running into newt 
 	//want to put a higher change on sankes encountering a newt if there are a lot of newts near by
 	
-	for (ind_snake in p2.individuals){
+	for (ind_snake in p0.individuals){
 		// does a snake meet a newt? 
 		
 		mPoint = c(ind_snake.x,ind_snake.y);
@@ -200,7 +213,7 @@ early() { //competition within and between populations
 			
 			
 			outcome_n = rep(1.0, p1.individualCount);
-			outcome_s = rep(1.0, p2.individualCount);
+			outcome_s = rep(1.0, p0.individualCount);
 		
 		}
 	}
@@ -211,8 +224,8 @@ early() { //competition within and between populations
 1: late() {
 	// to be ready for mate choice
 	i2.evaluate(p1);
-	i2.evaluate(p2);
-	for (ind_snake in p2.individuals){
+	i2.evaluate(p0);
+	for (ind_snake in p0.individuals){
 		
 		hue = ((ind_snake.z + 1) / (1 * 2)) * 0.45;
 		ind_snake.color = rgb2color(hsv2rgb(c(hue%1, 1.0, 1.0)));

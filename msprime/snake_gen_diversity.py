@@ -21,7 +21,7 @@ ots = msprime.sim_ancestry(
 
 ots = pyslim.annotate_defaults(ots, model_type="nonWF", slim_generation=1)
 # this is adding anotation or metadata to all of the individuals
-
+print("one")
 mut_map = msprime.RateMap(
     position=breaks,
     rate=[1e-10, 1e-10, 1e-10])  # what rate(s) would I put in here
@@ -53,12 +53,21 @@ for m in ots.mutations():
         derived_state=m.derived_state,
         parent=m.parent,
         metadata={"mutation_list": md_list})
+print("two")
+# Adding location information to individuals metadata
+tables.populations.clear()
+for p in ots.populations():
+    pm = p.metadata
+    pm['bounds_x1'] = 1.0
+    pm['bounds_y1'] = 1.0
+    tables.populations.add_row(metadata=pm)
+
 
 # check we didn't mess anything up
 assert tables.mutations.num_rows == ots.num_mutations
 print(f"The selection coefficients range from {min(mut_map.values()):0.2e}")
 print(f"to {max(mut_map.values()):0.2e}.")
-
+# print(tables)
 ts_metadata = tables.metadata
 ts_metadata["SLiM"]["model_type"] = "nonWF"
 tables.metadata = ts_metadata

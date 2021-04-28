@@ -12,9 +12,11 @@ recomb_map = msprime.RateMap(
     position=breaks,
     rate=[1e-8, 1e-8, 1e-8])  # why do we set the recombination rate this way?
 demog_model = msprime.Demography()
-demog_model.add_population(initial_size=10000)
+demog_model.add_population(name="p1", initial_size=3)
+demog_model.add_population(name="p2", initial_size=10000)
 ots = msprime.sim_ancestry(
-    samples=1000,  # number of individividuals sampled?
+    samples={"p2": 1000},  # number of individividuals sampled?
+    #samples={"p1": 1, "p2": 1},
     demography=demog_model,
     random_seed=5,
     recombination_rate=recomb_map)
@@ -54,6 +56,14 @@ for m in ots.mutations():
         parent=m.parent,
         metadata={"mutation_list": md_list})
 
+# Adding location information to individuals metadata
+tables.populations.clear()
+for p in ots.populations():
+    pm = p.metadata
+    pm['bounds_x1'] = 1.0
+    pm['bounds_y1'] = 1.0
+    tables.populations.add_row(metadata=pm)
+
 # check we didn't mess anything up
 assert tables.mutations.num_rows == ots.num_mutations
 print(f"The selection coefficients range from {min(mut_map.values()):0.2e}")
@@ -71,7 +81,7 @@ ots.dump("newt_snake/data/newts_annotated.init.trees")
 
 print(ots.sequence_length)
 print(tables.metadata)
-
+print(tables.nodes)
 # This runs the slim simulation with the varables that you set
 # subprocess.check_output(
 #     ["slim", "-d", f"L={int(ots.sequence_length - 1)}",
