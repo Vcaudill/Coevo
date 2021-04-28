@@ -12,8 +12,8 @@ recomb_map = msprime.RateMap(
     position=breaks,
     rate=[1e-8, 1e-8, 1e-8])  # why do we set the recombination rate this way?
 demog_model = msprime.Demography()
-demog_model.add_population(name="p1", initial_size=3)
-demog_model.add_population(name="p2", initial_size=10000)
+demog_model.add_population(name="p0", initial_size=3)
+demog_model.add_population(name="p1", initial_size=10000)
 ots = msprime.sim_ancestry(
     samples={"p2": 1000},  # number of individividuals sampled?
     #samples={"p1": 1, "p2": 1},

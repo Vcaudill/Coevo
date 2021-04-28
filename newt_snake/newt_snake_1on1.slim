@@ -100,9 +100,8 @@ reproduction(p0) {
 	//		I will need to use the coalescent simulations for newts and snakes
 	//		Then give the "neutral" mutations a selection coefficent
 	//		I will also add demographic location
-	sim.readFromPopulationFile("Coevo/newt_snake/data/snakes_annotated.init.trees");
+	sim.readFromPopulationFile("newt_snake/data/both_annotated.init.trees");
 	sim.treeSeqRememberIndividuals(p0.individuals);
-	sim.readFromPopulationFile("Coevo/newt_snake/data/newts_annotated.init.trees");
 	sim.treeSeqRememberIndividuals(p1.individuals);
 	
 	p1.setSpatialBounds(c(0, 0, W, W));
