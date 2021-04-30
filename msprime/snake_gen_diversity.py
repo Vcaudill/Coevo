@@ -17,7 +17,7 @@ print("Working on Snake Sim")
 ots = msprime.sim_ancestry(
     samples=1000,  # number of individividuals sampled?
     demography=demog_model,
-    random_seed=5,
+    # random_seed=5,
     recombination_rate=recomb_map)
 
 ots = pyslim.annotate_defaults(ots, model_type="nonWF", slim_generation=1)
@@ -31,7 +31,8 @@ ots = msprime.sim_mutations(
     rate=mut_map,
     model=mut_model,
     keep=True,
-    random_seed=9)
+    # random_seed=9
+)
 print(f"The tree sequence now has {ots.num_mutations} mutations, at "
       f"{ots.num_sites} distinct sites.")
 

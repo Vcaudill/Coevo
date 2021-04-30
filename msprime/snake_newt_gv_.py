@@ -18,7 +18,7 @@ demog_model.add_population(name="p0", initial_size=100)
 ots = msprime.sim_ancestry(
     samples=10,  # number of individividuals sampled?
     demography=demog_model,
-    random_seed=5,
+    # random_seed=5,
     recombination_rate=recomb_map)
 
 ots = pyslim.annotate_defaults(ots, model_type="nonWF", slim_generation=1)
@@ -31,7 +31,8 @@ ots = msprime.sim_mutations(
     ots,
     rate=mut_map,
     model=mut_model,
-    random_seed=9)
+    # random_seed=9
+)
 print(f"The tree sequence now has {ots.num_mutations} mutations, at "
       f"{ots.num_sites} distinct sites.")
 
@@ -85,7 +86,7 @@ ots_1 = msprime.sim_ancestry(
     samples={"p1": 10},  # number of individividuals sampled?
     # samples={"p1": 1, "p2": 1},
     demography=demog_model_1,
-    random_seed=5,
+    # random_seed=5,
     recombination_rate=recomb_map_1)
 
 ots_1 = pyslim.annotate_defaults(ots_1, model_type="nonWF", slim_generation=1)
@@ -101,7 +102,8 @@ ots_1 = msprime.sim_mutations(
     ots_1,
     rate=mut_map_1,
     model=mut_model_1,
-    random_seed=19)
+    # random_seed=19
+)
 print(f"The tree sequence now has {ots_1.num_mutations} mutations, at "
       f"{ots_1.num_sites} distinct sites.")
 
@@ -144,9 +146,9 @@ ots_1 = tables_1.tree_sequence()
 
 # Merge snake and newts
 
-#mts = ots.union(ots_1, node_mapping=np.repeat(tskit.NULL, ots_1.num_nodes))
-#assert ots.num_mutations > 0
-#ots.dump(os.path.join(datadir, "both_newt_snake_annotated.init.trees"))
+# mts = ots.union(ots_1, node_mapping=np.repeat(tskit.NULL, ots_1.num_nodes))
+# assert ots.num_mutations > 0
+# ots.dump(os.path.join(datadir, "both_newt_snake_annotated.init.trees"))
 
 both = ots_1.union(
     ots,
