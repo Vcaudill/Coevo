@@ -6,156 +6,97 @@ import numpy as np
 import subprocess
 import os
 # import util
+
 datadir = "newt_snake/data"
-# Neutral burn in with msprime, coalescent simulation
-breaks = [0, 33333334, 66666667, 100000000]  # the length of the genome?
-recomb_map = msprime.RateMap(
-    position=breaks,
-    rate=[1e-8, 1e-8, 1e-8])  # why do we set the recombination rate this way?
+sequence_length = 100000000
+
+# TODO: add mutation rate as an argument
+# so we can use different mutation rates for snakes and newts
+def add_mutations(ots, mut_type, s_fn, next_id=0):
+    # s_fn draws the selection coefficient
+    mut_model = msprime.SLiMMutationModel(type=mut_type, next_id=next_id)
+    snakes = msprime.sim_mutations(
+        snakes,
+        rate=1e-10,
+        model=mut_model,
+    )
+    print(f"The tree sequence now has {ots.num_mutations} mutations, at "
+          f"{ots.num_sites} distinct sites.")
+    tables = ots.tables
+    tables.mutations.clear()
+    mut_map = {}
+    for m in ots.mutations():
+        md_list = m.metadata["mutation_list"]
+        slim_ids = m.derived_state.split(",")
+        assert len(slim_ids) == len(md_list)
+        for sid, md in zip(slim_ids, md_list):
+            if sid not in mut_map:
+                mut_map[sid] = s_fn()
+            md["selection_coeff"] = mut_map[sid]
+        _ = tables.mutations.add_row(
+            site=m.site,
+            node=m.node,
+            time=m.time,
+            derived_state=m.derived_state,
+            parent=m.parent,
+            metadata={"mutation_list": md_list})
+    assert tables.mutations.num_rows == ots.num_mutations
+    print(f"The selection coefficients range from {min(mut_map.values()):0.2e}")
+    print(f"to {max(mut_map.values()):0.2e}.")
+    return tables.tree_sequence()
+
+# Snakes:
 demog_model = msprime.Demography()
-print("Working on Snake Sim")
 demog_model.add_population(name="p0", initial_size=100)
-ots = msprime.sim_ancestry(
-    samples=10,  # number of individividuals sampled?
+snakes = msprime.sim_ancestry(
+    samples={"p0": 10},  # number of individividuals sampled
     demography=demog_model,
-    # random_seed=5,
-    recombination_rate=recomb_map)
+    recombination_rate=1e-8,
+    sequence_length=sequence_length)
 
-ots = pyslim.annotate_defaults(ots, model_type="nonWF", slim_generation=1)
-# this is adding anotation or metadata to all of the individuals
-mut_map = msprime.RateMap(
-    position=breaks,
-    rate=[1e-10, 1e-10, 1e-10])  # what rate(s) would I put in here
-mut_model = msprime.SLiMMutationModel(type=2)  # mutation "m2"
-ots = msprime.sim_mutations(
-    ots,
-    rate=mut_map,
-    model=mut_model,
-    # random_seed=9
-)
-print(f"The tree sequence now has {ots.num_mutations} mutations, at "
-      f"{ots.num_sites} distinct sites.")
+# add mutations
+snakes = add_mutations(
+            snakes,
+            mut_type=2,
+            lambda : np.random.normal(loc=0.0, scale=0.5))
 
-tables = ots.tables
-tables.mutations.clear()
-mut_map = {}
-for m in ots.mutations():
-    md_list = m.metadata["mutation_list"]
-    slim_ids = m.derived_state.split(",")
-    assert len(slim_ids) == len(md_list)
-    for sid, md in zip(slim_ids, md_list):
-        if sid not in mut_map:
-            mut_map[sid] = np.random.exponential(scale=0.5)  # the snakes higher mean
-        md["selection_coeff"] = mut_map[sid]
-    _ = tables.mutations.add_row(
-        site=m.site,
-        node=m.node,
-        time=m.time,
-        derived_state=m.derived_state,
-        parent=m.parent,
-        metadata={"mutation_list": md_list})
+# Newts:
+demog_model_1 = msprime.Demography()
+demog_model_1.add_population(name="p0", initial_size=3)
+demog_model_1.add_population(name="p1", initial_size=100)
+newts = msprime.sim_ancestry(
+    samples={"p1": 10},  # number of individividuals sampled
+    demography=demog_model_1,
+    recombination_rate=1e-8,
+    sequence_length=sequence_length)
+
+snake_mutations = ots.num_mutations  # this is so the newt mutation IDs will be after the snakes
+newts = add_mutations(
+            snakes,
+            mut_type=1,
+            lambda : np.random.normal(loc=0.0, scale=0.01),
+            next_id=snake_mutations)
+
+# Merge
+both = pyslim.SlimTreeSequence(
+        newts.union(
+            snakes,
+            node_mapping=np.repeat(tskit.NULL, snakes.num_nodes),
+            add_populations=False
+        )
+       )
+
+tables = both.tables
 
 # Adding location information to individuals metadata
 tables.populations.clear()
-for p in ots.populations():
+for p in both.populations():
     pm = p.metadata
     pm['bounds_x1'] = 1.0
     pm['bounds_y1'] = 1.0
     tables.populations.add_row(metadata=pm)
 
-# check we didn't mess anything up
-assert tables.mutations.num_rows == ots.num_mutations
-print(f"The selection coefficients range from {min(mut_map.values()):0.2e}")
-print(f"to {max(mut_map.values()):0.2e}.")
-
-ts_metadata = tables.metadata
-ts_metadata["SLiM"]["model_type"] = "nonWF"
-tables.metadata = ts_metadata
-ots = tables.tree_sequence()
-
-# newt
-print("Working on Newt Sim")
-breaks = [0, 33333334, 66666667, 100000000]  # the length of the genome?
-recomb_map_1 = msprime.RateMap(
-    position=breaks,
-    rate=[1e-8, 1e-8, 1e-8])  # why do we set the recombination rate this way?
-demog_model_1 = msprime.Demography()
-demog_model_1.add_population(name="p0", initial_size=3)
-demog_model_1.add_population(name="p1", initial_size=100)
-ots_1 = msprime.sim_ancestry(
-    samples={"p1": 10},  # number of individividuals sampled?
-    # samples={"p1": 1, "p2": 1},
-    demography=demog_model_1,
-    # random_seed=5,
-    recombination_rate=recomb_map_1)
-
-ots_1 = pyslim.annotate_defaults(ots_1, model_type="nonWF", slim_generation=1)
-# this is adding anotation or metadata to all of the individuals
-
-mut_map_1 = msprime.RateMap(
-    position=breaks,
-    rate=[1e-10, 1e-10, 1e-10])  # what rate(s) would I put in here
-# needs to be the snakes number  # mutation "m1"
-snake_mutations = ots.num_mutations  # this is so the newt mutation tag will be after the snakes
-mut_model_1 = msprime.SLiMMutationModel(type=1, next_id=snake_mutations)
-ots_1 = msprime.sim_mutations(
-    ots_1,
-    rate=mut_map_1,
-    model=mut_model_1,
-    # random_seed=19
-)
-print(f"The tree sequence now has {ots_1.num_mutations} mutations, at "
-      f"{ots_1.num_sites} distinct sites.")
-
-tables_1 = ots_1.tables
-tables_1.mutations.clear()
-mut_map_1 = {}
-for m in ots_1.mutations():
-    md_list_1 = m.metadata["mutation_list"]
-    slim_ids_1 = m.derived_state.split(",")
-    assert len(slim_ids_1) == len(md_list_1)
-    for sid, md in zip(slim_ids_1, md_list_1):
-        if sid not in mut_map_1:
-            mut_map_1[sid] = np.random.exponential(scale=0.01)  # the newts lower mean
-        md["selection_coeff"] = mut_map_1[sid]
-    _ = tables_1.mutations.add_row(
-        site=m.site,
-        node=m.node,
-        time=m.time,
-        derived_state=m.derived_state,
-        parent=m.parent,
-        metadata={"mutation_list": md_list_1})
-
-# Adding location information to individuals metadata
-tables_1.populations.clear()
-for p in ots_1.populations():
-    pm = p.metadata
-    pm['bounds_x1'] = 1.0
-    pm['bounds_y1'] = 1.0
-    tables_1.populations.add_row(metadata=pm)
-
-# check we didn't mess anything up
-assert tables_1.mutations.num_rows == ots_1.num_mutations
-print(f"The selection coefficients range from {min(mut_map_1.values()):0.2e}")
-print(f"to {max(mut_map_1.values()):0.2e}.")
-
-ts_metadata_1 = tables_1.metadata
-ts_metadata_1["SLiM"]["model_type"] = "nonWF"
-tables_1.metadata = ts_metadata_1
-ots_1 = tables_1.tree_sequence()
-
-# Merge snake and newts
-
-# mts = ots.union(ots_1, node_mapping=np.repeat(tskit.NULL, ots_1.num_nodes))
-# assert ots.num_mutations > 0
-# ots.dump(os.path.join(datadir, "both_newt_snake_annotated.init.trees"))
-
-both = ots_1.union(
-    ots,
-    node_mapping=np.repeat(tskit.NULL, ots.num_nodes),
-    add_populations=False
-)
-both = pyslim.SlimTreeSequence(both)
+both = tables.tree_sequence()
 
 # population 0 = snakes = mutations of type 2
 # NOTE: this takes a bit, and we could only check the first 100 if we wanted
