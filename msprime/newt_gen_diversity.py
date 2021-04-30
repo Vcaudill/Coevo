@@ -15,7 +15,7 @@ demog_model = msprime.Demography()
 demog_model.add_population(name="p0", initial_size=3)
 demog_model.add_population(name="p1", initial_size=10000)
 ots = msprime.sim_ancestry(
-    samples={"p2": 1000},  # number of individividuals sampled?
+    samples={"p1": 1000},  # number of individividuals sampled?
     #samples={"p1": 1, "p2": 1},
     demography=demog_model,
     random_seed=5,
@@ -81,7 +81,7 @@ ots.dump("newt_snake/data/newts_annotated.init.trees")
 
 print(ots.sequence_length)
 print(tables.metadata)
-print(tables.nodes)
+# print(tables.nodes)
 # This runs the slim simulation with the varables that you set
 # subprocess.check_output(
 #     ["slim", "-d", f"L={int(ots.sequence_length - 1)}",

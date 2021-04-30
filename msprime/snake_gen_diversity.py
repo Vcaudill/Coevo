@@ -13,6 +13,7 @@ recomb_map = msprime.RateMap(
     rate=[1e-8, 1e-8, 1e-8])  # why do we set the recombination rate this way?
 demog_model = msprime.Demography()
 demog_model.add_population(initial_size=10000)
+print("Working on Snake Sim")
 ots = msprime.sim_ancestry(
     samples=1000,  # number of individividuals sampled?
     demography=demog_model,
@@ -21,7 +22,6 @@ ots = msprime.sim_ancestry(
 
 ots = pyslim.annotate_defaults(ots, model_type="nonWF", slim_generation=1)
 # this is adding anotation or metadata to all of the individuals
-print("one")
 mut_map = msprime.RateMap(
     position=breaks,
     rate=[1e-10, 1e-10, 1e-10])  # what rate(s) would I put in here
@@ -53,7 +53,7 @@ for m in ots.mutations():
         derived_state=m.derived_state,
         parent=m.parent,
         metadata={"mutation_list": md_list})
-print("two")
+
 # Adding location information to individuals metadata
 tables.populations.clear()
 for p in ots.populations():
