@@ -24,7 +24,7 @@ initialize() {
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
 	
 	initializeMutationType("m1", 0.5, "n", 0, 1/100);
-	initializeMutationType("m2", 0.5, "n",0,  1/2);
+	initializeMutationType("m2", 0.5, "n", 0, 1/2);
 	initializeGenomicElementType("g1", c(m1, m2), c(50, 1)); // mutation proportions add the proportion (the target mutation rate)
 	initializeGenomicElement(g1, 0, G-1);
 	initializeMutationRate(1e-10); //times genome * G-1 p*mu 
