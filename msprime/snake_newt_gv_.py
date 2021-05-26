@@ -11,6 +11,7 @@ sequence_length = 100000000
 # TODO: add mutation rate as an argument
 # so we can use different mutation rates for snakes and newts
 
+
 def add_mutations(ts, mut_type, effect_sd, next_id=0):
     # s_fn draws the selection coefficient
     # need to assign metadata to be able to put the mutations in
@@ -48,18 +49,18 @@ def add_mutations(ts, mut_type, effect_sd, next_id=0):
 
 # Snakes:
 snake_demog = msprime.Demography()
-snake_demog.add_population(name="p0", initial_size=100)
+snake_demog.add_population(name="p0", initial_size=10000)
 snakes = msprime.sim_ancestry(
-    samples={"p0": 10},  # number of individividuals sampled
+    samples={"p0": 300},  # number of individividuals sampled
     demography=snake_demog,
     recombination_rate=1e-8,
     sequence_length=sequence_length)
 
 snakes = pyslim.annotate_defaults(
-            snakes,
-            model_type='nonWF',
-            slim_generation=1,
-        )
+    snakes,
+    model_type='nonWF',
+    slim_generation=1,
+)
 
 # add mutations
 snakes = add_mutations(
@@ -78,18 +79,18 @@ for m in snakes.mutations():
 # Newts:
 newt_demog = msprime.Demography()
 newt_demog.add_population(name="p0", initial_size=3)
-newt_demog.add_population(name="p1", initial_size=100)
+newt_demog.add_population(name="p1", initial_size=10000)
 newts = msprime.sim_ancestry(
-    samples={"p1": 10},  # number of individividuals sampled
+    samples={"p1": 300},  # number of individividuals sampled
     demography=newt_demog,
     recombination_rate=1e-8,
     sequence_length=sequence_length)
 
 newts = pyslim.annotate_defaults(
-            newts,
-            model_type='nonWF',
-            slim_generation=1,
-        )
+    newts,
+    model_type='nonWF',
+    slim_generation=1,
+)
 
 newts = add_mutations(
     newts,
@@ -109,10 +110,10 @@ for m in newts.mutations():
 
 # Merge
 both = newts.union(
-        snakes,
-        node_mapping=np.repeat(tskit.NULL, snakes.num_nodes),
-        add_populations=False
-    )
+    snakes,
+    node_mapping=np.repeat(tskit.NULL, snakes.num_nodes),
+    add_populations=False
+)
 both = pyslim.SlimTreeSequence(both)
 
 tables = both.tables
@@ -134,10 +135,10 @@ for ind in both.individuals():
     md = ind.metadata
     md['pedigree_id'] = next_id
     j = tables.individuals.add_row(
-            flags=ind.flags,
-            location=ind.location,
-            parents=ind.parents,
-            metadata=md
+        flags=ind.flags,
+        location=ind.location,
+        parents=ind.parents,
+        metadata=md
     )
     ind_map[j] = md['pedigree_id']
     next_id += 1
@@ -155,11 +156,11 @@ for n in both.nodes():
         offset = md['slim_id'] - 2 * ind.metadata['pedigree_id']
         md['slim_id'] = 2 * ind_map[ind.id] + offset
     tables.nodes.add_row(
-            time=n.time,
-            population=n.population,
-            individual=n.individual,
-            flags=n.flags,
-            metadata=schema.validate_and_encode_row(md)
+        time=n.time,
+        population=n.population,
+        individual=n.individual,
+        flags=n.flags,
+        metadata=schema.validate_and_encode_row(md)
     )
 tables.nodes.metadata_schema = schema
 
