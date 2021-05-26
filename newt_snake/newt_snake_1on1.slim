@@ -27,7 +27,7 @@ initialize() {
 	initializeMutationType("m2", 0.5, "n", 0, 1/2);
 	initializeGenomicElementType("g1", c(m1, m2), c(50, 1)); // mutation proportions add the proportion (the target mutation rate)
 	initializeGenomicElement(g1, 0, G-1);
-	initializeMutationRate(1e-10); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
+	initializeMutationRate(1e-6); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
 	initializeRecombinationRate(recomb);
 	
 	// spatial competition
@@ -117,12 +117,12 @@ reproduction(p0) {//snakes
 }
 
 // removing mutations that apear in the wrong population, is this working/helpful 
-early() {
+//early() {
 	//muts1 = sim.mutationsOfType(m1);  // newt mutations
 	//muts2 = sim.mutationsOfType(m2); // snake mutations
 	//p0.individuals.genomes.removeMutations(muts2);
 	//p1.individuals.genomes.removeMutations(muts1);
-}
+//}
 
 
  //competition within and between populations

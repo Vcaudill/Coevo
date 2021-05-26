@@ -7,18 +7,19 @@ import os
 
 datadir = "newt_snake/data"
 sequence_length = 100000000
+snake_mu_rate = 1e-10
+newt_mu_rate = 1e-10
+snake_mu_effect_sd = 0.5
+newt_mu_effect_sd = 0.01
 
-# TODO: add mutation rate as an argument
-# so we can use different mutation rates for snakes and newts
 
-
-def add_mutations(ts, mut_type, effect_sd, next_id=0):
+def add_mutations(ts, mut_type, mu_rate, effect_sd, next_id=0):
     # s_fn draws the selection coefficient
     # need to assign metadata to be able to put the mutations in
     mut_model = msprime.SLiMMutationModel(type=mut_type, next_id=next_id)
     mts = msprime.sim_mutations(
         ts,
-        rate=1e-10,
+        mu_rate,
         model=mut_model,
     )
     print(f"The tree sequence now has {mts.num_mutations} mutations, at "
@@ -66,7 +67,8 @@ snakes = pyslim.annotate_defaults(
 snakes = add_mutations(
     snakes,
     mut_type=2,
-    effect_sd=0.5)
+    mu_rate=snake_mu_rate,
+    effect_sd=snake_mu_effect_sd)
 
 # snakes should be in population 0 and have mutations of type 2
 for n in snakes.nodes():
@@ -95,7 +97,8 @@ newts = pyslim.annotate_defaults(
 newts = add_mutations(
     newts,
     mut_type=1,
-    effect_sd=0.01,
+    mu_rate=newt_mu_rate,
+    effect_sd=newt_mu_effect_sd,
     # this is so the newt mutation IDs will be after the snakes:
     next_id=snakes.num_mutations)
 
