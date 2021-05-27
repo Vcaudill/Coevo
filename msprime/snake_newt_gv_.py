@@ -45,7 +45,7 @@ def add_mutations(ts, mut_type, mu_rate, effect_sd, next_id=0):
     assert tables.mutations.num_rows == mts.num_mutations
     print(f"The selection coefficients range from {min(mut_map.values()):0.2e}")
     print(f"to {max(mut_map.values()):0.2e}.")
-    return mts
+    return tables.tree_sequence()
 
 
 # Snakes:
@@ -173,6 +173,7 @@ both = tables.tree_sequence()
 mut_info = {}
 for m in both.mutations():
     for a, md in zip(m.derived_state.split(","), m.metadata['mutation_list']):
+        assert md['selection_coeff'] != 0.0
         if a in mut_info:
             assert mut_info[a] == md, f"Mismatch for ID {a}: {mut_info[a]} and {md} differ."
         else:

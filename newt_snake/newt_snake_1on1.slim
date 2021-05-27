@@ -30,11 +30,11 @@ initialize() {
 	initializeMutationRate(1e-6); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
 	initializeRecombinationRate(recomb);
 	
-	// spatial competition
+	// TODO MAKE THE INTERACTIONS CONSISTENT
 	initializeInteractionType(1, "xy", reciprocal=T, maxDistance=SI * 3); //Distance
 	i1.setInteractionFunction("n", 1.0/(2*PI*SI^2), SI);
 	
-	// mate choice
+	// snakes
 	initializeInteractionType(2, "xy", reciprocal=T, maxDistance=SM * 3);
 	i2.setInteractionFunction("n", 1.0/(2*PI*SM^2), SM);
 
@@ -214,23 +214,45 @@ early() {
 //Create the different selection areas (Future)
 
 
-//Snake a Newt display 
 1: late() {
 	// to be ready for mate choice
 	i2.evaluate(p1);
 	i2.evaluate(p0);
+}
+
+//Snake a Newt display 
+1: late() {
 	for (ind_snake in p0.individuals){
-		
 		hue = ((ind_snake.z + 1) / (1 * 2)) * 0.45;
 		ind_snake.color = rgb2color(hsv2rgb(c(hue%1, 1.0, 1.0)));
 	}
 	for (ind_newt in p1.individuals){
-		
 		hue = ((ind_newt.z + 1) / (1 * 2)) * 0.66;
 		ind_newt.color = rgb2color(hsv2rgb(c(hue%1, 1.0, 1.0)));
 	}
-}
 
+	// make a map of mean phenotypes
+	grid_x = (seqLen(21) * p1.spatialBounds[2] / 21);
+	grid_y = (seqLen(21) * p1.spatialBounds[3] / 21);
+	newt_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
+							  nrow=length(grid_y)-1, ncol=length(grid_x)-1);
+	for (i in seqLen(length(grid_x)-1)) {
+		for (j in seqLen(length(grid_y)-1)) {
+			nearby_newts = p1.individuals[
+				(p1.individuals.x > grid_x[i])
+				& (p1.individuals.x <= grid_x[i+1])
+				& (p1.individuals.y > grid_y[j])
+				& (p1.individuals.y <= grid_y[j+1])				
+			];
+			if (length(nearby_newts) > 0) {
+				newt_means[i,j] = mean(nearby_newts.z);
+			}
+		}	
+	}
+	// maybe it should be transposed?
+	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
+			valueRange=range(p1.individuals.z), colors=c("#000000", "#FFFFFF"));
+}
 
 10000 late() {
     catn("Done!");
