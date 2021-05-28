@@ -9,7 +9,7 @@ datadir = "newt_snake/data"
 sequence_length = 100000000
 snake_mu_rate = 1e-10
 newt_mu_rate = 1e-10
-snake_mu_effect_sd = 0.5
+snake_mu_effect_sd = 0.02
 newt_mu_effect_sd = 0.01
 
 

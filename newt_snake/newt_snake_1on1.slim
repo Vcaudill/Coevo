@@ -105,27 +105,34 @@ reproduction(p0) {//snakes
 	
 	p1.setSpatialBounds(c(0, 0, W, W)); //newt
 	p0.setSpatialBounds(c(0, 0, W, W)); //snake
-//	// would it be better to add them on the same plot
-//	// random initial positions
+	//	// would it be better to add them on the same plot
+	//	// random initial positions
 	for (ind in p1.individuals) {
 		ind.setSpatialPosition(p1.pointUniform());
 	}
 	for (ind in p0.individuals) {
 		ind.setSpatialPosition(p0.pointUniform());
 	}
+	sim.addSubpop("p2", 1);
+	p2.setSpatialBounds(c(0, 0, W, W));
+	
+	// random initial positions
+	for (ind in p2.individuals) {
+		ind.setSpatialPosition(c(W/2, W/2));
+	}
 	i1.evaluate();
 }
 
 // removing mutations that apear in the wrong population, is this working/helpful 
 //early() {
-	//muts1 = sim.mutationsOfType(m1);  // newt mutations
-	//muts2 = sim.mutationsOfType(m2); // snake mutations
-	//p0.individuals.genomes.removeMutations(muts2);
-	//p1.individuals.genomes.removeMutations(muts1);
+//muts1 = sim.mutationsOfType(m1);  // newt mutations
+//muts2 = sim.mutationsOfType(m2); // snake mutations
+//p0.individuals.genomes.removeMutations(muts2);
+//p1.individuals.genomes.removeMutations(muts1);
 //}
 
 
- //competition within and between populations
+//competition within and between populations
 early() {
 	// relate the populations posion/resistance levels with individual interactions and do competetion within a population 
 	i1.evaluate(p1);
@@ -169,7 +176,7 @@ early() {
 		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);// could make count smaller (limit the number of newts nearby) 
 		// sample number based on a combination of how close they are using a uniform distibution 
 		if (length(newtNeighbors) > 0){ //need newt to be nearby to eat
-				
+			
 			// List of which newts the snake will try to eat. It will take a uniform distribution and a probablity of interacting
 			distance = i1.distanceToPoint(newtNeighbors, mPoint);// vector of distances 
 			probablity = interaction_rate*exp(-(distance^2)/(2*(surs^2))); //curve of the interaction based on the distance of the newt
@@ -230,31 +237,68 @@ early() {
 		hue = ((ind_newt.z + 1) / (1 * 2)) * 0.66;
 		ind_newt.color = rgb2color(hsv2rgb(c(hue%1, 1.0, 1.0)));
 	}
-
+	
 	// make a map of mean phenotypes
 	grid_x = (seqLen(21) * p1.spatialBounds[2] / 21);
 	grid_y = (seqLen(21) * p1.spatialBounds[3] / 21);
+	grid_xs = (seqLen(21) * p1.spatialBounds[2] / 21);
+	grid_ys = (seqLen(21) * p1.spatialBounds[3] / 21);
+	grid_xb = (seqLen(21) * p1.spatialBounds[2] / 21);
+	grid_yb = (seqLen(21) * p1.spatialBounds[3] / 21);
 	newt_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
-							  nrow=length(grid_y)-1, ncol=length(grid_x)-1);
+		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
+	snake_means = matrix(rep(0.0, (length(grid_xs)-1) * (length(grid_ys)-1)),
+		nrow=length(grid_ys)-1, ncol=length(grid_xs)-1);
+	snake_newt = matrix(rep(0.0, (length(grid_xb)-1) * (length(grid_yb)-1)),
+		nrow=length(grid_yb)-1, ncol=length(grid_xb)-1);
 	for (i in seqLen(length(grid_x)-1)) {
 		for (j in seqLen(length(grid_y)-1)) {
 			nearby_newts = p1.individuals[
 				(p1.individuals.x > grid_x[i])
 				& (p1.individuals.x <= grid_x[i+1])
 				& (p1.individuals.y > grid_y[j])
-				& (p1.individuals.y <= grid_y[j+1])				
-			];
+				& (p1.individuals.y <= grid_y[j+1])
+				];
+			
 			if (length(nearby_newts) > 0) {
 				newt_means[i,j] = mean(nearby_newts.z);
 			}
-		}	
+		}
 	}
+	
+	for (i in seqLen(length(grid_xs)-1)) {
+		for (j in seqLen(length(grid_ys)-1)) {
+			
+			nearby_snakes = p0.individuals[
+				(p0.individuals.x > grid_xs[i])
+				& (p0.individuals.x <= grid_xs[i+1])
+				& (p0.individuals.y > grid_ys[j])
+				& (p0.individuals.y <= grid_ys[j+1])
+				];
+			
+			if (length(nearby_snakes) > 0) {
+				snake_means[i,j] = mean(nearby_snakes.z);
+			}
+		}
+	}
+	for (i in seqLen(length(grid_xb)-1)) {
+		for (j in seqLen(length(grid_yb)-1)) {
+			
+			snake_newt[i,j] = snake_means[i,j]-newt_means[i,j];
+		}
+	}
+	
+	
 	// maybe it should be transposed?
 	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
-			valueRange=range(p1.individuals.z), colors=c("#000000", "#FFFFFF"));
+		valueRange=range(p1.individuals.z), colors=c("#000000", "#FFFFFF"));
+	p0.defineSpatialMap('snakes', 'xy', snake_means, interpolate=F,
+		valueRange=range(p0.individuals.z), colors=c("#000000", "#FFFFFF"));
+	p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
+		valueRange=range(p0.individuals.z), colors=c("#000000", "#FFFFFF"));
 }
 
 10000 late() {
-    catn("Done!");
+	catn("Done!");
 	sim.simulationFinished();
 }
