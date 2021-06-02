@@ -8,8 +8,8 @@ import os
 datadir = "newt_snake/data"
 sequence_length = 100000000
 snake_mu_rate = 1e-10
-newt_mu_rate = 1e-10
-snake_mu_effect_sd = 0.02
+newt_mu_rate = 1e-10  # does this need to be 50 times more than the snake?
+snake_mu_effect_sd = 0.05
 newt_mu_effect_sd = 0.01
 
 

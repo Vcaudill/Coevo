@@ -115,9 +115,14 @@ reproduction(p0) {//snakes
 	}
 	sim.addSubpop("p2", 1);
 	p2.setSpatialBounds(c(0, 0, W, W));
+	sim.addSubpop("p3", 1);
+	p3.setSpatialBounds(c(0, 0, W, W));
 	
 	// random initial positions
 	for (ind in p2.individuals) {
+		ind.setSpatialPosition(c(W/2, W/2));
+	}
+	for (ind in p3.individuals) {
 		ind.setSpatialPosition(c(W/2, W/2));
 	}
 	i1.evaluate();
@@ -251,6 +256,8 @@ early() {
 		nrow=length(grid_ys)-1, ncol=length(grid_xs)-1);
 	snake_newt = matrix(rep(0.0, (length(grid_xb)-1) * (length(grid_yb)-1)),
 		nrow=length(grid_yb)-1, ncol=length(grid_xb)-1);
+	newt_snake = matrix(rep(0.0, (length(grid_xb)-1) * (length(grid_yb)-1)),
+		nrow=length(grid_yb)-1, ncol=length(grid_xb)-1);
 	for (i in seqLen(length(grid_x)-1)) {
 		for (j in seqLen(length(grid_y)-1)) {
 			nearby_newts = p1.individuals[
@@ -285,17 +292,21 @@ early() {
 		for (j in seqLen(length(grid_yb)-1)) {
 			
 			snake_newt[i,j] = snake_means[i,j]-newt_means[i,j];
+			newt_snake[i,j] = newt_means[i,j]-snake_means[i,j];
 		}
 	}
 	
 	
 	// maybe it should be transposed?
+	// standorize the colors 
 	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
-		valueRange=range(p1.individuals.z), colors=c("#000000", "#FFFFFF"));
+		valueRange=range(p1.individuals.z), colors=c("#FFFFFF", "#FF0000"));//"#000000", "#FFFFFF"
 	p0.defineSpatialMap('snakes', 'xy', snake_means, interpolate=F,
-		valueRange=range(p0.individuals.z), colors=c("#000000", "#FFFFFF"));
+		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
 	p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
-		valueRange=range(p0.individuals.z), colors=c("#000000", "#FFFFFF"));
+		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
+	p3.defineSpatialMap('newts-snakes', 'xy', newt_snake , interpolate=F,
+		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#FF0000"));//more red more toxic
 }
 
 10000 late() {
