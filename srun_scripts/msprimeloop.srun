@@ -1,0 +1,26 @@
+#!/bin/bash
+#SBATCH --account=kernlab          ### SLURM account which will be charged for the job
+#SBATCH --partition=kern        ### Partition (like a queue in PBS)
+#SBATCH --job-name=slimloop      ### Job Name
+#SBATCH --output=slimloop.out         ### File in which to store job output
+#SBATCH --error=slimloop.err          ### File in which to store job error messages
+#SBATCH --time=0-01:00:00       ### Wall clock time limit in Days-HH:MM:SS
+#SBATCH --nodes=1               ### Node count required for the job
+#SBATCH --ntasks-per-node=1     ### Nuber of tasks to be launched per Node
+#SBATCH --cpus-per-task=1       ### Number of cpus (cores) per task
+datadir="/home/vcaudill/kernlab/coevo/MSprome_sim"
+snake_mu_rate=( 1e-6 1e-8 1e-10 1e-12 1e-6 1e-8 1e-10 1e-12 1e-6 1e-8 1e-10 1e-12 1e-6 1e-8 1e-10 1e-12)
+newt_mu_rate=( 1e-6 1e-8 1e-10 1e-12)  # does this need to be 50 times more than the snake?
+snake_mu_effect_sd=( 0.01 0.01 0.01 0.01 0.05 0.05 0.05 0.05 0.25 0.25 0.25 0.25 0.5 0.5 0.5 0.5)
+newt_mu_effect_sd=( 0.01 0.05 0.25 0.5)
+
+for i in {1..16};
+do for j in "${newt_mu_rate[@]}";
+do for k in "${newt_mu_effect_sd[@]}";
+#do for n in "${newt_mu_rate[@]}";
+#do for m in "${newt_mu_effect[@]}";
+#do echo "hello ${j} ${snake_mu_rate[i-1]} ${k} ${snake_mu_effect_sd[i-1]}" 
+
+do sbatch runmsprime.srun ${snake_mu_rate[i-1]} ${j} ${snake_mu_effect_sd[i-1]} ${k} ${datadir}
+#do python '/Users/victoria/Desktop/Coevo/msprime/snake_newt_gv_.py' ${1} ${2} ${3} ${4} ${5} 
+done; done; done

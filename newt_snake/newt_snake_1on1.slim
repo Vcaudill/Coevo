@@ -100,8 +100,8 @@ reproduction(p0) {//snakes
 	//		I will also add demographic location
 	sim.readFromPopulationFile("newt_snake/data/both_newt_snake_annotated.init.trees");
 	// sometimes there is a problem with this line and I need to change my directory
-	sim.treeSeqRememberIndividuals(p0.individuals);
-	sim.treeSeqRememberIndividuals(p1.individuals);
+	//sim.treeSeqRememberIndividuals(p0.individuals);
+	//sim.treeSeqRememberIndividuals(p1.individuals);
 	
 	p1.setSpatialBounds(c(0, 0, W, W)); //newt
 	p0.setSpatialBounds(c(0, 0, W, W)); //snake
@@ -197,7 +197,7 @@ early() {
 					//Did the snake eat the newt?
 					//potential outcomes are death for newt or snake, how do we make the survival curve? 
 					prob_of_survive = 1.0/(1+exp(-((compair_pheno-c)/w)));// snakes probablity of survival 
-					catn(prob_of_survive);
+					//catn(prob_of_survive);
 					survive = runif(1) < prob_of_survive; //did the snake survive? //one will die for sure 
 					
 					//Future more selections where there is a chance that both survive or die???
@@ -238,25 +238,21 @@ early() {
 		max_z = max(pop.individuals.z);
 		for (ind in pop.individuals) {
 			hue = 0.66 * (0.1 + ind.z) / (0.1 + max_z);
-			ind.color = rgb2color(hsv2rgb(c(hue, 1.0, 1.0)));
+			ind.color = rgb2color(hsv2rgb(c(hue+0.000001, 1.0, 1.0)));
 		}
 	}
 	
 	// make a map of mean phenotypes
 	grid_x = (c(0, (seqLen(21) + 0.5)/21, 1.0) * p1.spatialBounds[2]);
 	grid_y = (c(0, (seqLen(31) + 0.5)/31, 1.0) * p1.spatialBounds[3]);
-	grid_xs = grid_x;
-	grid_ys = grid_y;
-	grid_xb = grid_x;
-	grid_yb = grid_y;
+	
 	newt_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
 		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
-	snake_means = matrix(rep(0.0, (length(grid_xs)-1) * (length(grid_ys)-1)),
-		nrow=length(grid_ys)-1, ncol=length(grid_xs)-1);
-	snake_newt = matrix(rep(0.0, (length(grid_xb)-1) * (length(grid_yb)-1)),
-		nrow=length(grid_yb)-1, ncol=length(grid_xb)-1);
-	newt_snake = matrix(rep(0.0, (length(grid_xb)-1) * (length(grid_yb)-1)),
-		nrow=length(grid_yb)-1, ncol=length(grid_xb)-1);
+	snake_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
+		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
+	snake_newt = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
+		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
+	newt_snake = snake_newt;
 	for (i in seqLen(length(grid_x)-1)) {
 		for (j in seqLen(length(grid_y)-1)) {
 			nearby_newts = p1.individuals[
@@ -269,27 +265,24 @@ early() {
 			if (length(nearby_newts) > 0) {
 				newt_means[length(grid_y) - j - 2, i] = mean(nearby_newts.z);
 			}
-		}
-	}
-	
-	for (i in seqLen(length(grid_xs)-1)) {
-		for (j in seqLen(length(grid_ys)-1)) {
 			
 			nearby_snakes = p0.individuals[
-				(p0.individuals.x > grid_xs[i])
-				& (p0.individuals.x <= grid_xs[i+1])
-				& (p0.individuals.y > grid_ys[j])
-				& (p0.individuals.y <= grid_ys[j+1])
+				(p0.individuals.x > grid_x[i])
+				& (p0.individuals.x <= grid_x[i+1])
+				& (p0.individuals.y > grid_y[j])
+				& (p0.individuals.y <= grid_y[j+1])
 				];
 			
 			if (length(nearby_snakes) > 0) {
 				snake_means[length(grid_y) - j - 2, i] = mean(nearby_snakes.z);
 			}
+		
 		}
 	}
+	
 	snake_newt = snake_means - newt_means;
 	newt_snake = newt_means - snake_means;
-
+	
 	
 	// maybe it should be transposed?
 	// standorize the colors 
@@ -303,7 +296,35 @@ early() {
 		valueRange=range(newt_snake), colors=c("#FFFFFF", "#FF0000"));//more red more toxic
 }
 
+// The varabales that I want to collect from slim 
+
+1 early(){
+	// header info
+	cat("gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density");
+	catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" +
+		"    " +"Snake_pop_size"+"    "+ "time");
+}
+2: late() {
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+
+	
+	// caculating the phenotype, but using the exponet to only have postive phenotypes
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
+	
+	if ((sim.generation % 20) == 0) {
+		cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
+		cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
+		catn("    " + clock());
+	}
+}
+
+
+
 10000 late() {
+	// outpath will need to be defined in the slim call so will the varables and ending time
+	//sim.treeSeqOutput(outpath+"Bias_"+BIAS+ "_sigma_"+SD+ "_ID_"+simID + "_late_1000000" + "_.trees");
 	catn("Done!");
 	sim.simulationFinished();
 }
