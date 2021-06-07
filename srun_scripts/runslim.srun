@@ -1,0 +1,13 @@
+#!/bin/bash
+#SBATCH --account=kernlab          ### SLURM account which will be charged for the job
+#SBATCH --partition=kern        ### Partition (like a queue in PBS)
+#SBATCH --job-name=mspr      ### Job Name
+#SBATCH --output=mspr.out         ### File in which to store job output
+#SBATCH --error=mspr.err          ### File in which to store job error messages
+#SBATCH --time=0-01:00:00       ### Wall clock time limit in Days-HH:MM:SS
+#SBATCH --nodes=1               ### Node count required for the job
+#SBATCH --ntasks-per-node=1     ### Nuber of tasks to be launched per Node
+#SBATCH --cpus-per-task=1       ### Number of cpus (cores) per task
+
+
+slim -m -t -d "mu_rate = ${1}" -d "newt_mu_rate = ${2}" -d "snake_mu_effect_sd = ${3}" -d "newt_mu_effect_sd = ${4}" -d "msprime_file = '${5}'" -d "outpath = '${6}'" '/home/vcaudill/kernlab/coevo/SLiM_script/newt_snake_1on1.slim' > /home/vcaudill/kernlab/coevo/Expdata/text_files/file_${7}_${8}.txt;

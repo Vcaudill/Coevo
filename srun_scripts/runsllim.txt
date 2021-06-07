@@ -1,0 +1,4 @@
+
+echo ${5}
+echo ${8}
+slim -m -t -d "mu_rate = ${1}" -d "newt_mu_rate = ${2}" -d "snake_mu_effect_sd = ${3}" -d "newt_mu_effect_sd = ${4}" -d "msprime_file = '${5}'" -d "outpath = '${6}'" '/Users/victoria/Desktop/Coevo/newt_snake/newt_snake_1on1.slim' > /Users/victoria/Desktop/file_${7}_${8}.txt;
