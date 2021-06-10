@@ -8,11 +8,13 @@ initialize() {
 	sigma_in = 0.5; // i want more of a decrease in fitness when there are too many neighbors!
 	
 	//Testing factors 	
-	//defineConstant("mu_rate", 1e-6); //just be the snake mu
-	//defineConstant("newt_mu_rate", 50); //newt mu/ snake mu it will me more or less comman than nake
-	//defineConstant("snake_mu_effect_sd", 0.5);
-	//defineConstant("newt_mu_effect_sd", 0.01);
-	//defineConstant("msprime_file", "newt_snake/data/both_newt_snake_annotated.init.trees");
+	defineConstant("mu_rate", 1e-8); //just be the snake mu
+	defineConstant("snake_mu_rate", 1); //snake mu/newt mu it will me more or less comman than nake	
+	defineConstant("newt_mu_rate", 50); //newt mu/ snake mu it will me more or less comman than nake
+	defineConstant("snake_mu_effect_sd", 1/2);
+	defineConstant("newt_mu_effect_sd", 1/100);
+	defineConstant("msprime_file", "MSprome_sim/both_su_1e-08_nu_1e-12_sue_0.25_nue_0.25.init.trees");
+	//defineConstant("msprime_file", "newt_snake/data/both_newt_snake_annotated.init.trees");//sme 0.05, nme 0.01
 	
 	
 	defineConstant("sigma_M", 0.33); // the meeting interaction term
@@ -34,7 +36,7 @@ initialize() {
 	
 	initializeMutationType("m1", 0.5, "n", 0, newt_mu_effect_sd);
 	initializeMutationType("m2", 0.5, "n", 0, snake_mu_effect_sd);
-	initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate, 1)); // mutation proportions add the proportion (the target mutation rate)
+	initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate, snake_mu_rate)); // mutation proportions add the proportion (the target mutation rate)
 	initializeGenomicElement(g1, 0, G-1);
 	initializeMutationRate(mu_rate); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
 	initializeRecombinationRate(recomb);
@@ -242,77 +244,80 @@ early() {
 }
 
 //Snake a Newt display 
-//1: late() {
-//	for (pop in sim.subpopulations) {
-//		max_z = max(pop.individuals.z);
-//		for (ind in pop.individuals) {
-//			hue = 0.66 * (0.1 + ind.z) / (0.1 + max_z);
-//			ind.color = rgb2color(hsv2rgb(c(hue+0.000001, 1.0, 1.0)));
-//		}
-//	}
-//	
-//	// make a map of mean phenotypes
-//	grid_x = (c(0, (seqLen(21) + 0.5)/21, 1.0) * p1.spatialBounds[2]);
-//	grid_y = (c(0, (seqLen(31) + 0.5)/31, 1.0) * p1.spatialBounds[3]);
-//	
-//	newt_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
-//		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
-//	snake_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
-//		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
-//	snake_newt = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
-//		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
-//	newt_snake = snake_newt;
-//	for (i in seqLen(length(grid_x)-1)) {
-//		for (j in seqLen(length(grid_y)-1)) {
-//			nearby_newts = p1.individuals[
-//				(p1.individuals.x > grid_x[i])
-//				& (p1.individuals.x <= grid_x[i+1])
-//				& (p1.individuals.y > grid_y[j])
-//				& (p1.individuals.y <= grid_y[j+1])
-//				];
-//			
-//			if (length(nearby_newts) > 0) {
-//				newt_means[length(grid_y) - j - 2, i] = mean(nearby_newts.z);
-//			}
-//			
-//			nearby_snakes = p0.individuals[
-//				(p0.individuals.x > grid_x[i])
-//				& (p0.individuals.x <= grid_x[i+1])
-//				& (p0.individuals.y > grid_y[j])
-//				& (p0.individuals.y <= grid_y[j+1])
-//				];
-//			
-//			if (length(nearby_snakes) > 0) {
-//				snake_means[length(grid_y) - j - 2, i] = mean(nearby_snakes.z);
-//			}
-//		
-//		}
-//	}
-//	
-//	snake_newt = snake_means - newt_means;
-//	newt_snake = newt_means - snake_means;
-//	
-//	
-//	// maybe it should be transposed?
-//	// standorize the colors 
-//	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
-//		valueRange=range(p1.individuals.z), colors=c("#FFFFFF", "#FF0000"));//"#000000", "#FFFFFF"
-//	p0.defineSpatialMap('snakes', 'xy', snake_means, interpolate=F,
-//		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
-//	p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
-//		valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
-//	p3.defineSpatialMap('newts-snakes', 'xy', newt_snake , interpolate=F,
-//		valueRange=range(newt_snake), colors=c("#FFFFFF", "#FF0000"));//more red more toxic
-//}
+1: late() {
+	for (pop in sim.subpopulations) {
+		max_z = max(pop.individuals.z);
+		for (ind in pop.individuals) {
+			hue = 0.66 * (0.1 + ind.z) / (0.1 + max_z);
+			if(isNAN(hue)==T)
+				hue=0;
+			ind.color = rgb2color(hsv2rgb(c(hue+0.000001, 1.0, 1.0)));
+		}
+	}
+	
+	// make a map of mean phenotypes
+	grid_x = (c(0, (seqLen(21) + 0.5)/21, 1.0) * p1.spatialBounds[2]);
+	grid_y = (c(0, (seqLen(31) + 0.5)/31, 1.0) * p1.spatialBounds[3]);
+	
+	newt_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
+		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
+	snake_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
+		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
+	snake_newt = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
+		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
+	newt_snake = snake_newt;
+	for (i in seqLen(length(grid_x)-1)) {
+		for (j in seqLen(length(grid_y)-1)) {
+			nearby_newts = p1.individuals[
+				(p1.individuals.x > grid_x[i])
+				& (p1.individuals.x <= grid_x[i+1])
+				& (p1.individuals.y > grid_y[j])
+				& (p1.individuals.y <= grid_y[j+1])
+				];
+			
+			if (length(nearby_newts) > 0) {
+				newt_means[length(grid_y) - j - 2, i] = mean(nearby_newts.z);
+			}
+			
+			nearby_snakes = p0.individuals[
+				(p0.individuals.x > grid_x[i])
+				& (p0.individuals.x <= grid_x[i+1])
+				& (p0.individuals.y > grid_y[j])
+				& (p0.individuals.y <= grid_y[j+1])
+				];
+			
+			if (length(nearby_snakes) > 0) {
+				snake_means[length(grid_y) - j - 2, i] = mean(nearby_snakes.z);
+			}
+		
+		}
+	}
+	
+	snake_newt = snake_means - newt_means;
+	newt_snake = newt_means - snake_means;
+	
+	
+	// maybe it should be transposed?
+	// standorize the colors 
+	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
+		valueRange=range(p1.individuals.z), colors=c("#FFFFFF", "#FF0000"));//"#000000", "#FFFFFF"
+	p0.defineSpatialMap('snakes', 'xy', snake_means, interpolate=F,
+		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
+	p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
+		valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
+	p3.defineSpatialMap('newts-snakes', 'xy', newt_snake , interpolate=F,
+		valueRange=range(newt_snake), colors=c("#FFFFFF", "#FF0000"));//more red more toxic
+}
 
 // The varabales that I want to collect from slim 
 
 1 early(){
 	// header info
-	cat("gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density");
-	catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" +
-		"    " +"Snake_pop_size"+"    "+ "time");
+	//cat("gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density");
+	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" + "    " +"Snake_pop_size"+"    "+ "time");
+catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno");
 }
+
 2: late() {
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
@@ -323,17 +328,20 @@ early() {
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
 	if ((sim.generation % 20) == 0) {
-		cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
-		cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
-		catn("    " + clock());
+	//	cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
+	//	cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
+		//catn("    " + clock());
+		catn("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s));
+
+		
 	}
 }
 
 
 
-500000 late() {
+100000 late() {
 	// outpath will need to be defined in the slim call so will the varables and ending time
-	sim.treeSeqOutput(outpath+"mu_rate"+mu_rate+ "newt_mu_rate"+newt_mu_rate + "snake_mu_effect_sd"+ snake_mu_effect_sd +"newt_mu_effect_sd" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+simID + "_late_500000" + "_.trees");
+	//sim.treeSeqOutput(outpath+"mu_rate"+mu_rate+ "newt_mu_rate"+newt_mu_rate + "snake_mu_effect_sd"+ snake_mu_effect_sd +"newt_mu_effect_sd" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+simID + "_late_500000" + "_.trees");
 	catn("Done!");
 	sim.simulationFinished();
 }
