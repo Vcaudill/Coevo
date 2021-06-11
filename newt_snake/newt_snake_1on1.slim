@@ -10,7 +10,7 @@ initialize() {
 	//Testing factors 	
 	defineConstant("mu_rate", 1e-8); //just be the snake mu
 	defineConstant("snake_mu_rate", 1); //snake mu/newt mu it will me more or less comman than nake	
-	defineConstant("newt_mu_rate", 50); //newt mu/ snake mu it will me more or less comman than nake
+	defineConstant("newt_mu_rate", snake_mu_rate/50); //newt mu/ snake mu it will me more or less comman than nake
 	defineConstant("snake_mu_effect_sd", 1/2);
 	defineConstant("newt_mu_effect_sd", 1/100);
 	defineConstant("msprime_file", "MSprome_sim/both_su_1e-08_nu_1e-12_sue_0.25_nue_0.25.init.trees");
