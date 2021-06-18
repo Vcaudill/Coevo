@@ -83,6 +83,8 @@ figures/ that I used in my rotation talks to explain how similar the two populat
 
 R_script/ these are to make the figures for the rotation talk they do have the name split information that i will use for my newts and snakes
 
+graphs_newt_snakes/ r markdown files to show the results from the newt snake experiment
+Expected_results_fig.Rmd - proposal expected results (might have some good graph info) 
 
 EXPERIMENTS: 
 

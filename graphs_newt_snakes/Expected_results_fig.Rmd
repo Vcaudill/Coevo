@@ -1,0 +1,233 @@
+---
+title: "Fake Graphs"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(viridis)
+setwd("~/Desktop/Proposal Old Drafts")
+```
+
+## This R Markdown is for my expected results Figs 
+
+#### Aim 1
+
+Genetic Architecture by Resistance - Toxicity
+-concerns that it might be messy might be useful to do trait A and trait B 
+
+```{r, aim 1 Genetic Architecture}
+GA <- c("A", "B", "C", "D")
+# Group A Large effect – High Mutation 
+# Group B Large effect – Low Mutation
+# Group C Small effect – High Mutation
+# Group D Small effect – Low Mutation
+my_GA_data <- as.data.frame(GA)
+my_GA_data$fake <-c(3,1,0,-2)
+
+#pdf("Resistance_of_Populations_as_the_Genetic_Architecture_of_Snake_Changes.pdf")
+ggplot(my_GA_data, aes(GA, fake))+
+  geom_hline(yintercept=0, color ="red")+
+  geom_point(size=3, color = "darkgreen")+
+  ggtitle("Resistance of Populations as the Genetic Architecture of Snake Changes") + 
+  xlab("Genetic Architecture of Snake") + 
+  ylab("Resistance-Toxicity") +
+  theme_bw()
+
+#pdf("Genetic_Architecture_Map.pdf", width=4, height=2.9)
+test_grid <- expand.grid(X = GA, Y = GA)
+test_grid$Z <- c(0, -1, -2, -3, 1, 0, -1, -2, 2, 1, 0, -1, 3, 2, 1, 0)
+ggplot(test_grid, aes(X, Y, fill= Z)) + 
+  geom_tile()+
+  scale_y_discrete(limits = rev(levels(test_grid$Y)))+
+  ggtitle("Genetic Architecture Map") + 
+  xlab("Genetic Architecture of Resistance") + 
+  ylab("Genetic Architecture of Toxicity") +
+  scale_fill_viridis(name = "Resistance-Toxicity")+
+  theme_bw()
+
+```
+
+Density of the Newt increases selection pressure
+
+```{r, aim 1 Density}
+
+newt_density <-  as.data.frame(n_d<-c(1:10))
+
+pdf("Interaction_Strength_as_Newt_Density_Increases.pdf")
+ggplot(newt_density, aes(n_d, n_d))+
+  geom_point(size=3, color = "darkred")+
+  ggtitle("Interaction Strength as Newt Density Increases") + 
+  xlab("Newt Density") + 
+  ylab("Interaction Strength") +
+  theme_bw()
+
+
+```
+
+Spatial component. the mismatch will decrease as spatial structure increases
+
+```{r, aim 1 spatial aspect}
+spatial_structure <- runif(1000, min = 0.001, max = 5) # this is sigma
+mismatch <- (exp(-(spatial_structure/2)))
+sigma_effects <-  as.data.frame(spatial_structure, mismatch)
+pdf("SigmaCurve.pdf")
+ggplot(sigma_effects, aes(spatial_structure, mismatch))+
+  geom_point(color = "green")+
+  ggtitle("Sigma Curve") + 
+  xlab("Spatial_structure ") + 
+  ylab("Mismatch") +
+  theme_bw()
+
+#well mixed when sigma is large 
+
+```
+
+Simulation on how likely the snake or new will die depending on their phenotype
+
+```{r, aim 1 Probablity of Death}
+Resistance <- c(0:5)
+Toxicity <- c(0:3)
+E <- 0.1
+c <- 0.0
+w <- 10
+map <- expand.grid(Res = seq(min(Resistance), max(Resistance), length.out = 100), Tox = seq(min(Toxicity), max(Toxicity), length.out = 100))
+map$r_t <- map$Res-map$Tox
+map$outcome <- 1/(1+exp(-(map$r_t-c)/w))
+
+test <- c(0, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, -0.0001, -0.001, -0.01, -0.1, -1, -10, -100)
+
+test2 <- runif(1000, min = -100, max = 100)
+survival_df <- as.data.frame(test2)
+survival_df$outcome2 <- 1/(1+exp(-((survival_df$test2-c)/w)))
+pdf("SurvivalCurve.pdf", width=2.5, height=2.5)
+ggplot(survival_df, aes(test2, outcome2))+
+  geom_point(color = "darkred")+
+  ggtitle("Survival Curve") + 
+  xlab("Snake-Newt") + 
+  ylab("Survival") +
+  theme_bw()
+
+
+```
+
+### Aim 2
+
+Diversity! Trait and whole genome 
+large/small dispersal 
+interaction/ no interaction
+
+```{r geographical distance vs gentic distance}
+#dispersal <- runif(1000, min = 0, max = 3) # this is a range for large and small dispersal 
+distance <- seq(0,35,3)  # this is distances that might be probable 
+diversity_in_general <- as.data.frame(sort(distance))
+names(diversity_in_general)<- "distance"
+diversity_in_general$Genetic_i <- diversity_in_general$distance * 1/35 # finding Genetic Distance
+diversity_in_general$Genetic_in <- diversity_in_general$distance * 1/70 + 0.05# finding Genetic Distance
+diversity_in_general$Genetic_inn <- diversity_in_general$distance * 1/185 + 0.15 # finding Genetic Distance
+# y = mx + b y ranges from 0 to 1
+diversity_in_general$Genetic_no_interact <- diversity_in_general$distance * 1/60 
+diversity_in_general$Genetic_no_interactn <- diversity_in_general$distance * 1/360 + 0.20
+diversity_in_general$Genetic_no_interactnn <- 0.5
+
+pdf("General_Diversity_Trend_For_Interactaction.pdf", width=4, height=2.9)
+ggplot(diversity_in_general, aes(distance, Genetic_i, color = "darkred" ))+
+  geom_point(size=5)+
+  geom_point(data = diversity_in_general, aes(distance, Genetic_in, color = "darkgreen"), size=5)+
+  geom_point(data = diversity_in_general, aes(distance, Genetic_inn, color = "purple"), size=5)+
+  ggtitle("General Diversity Trend For Interactaction") + 
+  xlab("Geographical Distance") + 
+  ylab("Genetic Distance") +
+  scale_color_identity(name = "Dispersal",
+                          breaks = c("darkred", "darkgreen", "purple"),
+                          labels = c("Small", "Medium", "Large"),
+                          guide = "legend")+
+  theme_bw()
+  
+  
+pdf("General_Diversity_Trend_For_No_Interactaction.pdf")
+ggplot(diversity_in_general, aes(distance, Genetic_no_interact, color = "darkred"))+
+  geom_point( size=5)+
+  geom_point(data = diversity_in_general, aes(distance, Genetic_no_interactn, color = "darkgreen"), size=5)+
+  geom_point(data = diversity_in_general, aes(distance, Genetic_no_interactnn, color = "purple"), size=5)+
+  ylim(0,1)+
+  ggtitle("General Diversity Trend For No Interactaction") + 
+  xlab("Geographical Distance") + 
+  ylab("Genetic Distance") +
+  theme_bw()+
+  scale_color_identity(name = "Dispersal",
+                        breaks = c("darkred", "darkgreen", "purple"),
+                        labels = c("Small", "Medium", "Large"),
+                        guide = "legend")
+```
+
+
+```{r geographical distance vs  pi for trait and for whole genome (focus on the interactions)}
+library(reshape)
+dispersal_distance <- rep(seq(0.35, 1.75, 0.35) ,5)
+dispersal_diversity <- as.data.frame(sort(dispersal_distance))
+names(dispersal_diversity)<- "dispersal_distance"
+# interaction cause diversity of the trait to be lower and the genome to be higher than the trait but lower then no interaction
+# no_interact both trait and genome will have similar levels of genetic diversity
+# pi values (nucleotide diversity) range from 0 to 1, 0 low diversity 1 high diversity
+# as dispersal distance increases pi goes down (sweeps)
+ # dispersal distance 0.35 to 5.25
+# high .6 low .2
+# y = mx + b
+
+exp(unique(-dispersal_distance))
+
+trait_pi_i <- c()
+whole_genome_pi_i <- c()
+trait_pi_n <- c()
+whole_genome_pi_n <- c()
+for(i in unique(dispersal_distance)){
+  trait_pi_i <- c(trait_pi_i, exp(-i) + c(0.05, 0.02, 0, -0.02, -0.05))
+ whole_genome_pi_i <- c(whole_genome_pi_i, exp(-i) + c(0.1, 0.07, 0.05, 0.03, 0)- exp(-i)*.2)
+ trait_pi_n <- c(trait_pi_n, exp(-i) + c(0.01, -0.01, -0.03, -0.05, -0.06))
+whole_genome_pi_n <- c(whole_genome_pi_n, exp(-i) + c(0.01, -0.01, -0.03, -0.05, -0.06))
+}
+
+dispersal_diversity$trait_pi_i <-trait_pi_i
+dispersal_diversity$whole_genome_pi_i <-whole_genome_pi_i
+dispersal_diversity$trait_pi_n <- trait_pi_n 
+dispersal_diversity$whole_genome_pi_n <- whole_genome_pi_n
+
+dispersal_diversity_t<-t(dispersal_diversity)
+dispersal_diversity_m <- melt(dispersal_diversity, id=c("dispersal_distance"))
+
+pdf("dispersal_diversit.pdf", width=4.7, height=2.7)
+
+ggplot(dispersal_diversity_m, aes(factor(dispersal_distance), value, fill=variable))+
+  geom_boxplot(data=dispersal_diversity_m, aes(factor(dispersal_distance), value, fill=variable))+
+  ggtitle("Levels of Genetic Diversity and Dispersal Distance") + 
+  xlab("Dispersal Distance") + 
+  ylab("Diversity (pi)") +
+  theme_bw()+
+  scale_fill_manual(name = "Legend", labels = c("Interaction/Trait", "Interaction/Genome", "No Interaction/Trait", "No Interaction/Genome"), values = c("lightblue", "steelblue", "greenyellow", "forestgreen") )
+  #scale_fill_viridis_d(option="plasma", name = "Group", labels = c("Trait/Interaction", "Genome/Interaction", "Trait/No Interaction", "Genome/No Interaction"))
+# position = position_dodge(-0.3)
+
+```
+
+```{r local vs global diversity levels}
+large_dis
+small_dis
+interact
+no_interact
+trait 
+whole_genome
+
+```
+
+
+### Aim 3
+
+How convolution effects the genome 
+machine learning ~ neural network
+
+```{r manhatten plot or like gwas?}
+
+
+```
