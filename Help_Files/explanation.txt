@@ -1,0 +1,104 @@
+
+This is a guide to help me remember what I have done and the explanation/results
+
+Naming guide: Try to name files with important variables and an ID 
+SLiM - variable names/values separated with _ and the ID of the slim simulation
+MSprime - variable names/values separated with _ (need to add ID)
+
+CLUSTER FILES:
+SLiM_script/ has the 1 on 1 slim script. Where I was testing mutation rate and effect size.
+newt_snake_1on1.slim - 2d next on snake, no deleterious mutations or fitness cost
+slimloop.srun - loops through variables and calls another script to run the slim script
+runslim.srun - runs the slim script with the variables passed through a different script
+pheno_test_1000.srun - calls the slim script with variables given from a file <- I made this to see what the phenotypes are after 1000 generations
+
+pheno_test_1000/ txt files and tress files to see what the phenotypes are after 1000 generations
+This test was done with a specific MSprime simulation both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees
+Next step clean slim text data and graph
+
+MSprome_sim/ Place where all of the MSprime simulations will go
+- notes will need to add additional folders for specific experiments and random IDs at the end of names
+- will want to cycle though these files and parse out important variables (parsing.sh) 
+
+MSprime_script/ Where the files to run MSprime simulation lives
+snake_newt_gv_.py - simulates past mutations for newts and snakes
+msprimeloop.srun - loops though variables and calls another script to run the simulation
+runmsprime.srun - runs the msprime simulation
+
+Expdata/ Place to hold the data from each of my experiments 
+Will always have tree files and text files and will be renamed as I do different experiments 
+this is like a motif 
+
+GIT/MY FILES:
+srun_scripts/ files for the cluster
+msprimeloop.srun - loops though variables and calls another script to run the simulation
+pheno_test_1000.srun  - calls the slim script with variables given from a file 
+slimfill.sh - practice pulling variables from a csv file
+parsing.sh - practice pulling variables from a file name
+slimloop.srun - loops through variables and calls another script to run the slim script
+runslim.srun - runs the slim script with the variables passed through a different script
+runsllim.txt - practice for running slim with variables passed from another script
+testloop.sh - - practice for looping variables to pass to another script
+runmsprime.srun - runs the msprime simulation
+
+data/ <- will never be pushed to git
+slimtestvarables.csv  - contains the variables for the 1000 gens experiment 
+csv_files/ large_eff/ sigma/ size/ 2d_size/ Contains the data from the matching phenotypes 3rd rotation experiment 
+
+newt_snake/
+nospace.slim - slim coevolution simulation without space
+newt_snake_1on1.slim - newt on snake coevolution in 2d 
+newt_vs_snake.slim - trial that I dont really use any more
+data/ <- tree files produced from slim while in testing mode (will not be on git)
+
+msprime/ the genetic variation simulations
+snake_newt_gv_.py <- making the standing genetic variation for the slim script for both the newt and the snake
+newt_gen_diversity.py <- making the standing genetic variation for the newt
+snake_gen_diversity.py <- making the standing genetic variation for the snake
+merge_snake_newt.py <- combining the stand alones into one file (many problems currently 6/18/21)
+
+msprime_explore/ figuring out how to make msprime work
+
+python_script/ many of these scripts are for tests and animating the bias mig ancestry  
+python_test.py - testing the exponential and normal distributions 
+ofspring_by_ind.py - solved the problem of children being miss-counted (WORKING WELL) 
+ofspring_percentage.py - makes the circles more even (WORKING WELL) 
+whyTypeError.py - figuring out why there is this error
+tv_path_percentage.py - trying to caculate the paths but something is wrong
+offspring_through_time.py - finding the number of offspring though time dots got larger as the number off offspring grew (something not right)
+offspring_links.py - finding the links between individuals 
+split_offsring_tt.py - did this the hard way with loops tring to find all of the kids of parents, much better to make and fill a matrix
+animat_scatter.py - test for animation dots move and change sizes 
+treesee.py - first attempt at animating and would get infinite loops (do not run)
+curious.py - made a short video of 100 generations with all of the individuals in the simulation lines traced the location of individuals from 1 individual PC 
+
+slim_script/ scriptss from summer 2020 when i was first learning about coevoultion
+phe_sel_virus_n_host_2d.slim - tracking number of mutations in 2d (x mutation 1 and y mutation2) seems like a gene for gene model
+trackall_test.slim - how to remember all individuals in a slim script bias mig
+phe_sel_virus_n_host.slim - tracking number of mutations for a gene for gene model
+large_effect.slim - virus and host tracking each other if there were large mutation effects
+large_small_2d.slim - how would the tracking be implicated if the effects were different for 2 mutations?
+
+figures/ that I used in my rotation talks to explain how similar the two populations were
+
+R_script/ these are to make the figures for the rotation talk they do have the name split information that i will use for my newts and snakes
+
+
+EXPERIMENTS: 
+
+Current:
+newt_snake_1on1.slim leads to giant phenotype levels like millions to 0s 6/10/21
+- Is this because of space or the interaction. Possibly both?
+- Try to make a slim script with no space (nospace.slim) 6/18/21 NPH
+- Try to make a slim script with no coevolution
+- Try to make a slim script with no space and no coevolution
+Potential solutions:
+- Deleterious mutations 
+- Add fitness cost
+
+GOALS:
+- Learn how to use snakemake
+
+
+
+ 

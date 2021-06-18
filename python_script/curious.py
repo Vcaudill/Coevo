@@ -77,7 +77,7 @@ treefile = "sim.trees"
 outbase = ".".join(treefile.split(".")[:-1])
 
 ts = pyslim.load(
-    '/Users/victoria/Desktop//Rotation_2020/bias_test_data/Bias_0.15_sigma_0.8_ID_1602158267717_late_100_.trees')
+    '/Users/victoria/Desktop/bias_test_data/Bias_0.15_sigma_0.8_ID_1602158267717_late_100_.trees')
 
 today = np.where(ts.individual_times == 0)[0]
 num_indivs = 1
