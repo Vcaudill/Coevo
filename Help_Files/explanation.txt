@@ -16,6 +16,10 @@ pheno_test_1000/ txt files and tress files to see what the phenotypes are after 
 This test was done with a specific MSprime simulation both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees
 Next step clean slim text data and graph
 
+pheno_test_1000_2/ txt files and tress files to see what the phenotypes are after 1000 generations
+This test was done different MSprime simulations 
+Next step clean slim text data and graph
+
 MSprome_sim/ Place where all of the MSprime simulations will go
 - notes will need to add additional folders for specific experiments and random IDs at the end of names
 - will want to cycle though these files and parse out important variables (parsing.sh) 
@@ -24,6 +28,9 @@ MSprime_script/ Where the files to run MSprime simulation lives
 snake_newt_gv_.py - simulates past mutations for newts and snakes
 msprimeloop.srun - loops though variables and calls another script to run the simulation
 runmsprime.srun - runs the msprime simulation
+msprime1000.srun - making the srun for the 1000 gen test, the output is going to MSprome_sim_1000
+
+MSprome_sim_1000/ Place where the MSprime 1000gen simulations will go
 
 Expdata/ Place to hold the data from each of my experiments 
 Will always have tree files and text files and will be renamed as I do different experiments 

@@ -1,0 +1,55 @@
+---
+title: "1000 Graphs"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(viridis)
+#setwd("~/Desktop/Proposal Old Drafts")
+```
+
+## This is a r file to show what the phenotypess are after 1000 generations
+- A problem that I have been experiencing is that the phenotypes seem so go wild really quickly 
+- This will be a graph that looks at the phenotypes of different simulations with a unique mutation rate and mutation effect size.
+
+- Lets just visualize what the phenotypes are doing
+
+## The Figure
+Loop through the files and find the max and min of each of the species pheotypes
+Then set up a graph with the max max
+Loop though the files and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time
+
+```{r pressure, echo=FALSE}
+newt_max_pheno = 0
+snake_max_pheno = 0
+
+files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+
+for (current_file in files){
+  print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+  print(max(file$Newt_max_Pheno))
+  print(max(file$Snake_max_Pheno))
+  if (max(file$Newt_max_Pheno) > newt_max_pheno){
+    newt_max_pheno = max(file$Newt_max_Pheno) }
+  
+  if (max(file$Snake_max_Pheno) > snake_max_pheno){
+    snake_max_pheno = max(file$Snake_max_Pheno) }
+}
+```
+
+
+```{r pressure, echo=FALSE}
+ggplot()+
+  geom_line(current_file, aes(gen, snake), color="blue")+
+  geom_line(current_file, aes(gen, snake), color="red")+
+  geom_point(size=3, color = "darkgreen")+
+  ggtitle("How the Phenotypes Change Through the Generations") + 
+  xlab("Generation") + 
+  ylab("Phenotype Level") +
+  theme_bw()
+```
+
