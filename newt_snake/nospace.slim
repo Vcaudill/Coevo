@@ -1,7 +1,6 @@
 initialize() {
 	
 	initializeSLiMModelType("nonWF");
-	initializeSLiMOptions(dimensionality="xy");
 	initializeTreeSeq();
 	sigma_i = 1; // area for individulas to mate with might condider one for each species (2)
 	recomb=1e-8;
@@ -17,18 +16,9 @@ initialize() {
 	defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01
 	
 	
-	defineConstant("sigma_M", 0.33); // the meeting interaction term
-	defineConstant("K", 1);  // carrying-capacity per unit square (roughly)
-	defineConstant("SD", sigma_in);  // sigma_D, the dispersal distance
-	defineConstant("SI", sigma_in);  // sigma_I, the spatial interaction distance
-	defineConstant("surs", sigma_in);  // surs, the surviver distance
-	defineConstant("SM", SI);  // sigma_M, the mate choice distance
-	defineConstant("L", 4);    // mean lifetime at stationarity (what id the life times are different for each species?)
-	defineConstant("W", 35.0);  // width and height of the simulated area
+	defineConstant("K", 500);  // carrying-capacity of snakes and newts
 	defineConstant("G", 1e8);  // genome length
-	defineConstant("FECUN", 1/(L)); // mean fecundity
-	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.05);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.05);  // how the interation 
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
@@ -40,14 +30,6 @@ initialize() {
 	initializeGenomicElement(g1, 0, G-1);
 	initializeMutationRate(mu_rate); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
 	initializeRecombinationRate(recomb);
-	
-	// TODO MAKE THE INTERACTIONS CONSISTENT
-	initializeInteractionType(1, "xy", reciprocal=T, maxDistance=SI * 3); //Distance
-	i1.setInteractionFunction("n", 1.0/(2*PI*SI^2), SI);
-	
-	// snakes
-	initializeInteractionType(2, "xy", reciprocal=T, maxDistance=SM * 3);
-	i2.setInteractionFunction("n", 1.0/(2*PI*SM^2), SM);
 
 }
 
@@ -55,259 +37,91 @@ initialize() {
 fitness(m1) { return 1.0; }
 fitness(m2) { return 1.0; }// when it is gone population size explodes
 
-
 reproduction(p1) {//newts
-	// choose our nearest neighbor as a mate, within the max distance 
-	mate = i2.drawByStrength(individual, 1);
-	if (mate.size()) {
-		nOff = rpois(1, FECUN);
-		for (i in seqLen(nOff)) {
-			pos = individual.spatialPosition + rnorm(2, 0, SD); // add dispersal
-			if (p1.pointInBounds(pos)) {
-				offspring = subpop.addCrossed(individual, mate);
-				offspring.setSpatialPosition(p1.pointReflected(pos));
-			}
-		}
-	}
-	return;
+	offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
 }
 
 reproduction(p0) {//snakes
-	// choose our nearest neighbor as a mate, within the max distance
-	mate = i2.drawByStrength(individual, 1);
-	if (mate.size()) {
-		nOff = rpois(1, FECUN);
-		for (i in seqLen(nOff)) {
-			pos = individual.spatialPosition + rnorm(2, 0, SD); // add dispersal
-			if (p0.pointInBounds(pos)) {
-				offspring = subpop.addCrossed(individual, mate);
-				offspring.setSpatialPosition(p0.pointReflected(pos));
-			}
-		}
-	}
-	return;
+	offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
 }
-// "p2" were repaced with "p0" both are for snakes
 
-//1 early() {
-//	sim.addSubpop("p1", asInteger(K * W * W));
-//	sim.addSubpop("p0", asInteger(K * W * W));
-//	p1.setSpatialBounds(c(0, 0, W, W));
-//	p0.setSpatialBounds(c(0, 0, W, W));
-//	// would it be better to add them on the same plot
-//	// random initial positions
-//	for (ind in p1.individuals) {
-//		ind.setSpatialPosition(p1.pointUniform());
-//	}
-//	for (ind in p0.individuals) {
-//		ind.setSpatialPosition(p0.pointUniform());
-//	}
-//	i1.evaluate();
-//}
 
 1 early() {
 	//		I will need to use the coalescent simulations for newts and snakes
 	//		Then give the "neutral" mutations a selection coefficent
-	//		I will also add demographic location
 	sim.readFromPopulationFile(msprime_file);
 	// sometimes there is a problem with this line and I need to change my directory
-	//sim.treeSeqRememberIndividuals(p0.individuals);
-	//sim.treeSeqRememberIndividuals(p1.individuals);
-	
-	p1.setSpatialBounds(c(0, 0, W, W)); //newt
-	p0.setSpatialBounds(c(0, 0, W, W)); //snake
-	//	// would it be better to add them on the same plot
-	//	// random initial positions
-	for (ind in p1.individuals) {
-		ind.setSpatialPosition(p1.pointUniform());
-	}
-	for (ind in p0.individuals) {
-		ind.setSpatialPosition(p0.pointUniform());
-	}
-	sim.addSubpop("p2", 1);
-	p2.setSpatialBounds(c(0, 0, W, W));
-	sim.addSubpop("p3", 1);
-	p3.setSpatialBounds(c(0, 0, W, W));
-	
-	// random initial positions
-	for (ind in p2.individuals) {
-		ind.setSpatialPosition(c(W/2, W/2));
-	}
-	for (ind in p3.individuals) {
-		ind.setSpatialPosition(c(W/2, W/2));
-	}
-	i1.evaluate();
+
 }
-
-// removing mutations that apear in the wrong population, is this working/helpful 
-//early() {
-//muts1 = sim.mutationsOfType(m1);  // newt mutations
-//muts2 = sim.mutationsOfType(m2); // snake mutations
-//p0.individuals.genomes.removeMutations(muts2);
-//p1.individuals.genomes.removeMutations(muts1);
-//}
-
 
 //competition within and between populations
 early() {
 	// relate the populations posion/resistance levels with individual interactions and do competetion within a population 
-	i1.evaluate(p1);
-	i2.evaluate(p0);
+	
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
-	
-	newt_competition = i1.totalOfNeighborStrengths(inds_n); // find number of newt neighbors for each newt
-	snake_competition = i2.totalOfNeighborStrengths(inds_s);// find number of snake neighbors for each snake
 	
 	// caculating the phenotype, but using the exponet to only have postive phenotypes
 	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
+	//Fitness scaling
+	//////QUESTION////////
+	// I would also like to relate this to the other species population size so that they dont go extinct 
+	inds_n.fitnessScaling = K / p1.individualCount;
+	inds_s.fitnessScaling = K / p0.individualCount;
+	
 	// construct phenotypes and fitness effects from QTLs 
+	//////QUESTION////////
+	// I will like to color the boxes 
 	inds_n.z = phenotypes_n;
-	inds_s.z = phenotypes_s;
-	
-	
-	inds_n.fitnessScaling = pmin(0.95, 1/(1 + RHO * newt_competition));
-	inds_s.fitnessScaling = pmin(0.95, 1/(1 + RHO * snake_competition));
-	
-	
-	// avoid edge effects
-	inds_n.fitnessScaling = inds_n.fitnessScaling * pmin(sqrt(inds_n.x/SI), 1.0) * pmin(sqrt(inds_n.y/SI), 1.0) * pmin(sqrt((W - inds_n.x)/SI), 1.0) * pmin(sqrt((W - inds_n.y)/SI), 1.0); // * effects
-	inds_s.fitnessScaling = inds_s.fitnessScaling * pmin(sqrt(inds_s.x/SI), 1.0) * pmin(sqrt(inds_s.y/SI), 1.0) * pmin(sqrt((W - inds_s.x)/SI), 1.0) * pmin(sqrt((W - inds_s.y)/SI), 1.0);
-	
+	inds_s.z = phenotypes_s;	
 	
 	//Snake and Newt 1on1 interaction
-	bounds = p0.spatialBounds;
 	
+	//////QUESTION////////
+	// I would like some snakes to "run" into some newts then compair their phenotypes.
+	//Something feels off
+	snakeNeighbors = 	sample(p0.individuals, asInteger(0.30*p0.individualCount));
 	
-	// find number of newts near each snake and choose a random newt from nearby for a potental interaction
-	// uniform dist based on the distance (how close they are) if they are going to interact, stepping through each of the newtneighbor and picking which one to eat. p could be 0.1 like 10% chance of snake running into newt 
-	//want to put a higher chance on sankes encountering a newt if there are a lot of newts near by
-	
-	for (ind_snake in p0.individuals){
+	for (ind_snake in snakeNeighbors){
 		// does a snake meet a newt? 
 		
-		mPoint = c(ind_snake.x,ind_snake.y);
-		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);// could make count smaller (limit the number of newts nearby) 
-		// sample number based on a combination of how close they are using a uniform distibution 
-		if (length(newtNeighbors) > 0){ //need newt to be nearby to eat
-			
-			// List of which newts the snake will try to eat. It will take a uniform distribution and a probablity of interacting
-			distance = i1.distanceToPoint(newtNeighbors, mPoint);// vector of distances 
-			probablity = interaction_rate*exp(-(distance^2)/(2*(surs^2))); //curve of the interaction based on the distance of the newt
-			
-			newt_meet_snake = newtNeighbors[runif(length(newtNeighbors)) < probablity] ; //list of newts snake will try to eat
-			// then go one newt at a time and see the outcome of the interaction which is dependent on phenotypes (check to make sure newt is still alive)
-			for(ind_newt in newt_meet_snake){
-				//check to see if newt is alive, newt is not eaten by more than one snake 
-				if(ind_newt.fitnessScaling > 0){
-					//Could the snake eat the newt?
-					compair_pheno = phenotypes_s[ind_snake.index] - phenotypes_n[ind_newt.index]; // compairing the snake phentype to the newt phenotype
-					
-					//Did the snake eat the newt?
-					//potential outcomes are death for newt or snake, how do we make the survival curve? 
-					prob_of_survive = 1.0/(1+exp(-((compair_pheno-c)/w)));// snakes probablity of survival 
-					//catn(prob_of_survive);
-					survive = runif(1) < prob_of_survive; //did the snake survive? //one will die for sure 
-					
-					//Future more selections where there is a chance that both survive or die???
-					if(survive==T){
-						ind_snake.fitnessScaling = ind_snake.fitnessScaling + PE; //snake with eating newt bonus 
-						ind_newt.fitnessScaling = 0; //newt
-					
-					}
-					if(survive==F){
-						ind_snake.fitnessScaling = 0; //snake 
-						break; //break if snake dies
-					}
+		newt_meet_snake = sample(p1.individuals, asInteger(interaction_rate*p1.individualCount));
+		
+		// then go one newt at a time and see the outcome of the interaction which is dependent on phenotypes (check to make sure newt is still alive)
+		for(ind_newt in newt_meet_snake){
+			//check to see if newt is alive, newt is not eaten by more than one snake 
+			if(ind_newt.fitnessScaling > 0){
+				//Could the snake eat the newt?
+				compair_pheno = phenotypes_s[ind_snake.index] - phenotypes_n[ind_newt.index]; // compairing the snake phentype to the newt phenotype
+				
+				//Did the snake eat the newt?
+				//potential outcomes are death for newt or snake, how do we make the survival curve? 
+				prob_of_survive = 1.0/(1+exp(-((compair_pheno-c)/w)));// snakes probablity of survival 
+				//catn(prob_of_survive);
+				survive = runif(1) < prob_of_survive; //did the snake survive? //one will die for sure 
+				
+				//Future more selections where there is a chance that both survive or die???
+				if(survive==T){
+					ind_snake.fitnessScaling = ind_snake.fitnessScaling + PE; //snake with eating newt bonus 
+					ind_newt.fitnessScaling = 0; //newt
 				
 				}
-			
+				if(survive==F){
+					ind_snake.fitnessScaling = 0; //snake 
+					break; //break if snake dies
+				}	
 			}
-			
-			//What is this doing?
-			outcome_n = rep(1.0, p1.individualCount);
-			outcome_s = rep(1.0, p0.individualCount);
+		}
 		
-		}
+		//What is this doing?
+		outcome_n = rep(1.0, p1.individualCount);
+		outcome_s = rep(1.0, p0.individualCount);
+	
 	}
 }
 
-//Create the different selection areas (Future)
-
-
-1: late() {
-	// to be ready for mate choice
-	i2.evaluate(p1);
-	i2.evaluate(p0);
-}
-
-//Snake a Newt display 
-1: late() {
-	for (pop in sim.subpopulations) {
-		max_z = max(pop.individuals.z);
-		for (ind in pop.individuals) {
-			hue = 0.66 * (0.1 + ind.z) / (0.1 + max_z);
-			if(isNAN(hue)==T)
-				hue=0;
-			ind.color = rgb2color(hsv2rgb(c(hue+0.000001, 1.0, 1.0)));
-		}
-	}
-	
-	// make a map of mean phenotypes
-	grid_x = (c(0, (seqLen(21) + 0.5)/21, 1.0) * p1.spatialBounds[2]);
-	grid_y = (c(0, (seqLen(31) + 0.5)/31, 1.0) * p1.spatialBounds[3]);
-	
-	newt_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
-		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
-	snake_means = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
-		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
-	snake_newt = matrix(rep(0.0, (length(grid_x)-1) * (length(grid_y)-1)),
-		nrow=length(grid_y)-1, ncol=length(grid_x)-1);
-	newt_snake = snake_newt;
-	for (i in seqLen(length(grid_x)-1)) {
-		for (j in seqLen(length(grid_y)-1)) {
-			nearby_newts = p1.individuals[
-				(p1.individuals.x > grid_x[i])
-				& (p1.individuals.x <= grid_x[i+1])
-				& (p1.individuals.y > grid_y[j])
-				& (p1.individuals.y <= grid_y[j+1])
-				];
-			
-			if (length(nearby_newts) > 0) {
-				newt_means[length(grid_y) - j - 2, i] = mean(nearby_newts.z);
-			}
-			
-			nearby_snakes = p0.individuals[
-				(p0.individuals.x > grid_x[i])
-				& (p0.individuals.x <= grid_x[i+1])
-				& (p0.individuals.y > grid_y[j])
-				& (p0.individuals.y <= grid_y[j+1])
-				];
-			
-			if (length(nearby_snakes) > 0) {
-				snake_means[length(grid_y) - j - 2, i] = mean(nearby_snakes.z);
-			}
-		
-		}
-	}
-	
-	snake_newt = snake_means - newt_means;
-	newt_snake = newt_means - snake_means;
-	
-	
-	// maybe it should be transposed?
-	// standorize the colors 
-	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
-		valueRange=range(p1.individuals.z), colors=c("#FFFFFF", "#FF0000"));//"#000000", "#FFFFFF"
-	p0.defineSpatialMap('snakes', 'xy', snake_means, interpolate=F,
-		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
-	p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
-		valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
-	p3.defineSpatialMap('newts-snakes', 'xy', newt_snake , interpolate=F,
-		valueRange=range(newt_snake), colors=c("#FFFFFF", "#FF0000"));//more red more toxic
-}
 
 // The varabales that I want to collect from slim 
 
@@ -315,25 +129,25 @@ early() {
 	// header info
 	//cat("gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density");
 	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" + "    " +"Snake_pop_size"+"    "+ "time");
-catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno");
+	catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno");
 }
 
 2: late() {
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
-
+	
 	
 	// caculating the phenotype, but using the exponet to only have postive phenotypes
 	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
 	if ((sim.generation % 20) == 0) {
-	//	cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
-	//	cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
+		//	cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
+		//	cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
 		//catn("    " + clock());
 		catn("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s));
-
-		
+	
+	
 	}
 }
 
