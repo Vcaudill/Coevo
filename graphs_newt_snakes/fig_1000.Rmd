@@ -26,6 +26,7 @@ I made a mistake. I switched the mutation rates and the effect sizes
 ```{r pressure, echo=FALSE}
 newt_max_pheno = 0
 snake_max_pheno = 0
+true_max = 0
 
 files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
@@ -42,7 +43,40 @@ for (current_file in files){
 }
   print(newt_max_pheno)
   print(snake_max_pheno)
+  
+  if (newt_max_pheno > snake_max_pheno){
+    true_max = newt_max_pheno }
+  if ( snake_max_pheno > newt_max_pheno){
+    true_max = snake_max_pheno }
+  
 ```
+```{r pressure, echo=FALSE}
+
+
+files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=gen)) +
+  xlim(0, 1000)+
+  ylim(0, true_max)+
+  geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
+  geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+ p <- p +
+  geom_line(data=file, aes(y = Newt_mean_Pheno), color = "darkred") + 
+  geom_line(data=file, aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash") 
+  #Sys.sleep(2)
+
+}
+
+p 
+```
+
+
 ## The Figure
 Loop through the files and find the max and min of each of the species pheotypes
 Then set up a graph with the max max
@@ -52,6 +86,7 @@ This is the correct one
 ```{r pressure, echo=FALSE}
 newt_max_pheno = 0
 snake_max_pheno = 0
+true_max_2 = 0
 
 files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
@@ -70,6 +105,37 @@ for (current_file in files){
 
   print(newt_max_pheno)
   print(snake_max_pheno)
+  
+    if (newt_max_pheno > snake_max_pheno){
+    true_max_2 = newt_max_pheno }
+  if ( snake_max_pheno > newt_max_pheno){
+    true_max_2 = snake_max_pheno }
+```
+
+```{r pressure, echo=FALSE}
+
+
+files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=gen)) +
+  xlim(0, 1000)+
+  ylim(0, true_max_2)+
+  geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
+  geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+ p <- p +
+  geom_line(data=file, aes(y = Newt_mean_Pheno), color = "darkred") + 
+  geom_line(data=file, aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash") 
+  #Sys.sleep(2)
+
+}
+
+p 
 ```
 ## The Figure
 Loop through the files and find the max and min of each of the species pheotypes
@@ -81,28 +147,66 @@ This time I examine what the SLIM script would generate is both the MSprime and 
 ```{r pressure, echo=FALSE}
 newt_max_pheno = 0
 snake_max_pheno = 0
+true_max_3 = 0
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
 for (current_file in files){
-  print(current_file)
+  #print(current_file)
  
   file <- read.table(current_file, header = TRUE)
   file$Newt_max_Pheno[file$Newt_max_Pheno == "NULL"] <- NA
   file$Snake_max_Pheno[file$Snake_max_Pheno == "NULL"] <- NA
-  print(max(file$Newt_max_Pheno, na.rm = TRUE))
-  print(max(file$Snake_max_Pheno, na.rm = TRUE))
-  if (max(file$Newt_max_Pheno, na.rm = TRUE) > newt_max_pheno){
-    newt_max_pheno = max(file$Newt_max_Pheno, na.rm = TRUE) }
+  #print(max(file$Newt_max_Pheno, na.rm = TRUE))
+  #print(max(file$Snake_max_Pheno, na.rm = TRUE))
+  if (as.numeric(max(file$Newt_max_Pheno, na.rm = TRUE)) > newt_max_pheno){
+    newt_max_pheno = as.numeric(max(file$Newt_max_Pheno, na.rm = TRUE)) }
   
-  if (max(file$Snake_max_Pheno, na.rm = TRUE) > snake_max_pheno){
-    snake_max_pheno = max(file$Snake_max_Pheno, na.rm = TRUE) }
+  if (as.numeric(max(file$Snake_max_Pheno, na.rm = TRUE)) > snake_max_pheno){
+    snake_max_pheno = as.numeric(max(file$Snake_max_Pheno, na.rm = TRUE)) }
 }
 
   print(newt_max_pheno)
   print(snake_max_pheno)
+  if (newt_max_pheno > snake_max_pheno){
+    true_max_3 = newt_max_pheno }
+  if ( snake_max_pheno > newt_max_pheno){
+    true_max_3 = snake_max_pheno }
 ```
 some of these values are in quotes, why?
+
+```{r pressure, echo=FALSE}
+
+
+files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=gen)) +
+  xlim(0, 1000)+
+  #ylim(0, true_max_3)+
+  #scale_y_continuous(trans=log10_trans(), limits=c(0,true_max_3))+
+  #scale_y_log10()+
+  scale_y_log10(limits=c(0.001,true_max_3))+
+  geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
+  geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  
+ p <- p +
+  geom_line(data=file, aes(y = as.numeric(Newt_mean_Pheno)), color = "darkred",na.rm=TRUE) + 
+  geom_line(data=file, aes(y = as.numeric(Snake_mean_Pheno)), color="steelblue", linetype="twodash", na.rm=TRUE) 
+  #Sys.sleep(2) na.rm=TRUE
+
+}
+
+p 
+```
+
 
 Some other things that might be goo to look at:
 The average of the phenotypes
