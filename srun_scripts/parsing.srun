@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#SBATCH --account=kernlab          ### SLURM account which will be charged for the job
+#SBATCH --partition=kern        ### Partition (like a queue in PBS)
+#SBATCH --job-name=parc      ### Job Name
+#SBATCH --output=parc.out         ### File in which to store job output
+#SBATCH --error=parc.err          ### File in which to store job error messages
+#SBATCH --time=0-01:00:00       ### Wall clock time limit in Days-HH:MM:SS
+#SBATCH --nodes=1               ### Node count required for the job
+#SBATCH --ntasks-per-node=1     ### Nuber of tasks to be launched per Node
+#SBATCH --cpus-per-task=1       ### Number of cpus (cores) per task
+#SBATCH --mem-per-cpu=64G
+
+
+#read -p 'Enter the directory path: ' directory
+for file_name in "$1"/*;
+do 
+arrIN=(${file_name//_/ })
+
+snake_mu_rate=${arrIN[5]}
+newt_mu_rate=${arrIN[7]}
+snake_mu_effect_sd=${arrIN[9]}
+newt_mu_effect_sd_fix==${arrIN[11]}
+newt_mu_effect_sd_fix=(${newt_mu_effect_sd_fix//.init/ })
+newt_mu_effect_sd=(${newt_mu_effect_sd_fix//=/ })
+
+echo ${snake_mu_rate} ${newt_mu_rate} ${snake_mu_effect_sd} ${newt_mu_effect_sd}
+done

@@ -21,6 +21,34 @@ Loop through the files and find the max and min of each of the species pheotypes
 Then set up a graph with the max max
 Loop though the files and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time
 
+I made a mistake. I switched the mutation rates and the effect sizes
+
+```{r pressure, echo=FALSE}
+newt_max_pheno = 0
+snake_max_pheno = 0
+
+files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+
+  if (max(file$Newt_max_Pheno) > newt_max_pheno){
+    newt_max_pheno = max(file$Newt_max_Pheno) }
+  
+  if (max(file$Snake_max_Pheno) > snake_max_pheno){
+    snake_max_pheno = max(file$Snake_max_Pheno) }
+}
+  print(newt_max_pheno)
+  print(snake_max_pheno)
+```
+## The Figure
+Loop through the files and find the max and min of each of the species pheotypes
+Then set up a graph with the max max
+Loop though the files and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time
+
+This is the correct one
 ```{r pressure, echo=FALSE}
 newt_max_pheno = 0
 snake_max_pheno = 0
@@ -28,18 +56,58 @@ snake_max_pheno = 0
 files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
 for (current_file in files){
-  print(current_file)
+  #print(current_file)
 
   file <- read.table(current_file, header = TRUE)
-  print(max(file$Newt_max_Pheno))
-  print(max(file$Snake_max_Pheno))
+  #print(max(file$Newt_max_Pheno))
+  #print(max(file$Snake_max_Pheno))
   if (max(file$Newt_max_Pheno) > newt_max_pheno){
     newt_max_pheno = max(file$Newt_max_Pheno) }
   
   if (max(file$Snake_max_Pheno) > snake_max_pheno){
     snake_max_pheno = max(file$Snake_max_Pheno) }
 }
+
+  print(newt_max_pheno)
+  print(snake_max_pheno)
 ```
+## The Figure
+Loop through the files and find the max and min of each of the species pheotypes
+Then set up a graph with the max max
+Loop though the files and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time 
+
+This time I examine what the SLIM script would generate is both the MSprime and SLIM are ran with the variables that I picked. 
+
+```{r pressure, echo=FALSE}
+newt_max_pheno = 0
+snake_max_pheno = 0
+
+files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+
+for (current_file in files){
+  print(current_file)
+ 
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_max_Pheno[file$Newt_max_Pheno == "NULL"] <- NA
+  file$Snake_max_Pheno[file$Snake_max_Pheno == "NULL"] <- NA
+  print(max(file$Newt_max_Pheno, na.rm = TRUE))
+  print(max(file$Snake_max_Pheno, na.rm = TRUE))
+  if (max(file$Newt_max_Pheno, na.rm = TRUE) > newt_max_pheno){
+    newt_max_pheno = max(file$Newt_max_Pheno, na.rm = TRUE) }
+  
+  if (max(file$Snake_max_Pheno, na.rm = TRUE) > snake_max_pheno){
+    snake_max_pheno = max(file$Snake_max_Pheno, na.rm = TRUE) }
+}
+
+  print(newt_max_pheno)
+  print(snake_max_pheno)
+```
+some of these values are in quotes, why?
+
+Some other things that might be goo to look at:
+The average of the phenotypes
+The difference between the average phenotypes
+
 
 
 ```{r pressure, echo=FALSE}
