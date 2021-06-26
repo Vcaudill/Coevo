@@ -5,12 +5,13 @@ Naming guide: Try to name files with important variables and an ID
 SLiM - variable names/values separated with _ and the ID of the slim simulation
 MSprime - variable names/values separated with _ (need to add ID)
 
-CLUSTER FILES:
+CLUSTER FILES: which. I can now access though VS code
 SLiM_script/ has the 1 on 1 slim script. Where I was testing mutation rate and effect size.
 newt_snake_1on1.slim - 2d next on snake, no deleterious mutations or fitness cost
 slimloop.srun - loops through variables and calls another script to run the slim script
 runslim.srun - runs the slim script with the variables passed through a different script
 pheno_test_1000.srun - calls the slim script with variables given from a file <- I made this to see what the phenotypes are after 1000 generations
+Parsing.srun - takes files from a folder and uses it to run slim
 
 pheno_test_1000/ txt files and tress files to see what the phenotypes are after 1000 generations
 This test was done with a specific MSprime simulation both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees
