@@ -148,6 +148,8 @@ This time I examine what the SLIM script would generate is both the MSprime and 
 newt_max_pheno = 0
 snake_max_pheno = 0
 true_max_3 = 0
+max_difference = 0
+min_difference = 0 
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
@@ -157,6 +159,9 @@ for (current_file in files){
   file <- read.table(current_file, header = TRUE)
   file$Newt_max_Pheno[file$Newt_max_Pheno == "NULL"] <- NA
   file$Snake_max_Pheno[file$Snake_max_Pheno == "NULL"] <- NA
+  
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
   #print(max(file$Newt_max_Pheno, na.rm = TRUE))
   #print(max(file$Snake_max_Pheno, na.rm = TRUE))
   if (as.numeric(max(file$Newt_max_Pheno, na.rm = TRUE)) > newt_max_pheno){
@@ -164,10 +169,22 @@ for (current_file in files){
   
   if (as.numeric(max(file$Snake_max_Pheno, na.rm = TRUE)) > snake_max_pheno){
     snake_max_pheno = as.numeric(max(file$Snake_max_Pheno, na.rm = TRUE)) }
-}
+  
+ if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) < min_difference){
+    min_difference = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
+  }
+
+  
+  if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) > max_difference){
+    max_difference = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
+  }
+
+      }
 
   print(newt_max_pheno)
   print(snake_max_pheno)
+  print(min_difference)
+  print(max_difference)
   if (newt_max_pheno > snake_max_pheno){
     true_max_3 = newt_max_pheno }
   if ( snake_max_pheno > newt_max_pheno){
@@ -209,19 +226,43 @@ p
 
 
 Some other things that might be goo to look at:
-The average of the phenotypes
+
 The difference between the average phenotypes
 
 
 
 ```{r pressure, echo=FALSE}
-ggplot()+
-  geom_line(current_file, aes(gen, snake), color="blue")+
-  geom_line(current_file, aes(gen, snake), color="red")+
-  geom_point(size=3, color = "darkgreen")+
-  ggtitle("How the Phenotypes Change Through the Generations") + 
-  xlab("Generation") + 
-  ylab("Phenotype Level") +
-  theme_bw()
-```
 
+
+files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=gen)) +
+  xlim(0, 1000)+
+  #ylim(min_difference, max_difference)+
+  #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
+  #scale_y_log10()+
+  scale_y_log10(limits=c(0.001, max_difference))+
+  geom_line(aes(y = Snake_mean_Pheno - Newt_mean_Pheno), color = "mediumseagreen") + 
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  file <- file[complete.cases(file), ]
+  file$mean_dif = as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno)
+  file$mean_dif[file$mean_dif == 0] <- 0.01
+  file$pos <- TRUE
+  file$pos[file$mean_dif < 0] <- FALSE
+  
+
+ p <- p + geom_line(data=file, aes(x=gen, y=abs(mean_dif), color = pos), na.rm=TRUE)
+  #Sys.sleep(2) na.rm=TRUE
+ # color = "mediumseagreen"
+
+}
+
+p 
+```
