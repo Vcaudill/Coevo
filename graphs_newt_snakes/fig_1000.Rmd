@@ -23,10 +23,15 @@ Loop though the files and make two lines (red for newts blue for snakes) and kee
 
 I made a mistake. I switched the mutation rates and the effect sizes
 
-```{r pressure, echo=FALSE}
-newt_max_pheno = 0
-snake_max_pheno = 0
-true_max = 0
+```{r data from the mistake folder, echo=FALSE}
+newt_max_pheno_1 = 0
+snake_max_pheno_1 = 0
+newt_min_pheno_1 = 0
+snake_min_pheno_1 = 0
+true_max_1 = 0
+true_min_1 = 0
+min_difference_1 = 0
+max_difference_1 = 0
 
 files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
@@ -34,32 +39,65 @@ for (current_file in files){
   #print(current_file)
 
   file <- read.table(current_file, header = TRUE)
+  
+  file$Newt_max_Pheno[file$Newt_max_Pheno == "NULL"] <- NA
+  file$Snake_max_Pheno[file$Snake_max_Pheno == "NULL"] <- NA
+  file$Newt_min_Pheno[file$Newt_min_Pheno == "NULL"] <- NA
+  file$Snake_min_Pheno[file$Snake_min_Pheno == "NULL"] <- NA
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
 
-  if (max(file$Newt_max_Pheno) > newt_max_pheno){
-    newt_max_pheno = max(file$Newt_max_Pheno) }
+  if (max(file$Newt_max_Pheno) > newt_max_pheno_1){
+    newt_max_pheno_1 = max(file$Newt_max_Pheno) }
   
-  if (max(file$Snake_max_Pheno) > snake_max_pheno){
-    snake_max_pheno = max(file$Snake_max_Pheno) }
+  if (max(file$Snake_max_Pheno) > snake_max_pheno_1){
+    snake_max_pheno_1 = max(file$Snake_max_Pheno) }
+  
+  if (min(file$Newt_min_Pheno) < newt_min_pheno_1){
+    newt_min_pheno_1 = min(file$Newt_min_Pheno) }
+  
+  if (min(file$Snake_min_Pheno) > snake_min_pheno_1){
+    snake_min_pheno_1 = max(file$Snake_min_Pheno) }
+  
+  if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) < min_difference_1){
+    min_difference_1 = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
+  }
+
+  
+  if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) > max_difference_1){
+    max_difference_1 = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
+  }
 }
-  print(newt_max_pheno)
-  print(snake_max_pheno)
+
+  print(newt_max_pheno_1)
+  print(snake_max_pheno_1)
+   print(newt_min_pheno_1)
+  print(snake_min_pheno_1)
   
-  if (newt_max_pheno > snake_max_pheno){
-    true_max = newt_max_pheno }
-  if ( snake_max_pheno > newt_max_pheno){
-    true_max = snake_max_pheno }
+  if (newt_max_pheno_1 > snake_max_pheno_1){
+    true_max_1 = newt_max_pheno_1 }
+  if ( snake_max_pheno_1 > newt_max_pheno_1){
+    true_max_1 = snake_max_pheno_1 }
+  
+    if (newt_min_pheno_1 < snake_min_pheno_1){
+    true_min_1 = newt_min_pheno_1 }
+  if ( snake_min_pheno_1 < newt_min_pheno_1){
+    true_min_1 = snake_min_pheno_1 }
   
 ```
-```{r pressure, echo=FALSE}
+```{r phenotype graph for mistake sims, echo=FALSE}
 
 
 files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 file1 <- read.table(files[1], header = TRUE)
 p <- ggplot(file1, aes(x=gen)) +
   xlim(0, 1000)+
-  ylim(0, true_max)+
+  #ylim(0, true_max_1)+
+  scale_y_log10(limits=c(true_min_1+0.8, true_max_1))+
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
+  ggtitle("Phenotype Measurements for Newts and Snakes") +
+  xlab("Generation") + ylab("Average Phenotypes")+
   theme_bw()
 
 for (current_file in files){
@@ -76,6 +114,43 @@ for (current_file in files){
 p 
 ```
 
+```{r difference wrong sim, echo=FALSE}
+
+## need to work on making this figure better 
+files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=gen)) +
+  xlim(0, 1000)+
+  #ylim(min_difference, max_difference)+
+  #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
+  #scale_y_log10()+
+  scale_y_log10(limits=c(min_difference_1, max_difference_1))+
+  geom_line(aes(y = Snake_mean_Pheno - Newt_mean_Pheno), color = "mediumseagreen") + 
+    ggtitle("Difference Between Phenotypes (Snakes-Newts)") +
+  xlab("Generation") + ylab("Average Difference")+
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  file <- file[complete.cases(file), ]
+  file$mean_dif = as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno)
+  file$mean_dif[file$mean_dif == 0] <- 0.01
+  file$pos <- TRUE
+  file$pos[file$mean_dif < 0] <- FALSE
+  
+
+ p <- p + geom_line(data=file, aes(x=gen, y=abs(mean_dif), color = pos), na.rm=TRUE)
+  #Sys.sleep(2) na.rm=TRUE
+ # color = "mediumseagreen"
+
+}
+
+p 
+```
 
 ## The Figure
 Loop through the files and find the max and min of each of the species pheotypes
@@ -83,10 +158,15 @@ Then set up a graph with the max max
 Loop though the files and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time
 
 This is the correct one
-```{r pressure, echo=FALSE}
-newt_max_pheno = 0
-snake_max_pheno = 0
+```{r data 1 msprime photype graph, echo=FALSE}
+newt_max_pheno_2 = 0
+snake_max_pheno_2 = 0
+newt_min_pheno_2 = 0
+snake_min_pheno_2 = 0
 true_max_2 = 0
+true_min_2 = 0
+min_difference_2 = 0
+max_difference_2 = 0
 
 files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
@@ -96,32 +176,65 @@ for (current_file in files){
   file <- read.table(current_file, header = TRUE)
   #print(max(file$Newt_max_Pheno))
   #print(max(file$Snake_max_Pheno))
-  if (max(file$Newt_max_Pheno) > newt_max_pheno){
-    newt_max_pheno = max(file$Newt_max_Pheno) }
   
-  if (max(file$Snake_max_Pheno) > snake_max_pheno){
-    snake_max_pheno = max(file$Snake_max_Pheno) }
+  file$Newt_max_Pheno[file$Newt_max_Pheno == "NULL"] <- NA
+  file$Snake_max_Pheno[file$Snake_max_Pheno == "NULL"] <- NA
+  file$Newt_min_Pheno[file$Newt_min_Pheno == "NULL"] <- NA
+  file$Snake_min_Pheno[file$Snake_min_Pheno == "NULL"] <- NA
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  
+  if (max(file$Newt_max_Pheno) > newt_max_pheno_2){
+    newt_max_pheno_2 = max(file$Newt_max_Pheno) }
+  
+  if (max(file$Snake_max_Pheno) > snake_max_pheno_2){
+    snake_max_pheno_2 = max(file$Snake_max_Pheno) }
+  
+  if (min(file$Newt_min_Pheno) < newt_min_pheno_2){
+    newt_min_pheno_2 = max(file$Newt_min_Pheno) }
+  
+  if (max(file$Snake_min_Pheno) < snake_min_pheno_2){
+    snake_min_pheno_2 = max(file$Snake_min_Pheno) }
+
+  if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) < min_difference_2){
+      min_difference_2 = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
+  }
+
+  
+  if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) > max_difference_2){
+    max_difference_2 = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
+  }
 }
 
-  print(newt_max_pheno)
-  print(snake_max_pheno)
+  print(newt_max_pheno_2)
+  print(snake_max_pheno_2)
+  print(newt_min_pheno_2)
+  print(snake_min_pheno_2)
   
-    if (newt_max_pheno > snake_max_pheno){
-    true_max_2 = newt_max_pheno }
-  if ( snake_max_pheno > newt_max_pheno){
-    true_max_2 = snake_max_pheno }
+  if (newt_max_pheno_2 > snake_max_pheno_2){
+    true_max_2 = newt_max_pheno_2 }
+  if ( snake_max_pheno_2 > newt_max_pheno_2){
+    true_max_2 = snake_max_pheno_2 }
+  
+  if (newt_min_pheno_2 < snake_min_pheno_2){
+    true_min_2 = newt_min_pheno_2 }
+  if ( snake_min_pheno_2 < newt_min_pheno_2){
+    true_min_2 = snake_min_pheno_2 }
 ```
 
-```{r pressure, echo=FALSE}
+```{r data 1 msprime dif pheno graph, echo=FALSE}
 
 
 files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 file1 <- read.table(files[1], header = TRUE)
 p <- ggplot(file1, aes(x=gen)) +
   xlim(0, 1000)+
-  ylim(0, true_max_2)+
+  #ylim(0, true_max_2)+
+  scale_y_log10(limits=c(true_min_2+0.5, true_max_2))+
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
+  ggtitle("Phenotype Measurements for Newts and Snakes") +
+  xlab("Generation") + ylab("Average Phenotypes")+
   theme_bw()
 
 for (current_file in files){
@@ -137,6 +250,44 @@ for (current_file in files){
 
 p 
 ```
+```{r data from multiple msprime, echo=FALSE}
+
+
+files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=gen)) +
+  xlim(0, 1000)+
+  #ylim(min_difference, max_difference)+
+  #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
+  #scale_y_log10()+
+  scale_y_log10(limits=c(min_difference_2, max_difference_2))+
+  geom_line(aes(y = Snake_mean_Pheno - Newt_mean_Pheno), color = "mediumseagreen") + 
+    ggtitle("Difference Between Phenotypes (Snakes-Newts)") +
+  xlab("Generation") + ylab("Average Difference")+
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  file <- file[complete.cases(file), ]
+  file$mean_dif = as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno)
+  file$mean_dif[file$mean_dif == 0] <- 0.01
+  file$pos <- TRUE
+  file$pos[file$mean_dif < 0] <- FALSE
+  
+
+ p <- p + geom_line(data=file, aes(x=gen, y=abs(mean_dif), color = pos), na.rm=TRUE)
+  #Sys.sleep(2) na.rm=TRUE
+ # color = "mediumseagreen"
+
+}
+
+p 
+```
+
 ## The Figure
 Loop through the files and find the max and min of each of the species pheotypes
 Then set up a graph with the max max
@@ -145,11 +296,14 @@ Loop though the files and make two lines (red for newts blue for snakes) and kee
 This time I examine what the SLIM script would generate is both the MSprime and SLIM are ran with the variables that I picked. 
 
 ```{r pressure, echo=FALSE}
-newt_max_pheno = 0
-snake_max_pheno = 0
+newt_max_pheno_3 = 0
+snake_max_pheno_3 = 0
+newt_min_pheno_3 = 0
+snake_min_pheno_3 = 0
 true_max_3 = 0
-max_difference = 0
-min_difference = 0 
+true_min_3 = 0
+max_difference_3 = 0
+min_difference_3 = 0 
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
@@ -159,36 +313,49 @@ for (current_file in files){
   file <- read.table(current_file, header = TRUE)
   file$Newt_max_Pheno[file$Newt_max_Pheno == "NULL"] <- NA
   file$Snake_max_Pheno[file$Snake_max_Pheno == "NULL"] <- NA
-  
+  file$Newt_min_Pheno[file$Newt_min_Pheno == "NULL"] <- NA
+  file$Snake_min_Pheno[file$Snake_min_Pheno == "NULL"] <- NA
   file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
   file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
   #print(max(file$Newt_max_Pheno, na.rm = TRUE))
   #print(max(file$Snake_max_Pheno, na.rm = TRUE))
-  if (as.numeric(max(file$Newt_max_Pheno, na.rm = TRUE)) > newt_max_pheno){
-    newt_max_pheno = as.numeric(max(file$Newt_max_Pheno, na.rm = TRUE)) }
   
-  if (as.numeric(max(file$Snake_max_Pheno, na.rm = TRUE)) > snake_max_pheno){
+  if (as.numeric(max(file$Newt_max_Pheno, na.rm = TRUE)) > newt_max_pheno_3){
+    newt_max_pheno_3 = as.numeric(max(file$Newt_max_Pheno, na.rm = TRUE)) }
+  
+  if (as.numeric(max(file$Snake_max_Pheno, na.rm = TRUE)) > snake_max_pheno_3){
     snake_max_pheno = as.numeric(max(file$Snake_max_Pheno, na.rm = TRUE)) }
   
- if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) < min_difference){
-    min_difference = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
+  if (as.numeric(min(file$Newt_min_Pheno, na.rm = TRUE)) < newt_min_pheno_3){
+    newt_min_pheno_3 = as.numeric(max(file$Newt_min_Pheno, na.rm = TRUE)) }
+  
+  if (as.numeric(max(file$Snake_min_Pheno, na.rm = TRUE)) < snake_min_pheno_3){
+    snake_min_pheno_3 = as.numeric(max(file$Snake_min_Pheno, na.rm = TRUE)) }
+  
+ if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) < min_difference_3){
+    min_difference_3 = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
   }
 
   
-  if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) > max_difference){
-    max_difference = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
+  if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) > max_difference_3){
+    max_difference_3 = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
   }
 
       }
 
-  print(newt_max_pheno)
-  print(snake_max_pheno)
-  print(min_difference)
-  print(max_difference)
-  if (newt_max_pheno > snake_max_pheno){
-    true_max_3 = newt_max_pheno }
-  if ( snake_max_pheno > newt_max_pheno){
-    true_max_3 = snake_max_pheno }
+  print(newt_max_pheno_3)
+  print(snake_max_pheno_3)
+  print(min_difference_3)
+  print(max_difference_3)
+  if (newt_max_pheno_3 > snake_max_pheno_3){
+    true_max_3 = newt_max_pheno_3 }
+  if ( snake_max_pheno_3 > newt_max_pheno_3){
+    true_max_3 = snake_max_pheno_3 }
+  
+  if (newt_min_pheno_3 < snake_min_pheno_3){
+    true_min_3 = newt_min_pheno_3 }
+  if ( snake_max_pheno_3 < newt_max_pheno_3){
+    true_min_3 = snake_min_pheno_3 }
 ```
 some of these values are in quotes, why?
 
@@ -205,6 +372,8 @@ p <- ggplot(file1, aes(x=gen)) +
   scale_y_log10(limits=c(0.001,true_max_3))+
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
+  ggtitle("Phenotype Measurements for Newts and Snakes") +
+  xlab("Generation") + ylab("Average Phenotypes")+
   theme_bw()
 
 for (current_file in files){
@@ -241,8 +410,10 @@ p <- ggplot(file1, aes(x=gen)) +
   #ylim(min_difference, max_difference)+
   #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
   #scale_y_log10()+
-  scale_y_log10(limits=c(0.001, max_difference))+
+  scale_y_log10(limits=c(min_difference_3, max_difference_3))+
   geom_line(aes(y = Snake_mean_Pheno - Newt_mean_Pheno), color = "mediumseagreen") + 
+  ggtitle("Difference Between Phenotypes (Snakes-Newts)") +
+  xlab("Generation") + ylab("Average Difference")+
   theme_bw()
 
 for (current_file in files){
