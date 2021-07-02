@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "library(ggplot2)\n\nsample_df = file[sample(nrow(file), 1000), ]\npdf(width=10,height=7,pointsize=12, paste0(\"figures/pi_by_voh_1d.pdf\")[1])\n\nggplot()+\n #geom_point(data = sample_df, aes(y=abs(div_h), x = ind_h, color=\"H\"), size = 1)+\n  #geom_point(data = sample_df, aes(y=abs(div_p), x = ind_p, colour = 'P'), size = 1)+\n  #geom_point(data = sample_df, aes(x=abs(dif_pheno+0.001), y = abs(dif_pi), colour = 'G'), size = 1)+\n  \n  geom_boxplot(data = sample_df, aes(y=abs(div_h), x = as.factor(v/h), color=\"H\"), size = 1)+\n  geom_boxplot(data = sample_df, aes(y=abs(div_p), x = as.factor(v/h), color=\"P\"), size = 1)+\n  \n  \n # geom_boxplot(data = sample_df, aes(y=abs(div_h), x = as.factor(as.numeric(roundUp(ind_h))-as.numeric(roundUp(ind_p))), color=\"H\"), size = 1)+\n  #geom_boxplot(data = sample_df, aes(y=abs(div_p), x = as.factor(as.numeric(roundUp(ind_h))-as.numeric(roundUp(ind_p))), color=\"P\"), size = 1)+\n  #geom_boxplot(data = sample_df, aes(y=abs(dif_pheno), x = as.factor(as.numeric(roundUp(ind_p))-as.numeric(roundUp(ind_h))), color=\"G\"), size = 1)+\n  \n  #scale_x_log10()+\n  #scale_y_log10()+\n    #xlim(1000, 3000)+\n  scale_colour_manual(name=\"Lines\",\n                      breaks=c(\"H\", \"P\", \"G\"), #, \"PI\", \"PP\"\n                      #c=c(\"chocolate3\",\"cyan4\", \"green\"),\n                      values=c(\"H\"=\"mediumpurple\",\"P\"=\"pink\", \"G\" = \"seagreen\"), #, \"PI\"=\"orchid\", \"PP\"=\"lightgreen\"\n                      labels=c(\"Host\", \"Pathogen\", \"Dif\"))+ #, \"Dif btw PI\", \"Dif btw Phenotype\"\n  guides(colour = guide_legend(override.aes = list(size=4)))+\n  theme_bw() + # setting up the theme\n  theme(axis.text.x = element_text(size=10,colour=\"Black\"),\n        axis.text.y = element_text(size=18,colour=\"Black\"),\n        text = element_text(size=14),\n        panel.grid.minor = element_blank(),\n        legend.box.background = element_rect(),\n        plot.title = element_text(size=12),\n        plot.subtitle = element_text(size=12),\n        #panel.grid = element_blank(),\n        panel.spacing.x = unit(0.5,\"line\"))+\n  xlab(\"Popsize\") + ylab(\"Pi (Diversity)\")\n\ndev.off()\n\nsample_2df = file_2d[sample(nrow(file_2d), 10000), ]\n#file_2d$\nggplot()+\n  geom_point(data = sample_2df, aes(y=abs(div_h), x = ind_h, color=\"H\"), size = 1)+\n  geom_point(data = sample_2df, aes(y=abs(div_p), x = ind_p, colour = 'P'), size = 1)+\n  scale_x_log10()+\n  #xlim(1000, 3000)+\n  scale_colour_manual(name=\"Lines\",\n                      breaks=c(\"H\", \"P\"), #, \"PI\", \"PP\"\n                      #c=c(\"chocolate3\",\"cyan4\", \"green\"),\n                      values=c(\"H\"=\"mediumpurple\",\"P\"=\"pink\"), #, \"PI\"=\"orchid\", \"PP\"=\"lightgreen\"\n                      labels=c(\"Host\", \"Pathogen\"))+ #, \"Dif btw PI\", \"Dif btw Phenotype\"\n  guides(colour = guide_legend(override.aes = list(size=4)))+\n  theme_bw() + # setting up the theme\n  theme(axis.text.x = element_text(size=18,colour=\"Black\"),\n        axis.text.y = element_text(size=18,colour=\"Black\"),\n        text = element_text(size=14),\n        panel.grid.minor = element_blank(),\n        legend.box.background = element_rect(),\n        plot.title = element_text(size=12),\n        plot.subtitle = element_text(size=22),\n        #panel.grid = element_blank(),\n        panel.spacing.x = unit(0.5,\"line\"))+\n  ylab(\"Pi (Diversity)\") + xlab(\"Popsize\")\n\n\n\n\n",
+    "created" : 1595439909750.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1877272490",
+    "id" : "F94476FC",
+    "lastKnownWriteTime" : 1595361298,
+    "last_content_update" : 1595361298,
+    "path" : "~/Desktop/Coevo/R_script/pi_vs_pheno_fig.R",
+    "project_path" : "R_script/pi_vs_pheno_fig.R",
+    "properties" : {
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

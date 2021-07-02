@@ -1,5 +1,5 @@
 ---
-title: "1000 Graphs"
+title: "Graphs for 1000  Generations"
 output: html_document
 ---
 
@@ -11,17 +11,47 @@ library(viridis)
 ```
 
 ## This is a r file to show what the phenotypess are after 1000 generations
-- A problem that I have been experiencing is that the phenotypes seem so go wild really quickly 
-- This will be a graph that looks at the phenotypes of different simulations with a unique mutation rate and mutation effect size.
+A problem that I have been experiencing is that the phenotypes seem so go wild really quickly 
 
-- Lets just visualize what the phenotypes are doing
+This will be a graph that looks at the phenotypes of different simulations with a unique mutation rate and mutation effect size.
 
-## The Figure
-Loop through the files and find the max and min of each of the species pheotypes
-Then set up a graph with the max max
-Loop though the files and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time
+Lets just visualize what the phenotypes are doing
 
-I made a mistake. I switched the mutation rates and the effect sizes
+## The testing Paramiters 
+I used different values for snake_mu_effect_sd	newt_mu_effect_sd	snake_mu_rate	newt_mu_rate. I chose these parameters to see if there would be a seeable interaction in phenotypes 
+Other params:
+	sigma_i = 1, recomb=1e-8, sigma_in = 0.5, sigma_M = 0.33, SD=SI=surs=SM=sigma_in, L = 4, W=35.0, G=1e8, FECUN = 1/(L), RHO, FECUN/((1+FECUN) * K), interaction_rate =  0.05, PE = 0.1, w= 10, c = 0.0, initializeRecombinationRate(recomb), initializeMutationRate(1e-10), initializeGenomicElement(g1, 0, G-1)
+	
+Other things: (kind of confusing)	
+	initializeMutationType("m1", 0.5, "n", 0, newt_mu_effect_sd);
+	initializeMutationType("m2", 0.5, "n", 0, snake_mu_effect_sd);
+	initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate/mu_rate, 1)); // mutation proportions add the proportion (the target mutation rate)
+
+
+Snake/newt mu effect sd -> is the standard deviation that each mutation would "effect" a phenotype. Values: 0.01 0.05 0.2 0.5
+
+Snake/newt mu rate -> is the mutation rate that were assigned to newts and snakes. Values: 1.00E-08 1.00E-10 1.00E-12
+
+In total there were 144 combinations. One simulation per combination (this experiment was not repeated) 
+
+## Project future goal as of summer 2021
+My summer 2021 goal is to get the 1 on 1 simulation to run *correctly*. For this to happen I would like the simulation to have:
+-Realistic phenotypes (snake 0-3, newt 0-1.5(thoughts 2021?))
+-See if the levels of toxicity and resistance interact 
+-See groups of mutations/ certain phenotypes
+
+# Mistake Simulations 
+I tried to run SLiM simulation different with the selected parameters and the MSprime   both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01 (s/n u mutation rate, n/s ue mutation effect size).
+However I flipped the mutation rate and effect size. So... new experiment with really large mutation rate????
+
+
+
+# Makeing of the Figure
+Loop through the files and find the max and min of each of the species phenotypes
+Then set up a graph with the average phenotype 
+
+This section of code loops though the files and finds the maximum and minumum pheotypes of newts and snakes. and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time
+
 
 ```{r data from the mistake folder, echo=FALSE}
 newt_max_pheno_1 = 0
@@ -32,6 +62,7 @@ true_max_1 = 0
 true_min_1 = 0
 min_difference_1 = 0
 max_difference_1 = 0
+
 
 files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
@@ -69,10 +100,11 @@ for (current_file in files){
   }
 }
 
-  print(newt_max_pheno_1)
-  print(snake_max_pheno_1)
-   print(newt_min_pheno_1)
-  print(snake_min_pheno_1)
+
+  print(paste0("Newt max pheno: ", newt_max_pheno_1))
+  print(paste0("Snake max phenot: ", snake_max_pheno_1))
+  print(paste0("Newt min pheno: ", newt_min_pheno_1))
+  print(paste0("Snake min Pheno: ", snake_min_pheno_1))
   
   if (newt_max_pheno_1 > snake_max_pheno_1){
     true_max_1 = newt_max_pheno_1 }
@@ -85,6 +117,12 @@ for (current_file in files){
     true_min_1 = snake_min_pheno_1 }
   
 ```
+
+This section of code loops though the files and make two lines (red for newts blue for snakes). This figure shows how the pheotypes change over 1000 generations. It also keeps a minimum about of info in memory at a time. aka dont open all of the files and put it into a large dataframe.
+
+
+
+
 ```{r phenotype graph for mistake sims, echo=FALSE}
 
 
@@ -113,6 +151,10 @@ for (current_file in files){
 
 p 
 ```
+## Difference between snake and newt pheotypes
+
+This figure represents the difference between the snake and the newt phenotype. The pick lines indicat that the newt is more toxit than the snakes, while the blue line indicates that the snakes are more resitant than the newts
+
 
 ```{r difference wrong sim, echo=FALSE}
 
@@ -124,8 +166,8 @@ p <- ggplot(file1, aes(x=gen)) +
   #ylim(min_difference, max_difference)+
   #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
   #scale_y_log10()+
-  scale_y_log10(limits=c(min_difference_1, max_difference_1))+
-  geom_line(aes(y = Snake_mean_Pheno - Newt_mean_Pheno), color = "mediumseagreen") + 
+  #scale_y_log10(limits=c(min_difference_1, max_difference_1))+
+  geom_line(aes(y = abs(Snake_mean_Pheno - Newt_mean_Pheno)), color = "mediumseagreen") + 
     ggtitle("Difference Between Phenotypes (Snakes-Newts)") +
   xlab("Generation") + ylab("Average Difference")+
   theme_bw()
@@ -152,12 +194,52 @@ for (current_file in files){
 p 
 ```
 
-## The Figure
-Loop through the files and find the max and min of each of the species pheotypes
-Then set up a graph with the max max
-Loop though the files and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time
+## Trasforming the phenotypes back
 
-This is the correct one
+I want to see what the un-transformed phentypes are and compare them to their transformed buddies to figure out what values I should be using for sigma and 
+
+```{r trasformation, echo=FALSE}
+
+files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=Newt_mean_Pheno)) +
+  #ylim(0, true_max_1)+
+  geom_line(aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") + 
+  ggtitle("Newt trasnformed vs un-trasformed") +
+  xlab("Trasnformed") + ylab("Untransformed")+
+  theme_bw()
+q <- ggplot(file1, aes(x=Snake_mean_Pheno)) +
+  #ylim(0, true_max_1)+
+  geom_line(aes(y = exp(Snake_mean_Pheno/10)), color = "darkred") + 
+  ggtitle("Newt trasnformed vs un-trasformed") +
+  xlab("Trasnformed") + ylab("Untransformed")+
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+ p <- p + geom_line(data=file, aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") 
+
+ q <- q + geom_line(data=file, aes(y = exp(Snake_mean_Pheno/10)), color="steelblue", linetype="twodash")
+}
+
+
+p 
+q
+
+
+```
+
+# The Correct Experiment 
+
+I ran 144 SLiM simulations with different parameters values and used the MSprime   both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01 (s/n u mutation rate, n/s ue mutation effect size) file.
+
+Again I looped through the files and find the max and min of each of the species pheotypes
+Then set up a graph with the average pheotypes over 1000 generations (red line for newts blue linesfor snakes).
+
+This is the correct one:
+
 ```{r data 1 msprime photype graph, echo=FALSE}
 newt_max_pheno_2 = 0
 snake_max_pheno_2 = 0
@@ -206,10 +288,10 @@ for (current_file in files){
   }
 }
 
-  print(newt_max_pheno_2)
-  print(snake_max_pheno_2)
-  print(newt_min_pheno_2)
-  print(snake_min_pheno_2)
+  print(paste0("Newt max pheno: ", newt_max_pheno_2))
+  print(paste0("Snake max phenot: ", snake_max_pheno_2))
+  print(paste0("Newt min pheno: ", newt_min_pheno_2))
+  print(paste0("Snake min Pheno: ", snake_min_pheno_2))
   
   if (newt_max_pheno_2 > snake_max_pheno_2){
     true_max_2 = newt_max_pheno_2 }
@@ -257,11 +339,11 @@ files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*
 file1 <- read.table(files[1], header = TRUE)
 p <- ggplot(file1, aes(x=gen)) +
   xlim(0, 1000)+
-  #ylim(min_difference, max_difference)+
+  ylim(min_difference_2, max_difference_2)+
   #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
   #scale_y_log10()+
-  scale_y_log10(limits=c(min_difference_2, max_difference_2))+
-  geom_line(aes(y = Snake_mean_Pheno - Newt_mean_Pheno), color = "mediumseagreen") + 
+  #scale_y_log10(limits=c(min_difference_2, max_difference_2))+
+  geom_line(aes(y = abs(Snake_mean_Pheno - Newt_mean_Pheno)), color = "mediumseagreen") + 
     ggtitle("Difference Between Phenotypes (Snakes-Newts)") +
   xlab("Generation") + ylab("Average Difference")+
   theme_bw()
@@ -288,14 +370,50 @@ for (current_file in files){
 p 
 ```
 
-## The Figure
-Loop through the files and find the max and min of each of the species pheotypes
-Then set up a graph with the max max
-Loop though the files and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time 
+## Trasforming the phenotypes back
 
-This time I examine what the SLIM script would generate is both the MSprime and SLIM are ran with the variables that I picked. 
+I want to see what the un-transformed phentypes are and compare them to their transformed buddies to figure out what values I should be using for sigma and 
 
-```{r pressure, echo=FALSE}
+```{r trasformation cor sim, echo=FALSE}
+
+files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=Newt_mean_Pheno)) +
+  #ylim(0, true_max_1)+
+  geom_line(aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") + 
+  ggtitle("Newt trasnformed vs un-trasformed") +
+  xlab("Trasnformed") + ylab("Untransformed")+
+  theme_bw()
+q <- ggplot(file1, aes(x=Snake_mean_Pheno)) +
+  #ylim(0, true_max_1)+
+  geom_line(aes(y = exp(Snake_mean_Pheno/10)), color = "darkred") + 
+  ggtitle("Newt trasnformed vs un-trasformed") +
+  xlab("Trasnformed") + ylab("Untransformed")+
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+ p <- p + geom_line(data=file, aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") 
+
+ q <- q + geom_line(data=file, aes(y = exp(Snake_mean_Pheno/10)), color="steelblue", linetype="twodash")
+}
+
+
+p 
+q
+
+
+```
+
+# Expanded Experiment 
+This time I examine what the SLIM script would generate is both the MSprime and SLIM are ran with the variables that I picked. I ran 144 SLiM simulations & MSprime with different parameters values.
+
+Again I looped through the files and find the max and min of each of the species pheotypes
+Then set up a graph with the average phenotypes over 1000 generations (red line for newts blue lines for snakes).
+
+```{r gathering data for dif var for msprim sim and slim, echo=FALSE}
 newt_max_pheno_3 = 0
 snake_max_pheno_3 = 0
 newt_min_pheno_3 = 0
@@ -343,10 +461,11 @@ for (current_file in files){
 
       }
 
-  print(newt_max_pheno_3)
-  print(snake_max_pheno_3)
-  print(min_difference_3)
-  print(max_difference_3)
+  print(paste0("Newt max pheno: ", newt_max_pheno_3))
+  print(paste0("Snake max phenot: ", snake_max_pheno_3))
+  print(paste0("Min pheno dif: ", min_difference_3))
+  print(paste0("Max Pheno dif: ", max_difference_3))
+  
   if (newt_max_pheno_3 > snake_max_pheno_3){
     true_max_3 = newt_max_pheno_3 }
   if ( snake_max_pheno_3 > newt_max_pheno_3){
@@ -359,7 +478,7 @@ for (current_file in files){
 ```
 some of these values are in quotes, why?
 
-```{r pressure, echo=FALSE}
+```{r 2sims phenotypes, echo=FALSE}
 
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
@@ -400,7 +519,7 @@ The difference between the average phenotypes
 
 
 
-```{r pressure, echo=FALSE}
+```{r 2sim phendif, echo=FALSE}
 
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
@@ -437,3 +556,46 @@ for (current_file in files){
 
 p 
 ```
+
+## Trasforming the phenotypes back
+
+I want to see what the un-transformed phentypes are and compare them to their transformed buddies to figure out what values I should be using for sigma and 
+
+```{r trasformation 2sim, echo=FALSE}
+
+files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=Newt_mean_Pheno)) +
+  #ylim(0, true_max_1)+
+  geom_line(aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") + 
+  ggtitle("Newt trasnformed vs un-trasformed") +
+  xlab("Trasnformed") + ylab("Untransformed")+
+  theme_bw()
+q <- ggplot(file1, aes(x=Snake_mean_Pheno)) +
+  #ylim(0, true_max_1)+
+  geom_line(aes(y = exp(Snake_mean_Pheno/10)), color = "darkred") + 
+  ggtitle("Newt trasnformed vs un-trasformed") +
+  xlab("Trasnformed") + ylab("Untransformed")+
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+   file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  file <- file[complete.cases(file), ]
+  #print(file$Newt_mean_Pheno)
+  #print(exp(file$Newt_mean_Pheno/10))
+  file <- read.table(current_file, header = TRUE)
+ p <- p + geom_line(data=file, aes(y = exp(as.numeric(Newt_mean_Pheno)/10)), color = "darkred") 
+
+ q <- q + geom_line(data=file, aes(y = exp(as.numeric(Snake_mean_Pheno)/10)), color="steelblue", linetype="twodash")
+}
+
+
+#p 
+#q
+
+
+```
+
