@@ -7,15 +7,16 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(viridis)
+library(colorspace)
 #setwd("~/Desktop/Proposal Old Drafts")
 ```
 
 ## This is a r file to show what the phenotypess are after 1000 generations
-A problem that I have been experiencing is that the phenotypes seem so go wild really quickly 
+A problem that I have been experiencing is that the phenotypes seem so go wild really quickly. One species' phenotype balloons to be really high while the other species" phenotype stays really low.  
 
 This will be a graph that looks at the phenotypes of different simulations with a unique mutation rate and mutation effect size.
 
-Lets just visualize what the phenotypes are doing
+Lets just visualize what the phenotypes are doing.
 
 ## The testing Paramiters 
 I used different values for snake_mu_effect_sd	newt_mu_effect_sd	snake_mu_rate	newt_mu_rate. I chose these parameters to see if there would be a seeable interaction in phenotypes 
@@ -26,7 +27,6 @@ Other things: (kind of confusing)
 	initializeMutationType("m1", 0.5, "n", 0, newt_mu_effect_sd);
 	initializeMutationType("m2", 0.5, "n", 0, snake_mu_effect_sd);
 	initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate/mu_rate, 1)); // mutation proportions add the proportion (the target mutation rate)
-
 
 Snake/newt mu effect sd -> is the standard deviation that each mutation would "effect" a phenotype. Values: 0.01 0.05 0.2 0.5
 
@@ -42,9 +42,7 @@ My summer 2021 goal is to get the 1 on 1 simulation to run *correctly*. For this
 
 # Mistake Simulations 
 I tried to run SLiM simulation different with the selected parameters and the MSprime   both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01 (s/n u mutation rate, n/s ue mutation effect size).
-However I flipped the mutation rate and effect size. So... new experiment with really large mutation rate????
-
-
+However I flipped the mutation rate and effect size. So... new experiment with really large mutation rate and small effect size????
 
 # Makeing of the Figure
 Loop through the files and find the max and min of each of the species phenotypes
@@ -134,7 +132,7 @@ p <- ggplot(file1, aes(x=gen)) +
   scale_y_log10(limits=c(true_min_1+0.8, true_max_1))+
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
-  ggtitle("Phenotype Measurements for Newts and Snakes") +
+  ggtitle("Wrong1sim: Phenotype Measurements for Newts and Snakes") +
   xlab("Generation") + ylab("Average Phenotypes")+
   theme_bw()
 
@@ -168,7 +166,7 @@ p <- ggplot(file1, aes(x=gen)) +
   #scale_y_log10()+
   #scale_y_log10(limits=c(min_difference_1, max_difference_1))+
   geom_line(aes(y = abs(Snake_mean_Pheno - Newt_mean_Pheno)), color = "mediumseagreen") + 
-    ggtitle("Difference Between Phenotypes (Snakes-Newts)") +
+    ggtitle("Wrong1sim: Difference Between Phenotypes (Snakes-Newts)") +
   xlab("Generation") + ylab("Average Difference")+
   theme_bw()
 
@@ -194,9 +192,49 @@ for (current_file in files){
 p 
 ```
 
+## How much did the phenotypes of newts and snakes change over 1000 generations
+
+For this figure I want there to be 2 sets of points (4 complete points) for each simulation taking the first and last mean phenotype for the newt and the snake. Essentially, asking if the phenotypes of the newts and snakes changed over 1000 generations?
+
+```{r pheno change, echo=FALSE}
+
+files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=1:144)) +
+  xlim(0, 145)+
+  #ylim(newt_min_pheno_1, newt_max_pheno_1)+
+  geom_point(aes(x = 1, y = Newt_mean_Pheno[1]), color = darken("darkred")) +
+  geom_point(aes(x = 1, y = Newt_mean_Pheno[50]), color = lighten("darkred")) +
+  geom_point(aes(x = 1, y = Snake_mean_Pheno[1]), color = darken("steelblue")) +
+  geom_point(aes(x = 1, y = Snake_mean_Pheno[50]), color = lighten("steelblue")) +
+  ggtitle("Wrong1sim: Phenotype Change") +
+  xlab("Simulation number") + ylab("Phenotype")+
+  theme_bw()
+i=1
+for (current_file in files){
+
+  file <- read.table(current_file, header = TRUE)
+ p <- p + geom_point(data= file, x = i, aes(y = Newt_mean_Pheno[1]), color = darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = Newt_mean_Pheno[50]), color = lighten("darkred"))  + geom_point(data= file, x = i, aes(y = Snake_mean_Pheno[1]), color = darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = Snake_mean_Pheno[50]), color = lighten("steelblue"))
+ i = i+1
+}
+
+
+p 
+
+```
+
 ## Trasforming the phenotypes back
 
-I want to see what the un-transformed phentypes are and compare them to their transformed buddies to figure out what values I should be using for sigma and 
+I want to see what the un-transformed phentypes are and compare them to their transformed buddies to figure out what values I should be using for sigma and mu.
+
+I calculated the phenotypes from this expression, newt pheno = exp(inds_n.sumOfMutationsOfType(m1)/10). So to un-transform and find the # of mutations I need to ln both sides of the equation ln(pheno=e^(sumOfMutations/10)). Then solve for sumOfMutations,  sumOfMutations = 10 * ln(pheno)
+
+Notes:
+difference in the trees betw two chromosomes in a pop of size N is 4N
+so # of differing mutations is like 4 N L mu where L = genome length, mu = mutaiton rate per bp and if each mutation has an effect size that is N(0, sd=sigma), then the sum of K of these has mean 0 and SD= sigma * sqrt(K). So untransformed phenotypes (sum of effect sizes) should have mean 0 and SD= sigma * sqrt(4 N L mu). So, you'd work out what SD you want, then given mu solve for sigma (the SD of effect size)
+
 
 ```{r trasformation, echo=FALSE}
 
@@ -204,14 +242,14 @@ files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", patter
 file1 <- read.table(files[1], header = TRUE)
 p <- ggplot(file1, aes(x=Newt_mean_Pheno)) +
   #ylim(0, true_max_1)+
-  geom_line(aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") + 
-  ggtitle("Newt trasnformed vs un-trasformed") +
+  geom_line(aes(y = (log(Newt_mean_Pheno)*10)), color = "darkred") + 
+  ggtitle("Wrong1sim: Newt trasnformed vs un-trasformed") +
   xlab("Trasnformed") + ylab("Untransformed")+
   theme_bw()
 q <- ggplot(file1, aes(x=Snake_mean_Pheno)) +
   #ylim(0, true_max_1)+
-  geom_line(aes(y = exp(Snake_mean_Pheno/10)), color = "darkred") + 
-  ggtitle("Newt trasnformed vs un-trasformed") +
+  geom_line(aes(y = (log(Snake_mean_Pheno)*10)), color = "steelblue") + 
+  ggtitle("Wrong1sim: Newt trasnformed vs un-trasformed") +
   xlab("Trasnformed") + ylab("Untransformed")+
   theme_bw()
 
@@ -219,9 +257,9 @@ for (current_file in files){
   #print(current_file)
 
   file <- read.table(current_file, header = TRUE)
- p <- p + geom_line(data=file, aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") 
+ p <- p + geom_line(data=file, aes(y = (log(Newt_mean_Pheno)*10)), color = "darkred") 
 
- q <- q + geom_line(data=file, aes(y = exp(Snake_mean_Pheno/10)), color="steelblue", linetype="twodash")
+ q <- q + geom_line(data=file, aes(y = (log(Snake_mean_Pheno)*10)), color="steelblue", linetype="twodash")
 }
 
 
@@ -315,7 +353,7 @@ p <- ggplot(file1, aes(x=gen)) +
   scale_y_log10(limits=c(true_min_2+0.5, true_max_2))+
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
-  ggtitle("Phenotype Measurements for Newts and Snakes") +
+  ggtitle("1sim: Phenotype Measurements for Newts and Snakes") +
   xlab("Generation") + ylab("Average Phenotypes")+
   theme_bw()
 
@@ -332,6 +370,8 @@ for (current_file in files){
 
 p 
 ```
+## Difference between snake and newt pheotypes
+
 ```{r data from multiple msprime, echo=FALSE}
 
 
@@ -344,7 +384,7 @@ p <- ggplot(file1, aes(x=gen)) +
   #scale_y_log10()+
   #scale_y_log10(limits=c(min_difference_2, max_difference_2))+
   geom_line(aes(y = abs(Snake_mean_Pheno - Newt_mean_Pheno)), color = "mediumseagreen") + 
-    ggtitle("Difference Between Phenotypes (Snakes-Newts)") +
+    ggtitle("1sim: Difference Between Phenotypes (Snakes-Newts)") +
   xlab("Generation") + ylab("Average Difference")+
   theme_bw()
 
@@ -369,10 +409,38 @@ for (current_file in files){
 
 p 
 ```
+## How much did the phenotypes of newts and snakes change over 1000 generations
+
+```{r 1sim pheno change, echo=FALSE}
+
+files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=1:144)) +
+  xlim(0, 145)+
+  #ylim(newt_min_pheno_1, newt_max_pheno_1)+
+  geom_point(aes(x = 1, y = Newt_mean_Pheno[1]), color = darken("darkred")) +
+  geom_point(aes(x = 1, y = Newt_mean_Pheno[50]), color = lighten("darkred")) +
+  geom_point(aes(x = 1, y = Snake_mean_Pheno[1]), color = darken("steelblue")) +
+  geom_point(aes(x = 1, y = Snake_mean_Pheno[50]), color = lighten("steelblue")) +
+  ggtitle("1sim: Phenotype Change") +
+  xlab("Simulation number") + ylab("Phenotype")+
+  theme_bw()
+i=1
+for (current_file in files){
+
+  file <- read.table(current_file, header = TRUE)
+ p <- p + geom_point(data= file, x = i, aes(y = Newt_mean_Pheno[1]), color = darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = Newt_mean_Pheno[50]), color = lighten("darkred"))  + geom_point(data= file, x = i, aes(y = Snake_mean_Pheno[1]), color = darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = Snake_mean_Pheno[50]), color = lighten("steelblue"))
+ i = i+1
+}
+
+
+p 
+
+```
 
 ## Trasforming the phenotypes back
-
-I want to see what the un-transformed phentypes are and compare them to their transformed buddies to figure out what values I should be using for sigma and 
 
 ```{r trasformation cor sim, echo=FALSE}
 
@@ -380,14 +448,14 @@ files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*
 file1 <- read.table(files[1], header = TRUE)
 p <- ggplot(file1, aes(x=Newt_mean_Pheno)) +
   #ylim(0, true_max_1)+
-  geom_line(aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") + 
-  ggtitle("Newt trasnformed vs un-trasformed") +
+  geom_line(aes(y = (log(Newt_mean_Pheno)*10)), color = "darkred") + 
+  ggtitle("1sim: Newt trasnformed vs un-trasformed") +
   xlab("Trasnformed") + ylab("Untransformed")+
   theme_bw()
 q <- ggplot(file1, aes(x=Snake_mean_Pheno)) +
   #ylim(0, true_max_1)+
-  geom_line(aes(y = exp(Snake_mean_Pheno/10)), color = "darkred") + 
-  ggtitle("Newt trasnformed vs un-trasformed") +
+  geom_line(aes(y = (log(Snake_mean_Pheno)*10)), color = "steelblue") + 
+  ggtitle("1sim: Newt trasnformed vs un-trasformed") +
   xlab("Trasnformed") + ylab("Untransformed")+
   theme_bw()
 
@@ -395,9 +463,9 @@ for (current_file in files){
   #print(current_file)
 
   file <- read.table(current_file, header = TRUE)
- p <- p + geom_line(data=file, aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") 
+ p <- p + geom_line(data=file, aes(y = (log(Newt_mean_Pheno)*10)), color = "darkred") 
 
- q <- q + geom_line(data=file, aes(y = exp(Snake_mean_Pheno/10)), color="steelblue", linetype="twodash")
+ q <- q + geom_line(data=file, aes(y = (log(Snake_mean_Pheno)*10)), color="steelblue", linetype="twodash")
 }
 
 
@@ -407,7 +475,7 @@ q
 
 ```
 
-# Expanded Experiment 
+# Expanded Experiment 2sims: 
 This time I examine what the SLIM script would generate is both the MSprime and SLIM are ran with the variables that I picked. I ran 144 SLiM simulations & MSprime with different parameters values.
 
 Again I looped through the files and find the max and min of each of the species pheotypes
@@ -491,7 +559,7 @@ p <- ggplot(file1, aes(x=gen)) +
   scale_y_log10(limits=c(0.001,true_max_3))+
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
-  ggtitle("Phenotype Measurements for Newts and Snakes") +
+  ggtitle("2sims: Phenotype Measurements for Newts and Snakes") +
   xlab("Generation") + ylab("Average Phenotypes")+
   theme_bw()
 
@@ -513,9 +581,7 @@ p
 ```
 
 
-Some other things that might be goo to look at:
-
-The difference between the average phenotypes
+## Difference between snake and newt pheotypes
 
 
 
@@ -531,7 +597,7 @@ p <- ggplot(file1, aes(x=gen)) +
   #scale_y_log10()+
   scale_y_log10(limits=c(min_difference_3, max_difference_3))+
   geom_line(aes(y = Snake_mean_Pheno - Newt_mean_Pheno), color = "mediumseagreen") + 
-  ggtitle("Difference Between Phenotypes (Snakes-Newts)") +
+  ggtitle("2sims: Difference Between Phenotypes (Snakes-Newts)") +
   xlab("Generation") + ylab("Average Difference")+
   theme_bw()
 
@@ -556,45 +622,81 @@ for (current_file in files){
 
 p 
 ```
+## How much did the phenotypes of newts and snakes change over 1000 generations
+
+
+
+```{r 2sim pheno change, echo=FALSE}
+
+files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=1:144)) +
+  xlim(0, 145)+
+  geom_point(aes(x = 1, y = as.numeric(Newt_mean_Pheno[1])), color = darken("darkred")) +
+  geom_point(aes(x = 1, y = as.numeric(Newt_mean_Pheno[50])), color = lighten("darkred")) +
+  geom_point(aes(x = 1, y = as.numeric(Snake_mean_Pheno[1])), color = darken("steelblue")) +
+  geom_point(aes(x = 1, y = as.numeric(Snake_mean_Pheno[50])), color = lighten("steelblue")) +
+  ggtitle("2sim: Phenotype Change") +
+  xlab("Simulation number") + ylab("Phenotype")+
+  theme_bw()
+i=1
+for (current_file in files){
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
+  file <- file[complete.cases(file), ]
+ p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])), color = darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])), color = lighten("darkred"))  + geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])), color = darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])), color = lighten("steelblue"))
+ i = i+1
+}
+
+
+p 
+
+```
+
 
 ## Trasforming the phenotypes back
 
-I want to see what the un-transformed phentypes are and compare them to their transformed buddies to figure out what values I should be using for sigma and 
 
 ```{r trasformation 2sim, echo=FALSE}
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 file1 <- read.table(files[1], header = TRUE)
-p <- ggplot(file1, aes(x=Newt_mean_Pheno)) +
+p <- ggplot(file1, aes(x=as.numeric(Newt_mean_Pheno))) +
   #ylim(0, true_max_1)+
-  geom_line(aes(y = exp(Newt_mean_Pheno/10)), color = "darkred") + 
-  ggtitle("Newt trasnformed vs un-trasformed") +
+  geom_line(aes(y = (log(as.numeric(Newt_mean_Pheno))*10)), color = "darkred") + 
+  ggtitle("2sims: Newt trasnformed vs un-trasformed") +
   xlab("Trasnformed") + ylab("Untransformed")+
   theme_bw()
-q <- ggplot(file1, aes(x=Snake_mean_Pheno)) +
+q <- ggplot(file1, aes(x=as.numeric(Snake_mean_Pheno))) +
   #ylim(0, true_max_1)+
-  geom_line(aes(y = exp(Snake_mean_Pheno/10)), color = "darkred") + 
-  ggtitle("Newt trasnformed vs un-trasformed") +
+  geom_line(aes(y = (log(as.numeric(Snake_mean_Pheno))*10)), color = "steelblue") + 
+  ggtitle("2sims: Newt trasnformed vs un-trasformed") +
   xlab("Trasnformed") + ylab("Untransformed")+
   theme_bw()
 
 for (current_file in files){
   #print(current_file)
-   file <- read.table(current_file, header = TRUE)
+  file <- read.table(current_file, header = TRUE)
   file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
   file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
   file <- file[complete.cases(file), ]
   #print(file$Newt_mean_Pheno)
   #print(exp(file$Newt_mean_Pheno/10))
+  #print(log(as.numeric(file$Newt_mean_Pheno))*10)
   file <- read.table(current_file, header = TRUE)
- p <- p + geom_line(data=file, aes(y = exp(as.numeric(Newt_mean_Pheno)/10)), color = "darkred") 
+ p <- p + geom_line(data=file, aes(y = (log(as.numeric(Newt_mean_Pheno))*10)), color = "darkred",na.rm = TRUE) 
 
- q <- q + geom_line(data=file, aes(y = exp(as.numeric(Snake_mean_Pheno)/10)), color="steelblue", linetype="twodash")
+ q <- q + geom_line(data=file, aes(y = (log(as.numeric(Snake_mean_Pheno))*10)), color="steelblue", linetype="twodash", na.rm = FALSE)
 }
 
 
-#p 
-#q
+p
+q
+
 
 
 ```
