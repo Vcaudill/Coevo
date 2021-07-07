@@ -6,6 +6,7 @@ SLiM - variable names/values separated with _ and the ID of the slim simulation
 MSprime - variable names/values separated with _ (need to add ID)
 
 CLUSTER FILES: which. I can now access though VS code
+
 SLiM_script/ has the 1 on 1 slim script. Where I was testing mutation rate and effect size.
 newt_snake_1on1.slim - 2d next on snake, no deleterious mutations or fitness cost
 slimloop.srun - loops through variables and calls another script to run the slim script
@@ -38,6 +39,7 @@ Will always have tree files and text files and will be renamed as I do different
 this is like a motif 
 
 GIT/MY FILES:
+
 srun_scripts/ files for the cluster
 msprimeloop.srun - loops though variables and calls another script to run the simulation
 pheno_test_1000.srun  - calls the slim script with variables given from a file 
@@ -93,6 +95,9 @@ R_script/ these are to make the figures for the rotation talk they do have the n
 
 graphs_newt_snakes/ r markdown files to show the results from the newt snake experiment
 Expected_results_fig.Rmd - proposal expected results (might have some good graph info) 
+fig_1000.Rmd - this is the r markdown for the 1000 generation experiment. As of 7/7/2021 there are 3 experiments (mistake experiment, experiment 1 and two simulation experiment)
+    there are some question I have about the slim and msprim script, like why do the newts start out higher? I will look into the msprime and sslim script to see what might be going on
+
 
 EXPERIMENTS: 
 
