@@ -133,7 +133,7 @@ p <- ggplot(file1, aes(x=gen)) +
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
   ggtitle("Wrong1sim: Phenotype Measurements for Newts and Snakes") +
-  xlab("Generation") + ylab("Average Phenotypes")+
+  xlab("Generation") + ylab("Average Phenotypes (Log)")+
   theme_bw()
 
 for (current_file in files){
@@ -149,6 +149,8 @@ for (current_file in files){
 
 p 
 ```
+
+
 ## Difference between snake and newt pheotypes
 
 This figure represents the difference between the snake and the newt phenotype. The pick lines indicat that the newt is more toxit than the snakes, while the blue line indicates that the snakes are more resitant than the newts
@@ -354,7 +356,7 @@ p <- ggplot(file1, aes(x=gen)) +
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
   ggtitle("1sim: Phenotype Measurements for Newts and Snakes") +
-  xlab("Generation") + ylab("Average Phenotypes")+
+  xlab("Generation") + ylab("Average Phenotypes (Log)")+
   theme_bw()
 
 for (current_file in files){
@@ -370,6 +372,8 @@ for (current_file in files){
 
 p 
 ```
+
+
 ## Difference between snake and newt pheotypes
 
 ```{r data from multiple msprime, echo=FALSE}
@@ -560,7 +564,7 @@ p <- ggplot(file1, aes(x=gen)) +
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
   ggtitle("2sims: Phenotype Measurements for Newts and Snakes") +
-  xlab("Generation") + ylab("Average Phenotypes")+
+  xlab("Generation") + ylab("Average Phenotypes  (Log)")+
   theme_bw()
 
 for (current_file in files){
@@ -598,7 +602,7 @@ p <- ggplot(file1, aes(x=gen)) +
   scale_y_log10(limits=c(min_difference_3, max_difference_3))+
   geom_line(aes(y = Snake_mean_Pheno - Newt_mean_Pheno), color = "mediumseagreen") + 
   ggtitle("2sims: Difference Between Phenotypes (Snakes-Newts)") +
-  xlab("Generation") + ylab("Average Difference")+
+  xlab("Generation") + ylab("Average Difference (Log)")+
   theme_bw()
 
 for (current_file in files){
@@ -632,12 +636,13 @@ files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern=
 file1 <- read.table(files[1], header = TRUE)
 p <- ggplot(file1, aes(x=1:144)) +
   xlim(0, 145)+
+  scale_y_log10()+
   geom_point(aes(x = 1, y = as.numeric(Newt_mean_Pheno[1])), color = darken("darkred")) +
   geom_point(aes(x = 1, y = as.numeric(Newt_mean_Pheno[50])), color = lighten("darkred")) +
   geom_point(aes(x = 1, y = as.numeric(Snake_mean_Pheno[1])), color = darken("steelblue")) +
   geom_point(aes(x = 1, y = as.numeric(Snake_mean_Pheno[50])), color = lighten("steelblue")) +
   ggtitle("2sim: Phenotype Change") +
-  xlab("Simulation number") + ylab("Phenotype")+
+  xlab("Simulation number") + ylab("Phenotype  (Log)")+
   theme_bw()
 i=1
 for (current_file in files){
@@ -646,9 +651,9 @@ for (current_file in files){
   file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
   file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
   file <- file[complete.cases(file), ]
- p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])), color = darken("darkred")) +
-   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])), color = lighten("darkred"))  + geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])), color = darken("steelblue")) +
-  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])), color = lighten("steelblue"))
+ p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])+0.1), color = darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])+0.1), color = lighten("darkred"))  + geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])+0.1), color = darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])+0.1), color = lighten("steelblue"))
  i = i+1
 }
 
