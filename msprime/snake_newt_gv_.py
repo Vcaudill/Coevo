@@ -6,7 +6,8 @@ import os
 import sys
 from sys import argv
 # import util
-# testing vscode&git
+# testing vscode&git 
+print("hello")
 
 sequence_length = 100000000
 '''
