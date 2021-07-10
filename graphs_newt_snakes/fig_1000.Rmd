@@ -8,6 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(viridis)
 library(colorspace)
+
 #setwd("~/Desktop/Proposal Old Drafts")
 ```
 
@@ -50,21 +51,22 @@ Then set up a graph with the average phenotype
 
 This section of code loops though the files and finds the maximum and minumum pheotypes of newts and snakes. and make two lines (red for newts blue for snakes) and keep a minimum about of info in mem at a time
 
+```{r functions, echo=FALSE}
 
-```{r data from the mistake folder, echo=FALSE}
-newt_max_pheno_1 = 0
-snake_max_pheno_1 = 0
-newt_min_pheno_1 = 0
-snake_min_pheno_1 = 0
-true_max_1 = 0
-true_min_1 = 0
-min_difference_1 = 0
-max_difference_1 = 0
+collect_data_points <- function(files) {
+  newt_max_pheno_1 = 0
+  snake_max_pheno_1 = 0
+  newt_min_pheno_1 = 0
+  snake_min_pheno_1 = 0
+  true_max_1 = 0
+  true_min_1 = 0
+  min_difference_1 = 0
+  max_difference_1 = 0
+  mean = 0
+  sd = 0
+ 
 
-
-files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
-
-for (current_file in files){
+  for (current_file in files){
   #print(current_file)
 
   file <- read.table(current_file, header = TRUE)
@@ -75,7 +77,9 @@ for (current_file in files){
   file$Snake_min_Pheno[file$Snake_min_Pheno == "NULL"] <- NA
   file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
   file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
-
+  mean = mean(c(file$Newt_mean_Pheno, file$Snake_mean_Pheno))
+  sd = sd(c(file$Newt_mean_Pheno, file$Snake_mean_Pheno))
+  
   if (max(file$Newt_max_Pheno) > newt_max_pheno_1){
     newt_max_pheno_1 = max(file$Newt_max_Pheno) }
   
@@ -96,15 +100,9 @@ for (current_file in files){
   if (as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE)) > max_difference_1){
     max_difference_1 = as.numeric(max(file$Snake_mean_Pheno, na.rm = TRUE)) - as.numeric(min(file$Newt_mean_Pheno, na.rm = TRUE))
   }
-}
-
-
-  print(paste0("Newt max pheno: ", newt_max_pheno_1))
-  print(paste0("Snake max phenot: ", snake_max_pheno_1))
-  print(paste0("Newt min pheno: ", newt_min_pheno_1))
-  print(paste0("Snake min Pheno: ", snake_min_pheno_1))
+  }
   
-  if (newt_max_pheno_1 > snake_max_pheno_1){
+    if (newt_max_pheno_1 > snake_max_pheno_1){
     true_max_1 = newt_max_pheno_1 }
   if ( snake_max_pheno_1 > newt_max_pheno_1){
     true_max_1 = snake_max_pheno_1 }
@@ -114,25 +112,20 @@ for (current_file in files){
   if ( snake_min_pheno_1 < newt_min_pheno_1){
     true_min_1 = snake_min_pheno_1 }
   
-```
-
-This section of code loops though the files and make two lines (red for newts blue for snakes). This figure shows how the pheotypes change over 1000 generations. It also keeps a minimum about of info in memory at a time. aka dont open all of the files and put it into a large dataframe.
-
+  return(c(newt_max_pheno_1, snake_max_pheno_1, newt_min_pheno_1, snake_min_pheno_1, true_max_1, true_min_1, min_difference_1, max_difference_1, mean, sd))
+}
 
 
+phenotype_graph <- function(files, the_mean, the_sd, title){
 
-```{r phenotype graph for mistake sims, echo=FALSE}
-
-
-files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
-file1 <- read.table(files[1], header = TRUE)
+  file1 <- read.table(files[1], header = TRUE)
 p <- ggplot(file1, aes(x=gen)) +
   xlim(0, 1000)+
   #ylim(0, true_max_1)+
-  scale_y_log10(limits=c(true_min_1+0.8, true_max_1))+
+  scale_y_log10(limits=c(the_mean-(the_sd*10), the_mean+(the_sd*10)))+
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
-  ggtitle("Wrong1sim: Phenotype Measurements for Newts and Snakes") +
+  ggtitle(title) +
   xlab("Generation") + ylab("Average Phenotypes (Log)")+
   theme_bw()
 
@@ -144,8 +137,85 @@ for (current_file in files){
   geom_line(data=file, aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(data=file, aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash") 
   #Sys.sleep(2)
+}
+return(p)
+}
+
+differnce_graph <- function(files, the_mean, the_sd, title){
+  
+  p <- ggplot(file1, aes(x=gen)) +
+  xlim(0, 1000)+
+  #ylim(min_difference, max_difference)+
+  #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
+  #scale_y_log10()+
+  #scale_y_log10(limits=c(min_difference_1, max_difference_1))+
+  geom_line(aes(y = abs(Snake_mean_Pheno - Newt_mean_Pheno)), color = "mediumseagreen") + 
+    ggtitle(title) +
+  xlab("Generation") + ylab("Average Difference")+
+  theme_bw()
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  file <- file[complete.cases(file), ]
+  file$mean_dif = as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno)
+  file$mean_dif[file$mean_dif == 0] <- 0.01
+  file$pos <- TRUE
+  file$pos[file$mean_dif < 0] <- FALSE
+  
+
+ p <- p + geom_line(data=file, aes(x=gen, y=abs(mean_dif), color = pos), na.rm=TRUE)
+  #Sys.sleep(2) na.rm=TRUE
+ # color = "mediumseagreen"
 
 }
+  return(p)
+}
+  
+
+
+
+```
+
+```{r data from the mistake folder, echo=FALSE}
+files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files)
+
+newt_max_pheno_1 = out[1]
+snake_max_pheno_1 = out[2]
+newt_min_pheno_1  = out[3]
+snake_min_pheno_1 = out[4]
+true_max_1 = out[5]
+true_min_1 = out[6]
+min_difference_1 = out[7]
+max_difference_1 = out[8]
+my_mean = out[9]
+my_sd = out[10]
+
+print(paste0("Newt max pheno: ", newt_max_pheno_1))
+print(paste0("Snake max phenot: ", snake_max_pheno_1))
+print(paste0("Newt min pheno: ", newt_min_pheno_1))
+print(paste0("Snake min Pheno: ", snake_min_pheno_1))
+print(paste0("Mean of combined snake and newt: ", my_mean))
+print(paste0("Sd of combined snake and newt: ", my_sd))
+
+```
+
+This section of code loops though the files and make two lines (red for newts blue for snakes). This figure shows how the pheotypes change over 1000 generations. It also keeps a minimum about of info in memory at a time. aka dont open all of the files and put it into a large dataframe.
+
+
+
+
+```{r phenotype graph for mistake sims, echo=FALSE}
+
+
+files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
+title="Wrong1sim: Phenotype Measurements for Newts and Snakes"
+p = phenotype_graph(files, my_mean, my_sd, title)
 
 p 
 ```
@@ -153,7 +223,7 @@ p
 
 ## Difference between snake and newt pheotypes
 
-This figure represents the difference between the snake and the newt phenotype. The pick lines indicat that the newt is more toxit than the snakes, while the blue line indicates that the snakes are more resitant than the newts
+This figure represents the difference between the snake and the newt phenotype. The pink lines indicate that the newt is more toxit than the snakes, while the blue line indicates that the snakes are more resitant than the newts
 
 
 ```{r difference wrong sim, echo=FALSE}
