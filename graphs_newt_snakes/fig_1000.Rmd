@@ -8,6 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
 library(viridis)
 library(colorspace)
+library(gridExtra)
 
 #setwd("~/Desktop/Proposal Old Drafts")
 ```
@@ -131,8 +132,8 @@ collect_data_points <- function(files) {
 phenotype_graph <- function(files, the_mean, the_sd, title, is_log=FALSE){
 
   file1 <- read.table(files[1], header = TRUE)
-  file1$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
-  file1$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  file1$Newt_mean_Pheno[file1$Newt_mean_Pheno == "NULL"] <- NA
+  file1$Snake_mean_Pheno[file1$Snake_mean_Pheno == "NULL"] <- NA
 p <- ggplot(file1, aes(x=gen)) +
   xlim(0, 1000)+
   #ylim(0, true_max_1)+
@@ -143,7 +144,7 @@ p <- ggplot(file1, aes(x=gen)) +
   theme_bw()
 
 if(is_log==TRUE){
-  p = p + ylab("Average Phenotypes (Log)") + scale_y_log10(limits=c(the_mean-(the_sd*10), the_mean+(the_sd*10)))
+  p = p + ylab("Average Phenotypes (Log)") + scale_y_log10(limits=c(the_mean-(the_sd*3), the_mean+(the_sd*10)))
   }
 
 for (current_file in files){
@@ -153,14 +154,14 @@ for (current_file in files){
   file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
   file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
  p <- p +
-  geom_line(data=file, aes(y = Newt_mean_Pheno), color = "darkred") + 
-  geom_line(data=file, aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash") 
+   geom_line(data=file, aes(y = as.numeric(Newt_mean_Pheno)), color = "darkred",na.rm=TRUE) +
+   geom_line(data=file, aes(y = as.numeric(Snake_mean_Pheno)), color="steelblue", linetype="twodash", na.rm=TRUE) 
   #Sys.sleep(2)
 }
 return(p)
 }
 
-differnce_graph <- function(files, the_mean, the_sd, title, is_log=FALSE){
+differnce_graph <- function(files, the_mean, the_sd, min_difference_1, max_difference_1, title, is_log=FALSE){
   
  file1 <- read.table(files[1], header = TRUE)
 p <- ggplot(file1, aes(x=gen)) +
@@ -171,7 +172,7 @@ p <- ggplot(file1, aes(x=gen)) +
   theme_bw()
 
 if(is_log==TRUE){
-  p = p + scale_y_log10(limits=c(abs(the_mean)-the_sd*10, abs(the_mean)+the_sd*10)) + ylab("Average Difference (Log)")
+  p = p + scale_y_log10(limits=c(min_difference_1, max_difference_1)) + ylab("Average Difference (Log)")
 }
 
 if(is_log==FALSE){
@@ -213,6 +214,7 @@ if(is_log==TRUE){
   p = p + scale_y_log10() + ylab("Phenotype  (Log)")
   
 }
+
 i=1
 for (current_file in files){
 
@@ -297,16 +299,10 @@ print(paste0("SD of the mean difference: ", sd_mean_dif))
 This section of code loops though the files and make two lines (red for newts blue for snakes). This figure shows how the pheotypes change over 1000 generations. It also keeps a minimum about of info in memory at a time. aka dont open all of the files and put it into a large dataframe.
 
 
-
-
 ```{r phenotype graph for mistake sims, echo=FALSE}
+myfiles <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
-
-files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
-title="Wrong1sim: Phenotype Measurements for Newts and Snakes"
-q = phenotype_graph(files, my_mean, my_sd, title, is_log = TRUE)
-p = phenotype_graph(files, my_mean, my_sd, title)
-q
+p = phenotype_graph(files=myfiles, the_mean=out[9], the_sd=out[10], title="Wrong1sim: Phenotype Measurements for Newts and Snakes", is_log=FALSE)
 p 
 ```
 
@@ -321,7 +317,7 @@ This figure represents the difference between the snake and the newt phenotype. 
 ## need to work on making this figure better 
 files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 title = "Wrong1sim: Difference Between Phenotypes (Snakes-Newts)"
-p = differnce_graph(files, mean_mean_dif, sd_mean_dif, title, is_log=FALSE)
+p = differnce_graph(files, mean_mean_dif, sd_mean_dif, min_difference_1, max_difference_1, title, is_log=FALSE)
 
 p
 ```
@@ -422,8 +418,7 @@ p
 files <- list.files(path="~/Desktop/pheno_test_1000/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 
 title = "1sim: Difference Between Phenotypes (Snakes-Newts)"
-p = differnce_graph(files, mean_mean_dif, sd_mean_dif, title, is_log=FALSE)
-
+p = differnce_graph(files, mean_mean_dif, sd_mean_dif, min_difference_1, max_difference_1, title, is_log=FALSE)
 p 
 ```
 ## How much did the phenotypes of newts and snakes change over 1000 generations
@@ -496,34 +491,13 @@ some of these values are in quotes, why?
 
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
-file1 <- read.table(files[1], header = TRUE)
-p <- ggplot(file1, aes(x=gen)) +
-  xlim(0, 1000)+
-  #ylim(0, true_max_3)+
-  #scale_y_continuous(trans=log10_trans(), limits=c(0,true_max_3))+
-  #scale_y_log10()+
-  scale_y_log10(limits=c(0.001,true_max_3))+
-  geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
-  geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
-  ggtitle("2sims: Phenotype Measurements for Newts and Snakes") +
-  xlab("Generation") + ylab("Average Phenotypes  (Log)")+
-  theme_bw()
-
-for (current_file in files){
-  #print(current_file)
-
-  file <- read.table(current_file, header = TRUE)
-  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
-  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
-  
- p <- p +
-  geom_line(data=file, aes(y = as.numeric(Newt_mean_Pheno)), color = "darkred",na.rm=TRUE) + 
-  geom_line(data=file, aes(y = as.numeric(Snake_mean_Pheno)), color="steelblue", linetype="twodash", na.rm=TRUE) 
-  #Sys.sleep(2) na.rm=TRUE
-
-}
-
+# better limit
+title = "2sim: Phenotype Measurements for Newts and Snake"
+q = phenotype_graph(files, my_mean, my_sd, title, is_log = TRUE)
+p = phenotype_graph(files, my_mean, my_sd, title)
+q
 p 
+
 ```
 
 
@@ -535,36 +509,9 @@ p
 
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
-file1 <- read.table(files[1], header = TRUE)
-p <- ggplot(file1, aes(x=gen)) +
-  xlim(0, 1000)+
-  #ylim(min_difference, max_difference)+
-  #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
-  #scale_y_log10()+
-  scale_y_log10(limits=c(min_difference_3, max_difference_3))+
-  geom_line(aes(y = Snake_mean_Pheno - Newt_mean_Pheno), color = "mediumseagreen") + 
-  ggtitle("2sims: Difference Between Phenotypes (Snakes-Newts)") +
-  xlab("Generation") + ylab("Average Difference (Log)")+
-  theme_bw()
 
-for (current_file in files){
-  #print(current_file)
-
-  file <- read.table(current_file, header = TRUE)
-  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
-  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
-  file <- file[complete.cases(file), ]
-  file$mean_dif = as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno)
-  file$mean_dif[file$mean_dif == 0] <- 0.01
-  file$pos <- TRUE
-  file$pos[file$mean_dif < 0] <- FALSE
-  
-
- p <- p + geom_line(data=file, aes(x=gen, y=abs(mean_dif), color = pos), na.rm=TRUE)
-  #Sys.sleep(2) na.rm=TRUE
- # color = "mediumseagreen"
-
-}
+title = "2sim: Difference Between Phenotypes (Snakes-Newts)"
+p = differnce_graph(files, mean_mean_dif, sd_mean_dif, min_difference_1, max_difference_1, title, is_log=TRUE)
 
 p 
 ```
@@ -575,31 +522,10 @@ p
 ```{r 2sim pheno change, echo=FALSE}
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
-file1 <- read.table(files[1], header = TRUE)
-p <- ggplot(file1, aes(x=1:144)) +
-  xlim(0, 145)+
-  scale_y_log10()+
-  geom_point(aes(x = 1, y = as.numeric(Newt_mean_Pheno[1])), color = darken("darkred")) +
-  geom_point(aes(x = 1, y = as.numeric(Newt_mean_Pheno[50])), color = lighten("darkred")) +
-  geom_point(aes(x = 1, y = as.numeric(Snake_mean_Pheno[1])), color = darken("steelblue")) +
-  geom_point(aes(x = 1, y = as.numeric(Snake_mean_Pheno[50])), color = lighten("steelblue")) +
-  ggtitle("2sim: Phenotype Change") +
-  xlab("Simulation number") + ylab("Phenotype  (Log)")+
-  theme_bw()
-i=1
-for (current_file in files){
 
-  file <- read.table(current_file, header = TRUE)
-  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
-  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
-  file <- file[complete.cases(file), ]
- p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])+0.1), color = darken("darkred")) +
-   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])+0.1), color = lighten("darkred"))  + geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])+0.1), color = darken("steelblue")) +
-  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])+0.1), color = lighten("steelblue"))
- i = i+1
-}
-
-
+title = "2sim: Phenotype Change"
+p=phenotype_change_graph(files, my_mean, my_sd, title, is_log=TRUE)
+ 
 p 
 
 ```
@@ -611,38 +537,16 @@ p
 ```{r trasformation 2sim, echo=FALSE}
 
 files <- list.files(path="~/Desktop/pheno_test_1000_2/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
-file1 <- read.table(files[1], header = TRUE)
-p <- ggplot(file1, aes(x=as.numeric(Newt_mean_Pheno))) +
-  #ylim(0, true_max_1)+
-  geom_line(aes(y = (log(as.numeric(Newt_mean_Pheno))*10)), color = "darkred") + 
-  ggtitle("2sims: Newt trasnformed vs un-trasformed") +
-  xlab("Trasnformed") + ylab("Untransformed")+
-  theme_bw()
-q <- ggplot(file1, aes(x=as.numeric(Snake_mean_Pheno))) +
-  #ylim(0, true_max_1)+
-  geom_line(aes(y = (log(as.numeric(Snake_mean_Pheno))*10)), color = "steelblue") + 
-  ggtitle("2sims: Newt trasnformed vs un-trasformed") +
-  xlab("Trasnformed") + ylab("Untransformed")+
-  theme_bw()
 
-for (current_file in files){
-  #print(current_file)
-  file <- read.table(current_file, header = TRUE)
-  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
-  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
-  file <- file[complete.cases(file), ]
-  #print(file$Newt_mean_Pheno)
-  #print(exp(file$Newt_mean_Pheno/10))
-  #print(log(as.numeric(file$Newt_mean_Pheno))*10)
-  file <- read.table(current_file, header = TRUE)
- p <- p + geom_line(data=file, aes(y = (log(as.numeric(Newt_mean_Pheno))*10)), color = "darkred",na.rm = TRUE) 
-
- q <- q + geom_line(data=file, aes(y = (log(as.numeric(Snake_mean_Pheno))*10)), color="steelblue", linetype="twodash", na.rm = FALSE)
-}
+title1 = "1som: Newt trasnformed vs un-trasformed"
+title2 = "g1sim: Snake trasnformed vs un-trasformed"
+graph = untrasform(files, my_mean, my_sd, title1, title2, is_log=FALSE)
+graph[1]
+graph[2]
 
 
-p
-q
+#p
+#q
 
 
 
