@@ -64,6 +64,8 @@ collect_data_points <- function(files) {
   max_difference_1 = 0
   mean = 0
   sd = 0
+  mean_mean_dif = 0
+  sd_mean_dif = 0
  
 
   for (current_file in files){
@@ -77,8 +79,10 @@ collect_data_points <- function(files) {
   file$Snake_min_Pheno[file$Snake_min_Pheno == "NULL"] <- NA
   file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
   file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
-  mean = mean(c(file$Newt_mean_Pheno, file$Snake_mean_Pheno))
-  sd = sd(c(file$Newt_mean_Pheno, file$Snake_mean_Pheno))
+  mean = mean(c(file$Newt_mean_Pheno, file$Snake_mean_Pheno), na.rm = TRUE)
+  sd = sd(c(file$Newt_mean_Pheno, file$Snake_mean_Pheno), na.rm = TRUE)
+  mean_mean_dif = mean(as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno),na.rm = TRUE)
+  sd_mean_dif = sd(as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno),na.rm = TRUE)
   
   if (max(file$Newt_max_Pheno) > newt_max_pheno_1){
     newt_max_pheno_1 = max(file$Newt_max_Pheno) }
@@ -112,27 +116,34 @@ collect_data_points <- function(files) {
   if ( snake_min_pheno_1 < newt_min_pheno_1){
     true_min_1 = snake_min_pheno_1 }
   
-  return(c(newt_max_pheno_1, snake_max_pheno_1, newt_min_pheno_1, snake_min_pheno_1, true_max_1, true_min_1, min_difference_1, max_difference_1, mean, sd))
+  return(c(newt_max_pheno_1, snake_max_pheno_1, newt_min_pheno_1, snake_min_pheno_1, true_max_1, true_min_1, min_difference_1, max_difference_1, mean, sd, mean_mean_dif, sd_mean_dif))
 }
 
 
-phenotype_graph <- function(files, the_mean, the_sd, title){
+phenotype_graph <- function(files, the_mean, the_sd, title, is_log=FALSE){
 
   file1 <- read.table(files[1], header = TRUE)
+  file1$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file1$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
 p <- ggplot(file1, aes(x=gen)) +
   xlim(0, 1000)+
   #ylim(0, true_max_1)+
-  scale_y_log10(limits=c(the_mean-(the_sd*10), the_mean+(the_sd*10)))+
   geom_line(aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash")+
   ggtitle(title) +
-  xlab("Generation") + ylab("Average Phenotypes (Log)")+
+  xlab("Generation") + ylab("Average Phenotypes")+
   theme_bw()
+
+if(is_log==TRUE){
+  p = p + ylab("Average Phenotypes (Log)") + scale_y_log10(limits=c(the_mean-(the_sd*10), the_mean+(the_sd*10)))
+  }
 
 for (current_file in files){
   #print(current_file)
 
   file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
  p <- p +
   geom_line(data=file, aes(y = Newt_mean_Pheno), color = "darkred") + 
   geom_line(data=file, aes(y = Snake_mean_Pheno), color="steelblue", linetype="twodash") 
@@ -141,18 +152,23 @@ for (current_file in files){
 return(p)
 }
 
-differnce_graph <- function(files, the_mean, the_sd, title){
+differnce_graph <- function(files, the_mean, the_sd, title, is_log=FALSE){
   
-  p <- ggplot(file1, aes(x=gen)) +
+ file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=gen)) +
   xlim(0, 1000)+
-  #ylim(min_difference, max_difference)+
-  #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
-  #scale_y_log10()+
-  #scale_y_log10(limits=c(min_difference_1, max_difference_1))+
   geom_line(aes(y = abs(Snake_mean_Pheno - Newt_mean_Pheno)), color = "mediumseagreen") + 
-    ggtitle(title) +
+  ggtitle(title) +
   xlab("Generation") + ylab("Average Difference")+
   theme_bw()
+
+if(is_log==TRUE){
+  p = p + scale_y_log10(limits=c(abs(the_mean)-the_sd*10, abs(the_mean)+the_sd*10)) + ylab("Average Difference (Log)")
+}
+
+if(is_log==FALSE){
+  p = p + ylim(abs(the_mean)-the_sd*10, abs(the_mean)+the_sd*10)
+}
 
 for (current_file in files){
   #print(current_file)
@@ -163,16 +179,45 @@ for (current_file in files){
   file <- file[complete.cases(file), ]
   file$mean_dif = as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno)
   file$mean_dif[file$mean_dif == 0] <- 0.01
-  file$pos <- TRUE
-  file$pos[file$mean_dif < 0] <- FALSE
-  
+  file$pos <- "Snake"
+  file$pos[file$mean_dif < 0] <- "Newt"
+  file$pos[file$mean_dif ==  0.01] <- "Equal"
 
  p <- p + geom_line(data=file, aes(x=gen, y=abs(mean_dif), color = pos), na.rm=TRUE)
   #Sys.sleep(2) na.rm=TRUE
  # color = "mediumseagreen"
 
 }
-  return(p)
+return(p)
+}
+
+
+phenotype_change_graph <- function(files, the_mean, the_sd, title, is_log=FALSE){
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=1:144)) +
+  xlim(0, 145)+
+  ggtitle(title) +
+  xlab("Simulation number") + ylab("Phenotype")+
+  theme_bw()
+
+
+if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype  (Log)")
+  
+}
+i=1
+for (current_file in files){
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
+  file <- file[complete.cases(file), ]
+ p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])+0.1), color = darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])+0.1), color = lighten("darkred"))  + geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])+0.1), color = darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])+0.1), color = lighten("steelblue"))
+ i = i+1
+}
+return(p)
 }
   
 
@@ -195,6 +240,8 @@ min_difference_1 = out[7]
 max_difference_1 = out[8]
 my_mean = out[9]
 my_sd = out[10]
+mean_mean_dif = out[11]
+sd_mean_dif = out[12]
 
 print(paste0("Newt max pheno: ", newt_max_pheno_1))
 print(paste0("Snake max phenot: ", snake_max_pheno_1))
@@ -202,6 +249,8 @@ print(paste0("Newt min pheno: ", newt_min_pheno_1))
 print(paste0("Snake min Pheno: ", snake_min_pheno_1))
 print(paste0("Mean of combined snake and newt: ", my_mean))
 print(paste0("Sd of combined snake and newt: ", my_sd))
+print(paste0("Mean of the mean difference: ", mean_mean_dif))
+print(paste0("SD of the mean difference: ", sd_mean_dif))
 
 ```
 
@@ -215,8 +264,9 @@ This section of code loops though the files and make two lines (red for newts bl
 
 files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
 title="Wrong1sim: Phenotype Measurements for Newts and Snakes"
+q = phenotype_graph(files, my_mean, my_sd, title, is_log = TRUE)
 p = phenotype_graph(files, my_mean, my_sd, title)
-
+q
 p 
 ```
 
@@ -230,38 +280,10 @@ This figure represents the difference between the snake and the newt phenotype. 
 
 ## need to work on making this figure better 
 files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
-file1 <- read.table(files[1], header = TRUE)
-p <- ggplot(file1, aes(x=gen)) +
-  xlim(0, 1000)+
-  #ylim(min_difference, max_difference)+
-  #scale_y_continuous(trans=log10_trans(), limits=c(min_difference, max_difference))+
-  #scale_y_log10()+
-  #scale_y_log10(limits=c(min_difference_1, max_difference_1))+
-  geom_line(aes(y = abs(Snake_mean_Pheno - Newt_mean_Pheno)), color = "mediumseagreen") + 
-    ggtitle("Wrong1sim: Difference Between Phenotypes (Snakes-Newts)") +
-  xlab("Generation") + ylab("Average Difference")+
-  theme_bw()
+title = "Wrong1sim: Difference Between Phenotypes (Snakes-Newts)"
+p = differnce_graph(files, mean_mean_dif, sd_mean_dif, title, is_log=FALSE)
 
-for (current_file in files){
-  #print(current_file)
-
-  file <- read.table(current_file, header = TRUE)
-  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
-  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
-  file <- file[complete.cases(file), ]
-  file$mean_dif = as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno)
-  file$mean_dif[file$mean_dif == 0] <- 0.01
-  file$pos <- TRUE
-  file$pos[file$mean_dif < 0] <- FALSE
-  
-
- p <- p + geom_line(data=file, aes(x=gen, y=abs(mean_dif), color = pos), na.rm=TRUE)
-  #Sys.sleep(2) na.rm=TRUE
- # color = "mediumseagreen"
-
-}
-
-p 
+p
 ```
 
 ## How much did the phenotypes of newts and snakes change over 1000 generations
@@ -271,28 +293,9 @@ For this figure I want there to be 2 sets of points (4 complete points) for each
 ```{r pheno change, echo=FALSE}
 
 files <- list.files(path="~/Desktop/pheno_test_1000_old/text_files/test", pattern="*.txt", full.names=TRUE, recursive=FALSE)
-file1 <- read.table(files[1], header = TRUE)
-p <- ggplot(file1, aes(x=1:144)) +
-  xlim(0, 145)+
-  #ylim(newt_min_pheno_1, newt_max_pheno_1)+
-  geom_point(aes(x = 1, y = Newt_mean_Pheno[1]), color = darken("darkred")) +
-  geom_point(aes(x = 1, y = Newt_mean_Pheno[50]), color = lighten("darkred")) +
-  geom_point(aes(x = 1, y = Snake_mean_Pheno[1]), color = darken("steelblue")) +
-  geom_point(aes(x = 1, y = Snake_mean_Pheno[50]), color = lighten("steelblue")) +
-  ggtitle("Wrong1sim: Phenotype Change") +
-  xlab("Simulation number") + ylab("Phenotype")+
-  theme_bw()
-i=1
-for (current_file in files){
-
-  file <- read.table(current_file, header = TRUE)
- p <- p + geom_point(data= file, x = i, aes(y = Newt_mean_Pheno[1]), color = darken("darkred")) +
-   geom_point(data= file,x = i, aes(y = Newt_mean_Pheno[50]), color = lighten("darkred"))  + geom_point(data= file, x = i, aes(y = Snake_mean_Pheno[1]), color = darken("steelblue")) +
-  geom_point(data= file, x = i, aes(y = Snake_mean_Pheno[50]), color = lighten("steelblue"))
- i = i+1
-}
-
-
+title = "Wrong1sim: Phenotype Change"
+p=phenotype_change_graph(files, my_mean, my_sd, title, is_log=FALSE)
+  
 p 
 
 ```
