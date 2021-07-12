@@ -552,3 +552,30 @@ graph[2]
 
 ```
 
+# The 12 Starting Points Experiment!
+
+In the above few experiments I noticed that the newts seemed to start out with a higher phenotype potentially leading to a co-evolution advantage. Is there a change in the phenotypes due to the interaction in such a short time and would this "head-start" impact it?
+
+Also the 2 different simulations experiment was too chaotic to really see if there was any co-evolution going on so I decided to run one last set of simulations which I call the 12 starting points.
+
+In this experiment there are 12 msprime simulations where both newts and snakes have the same parameters so that they have about the same standing genetic variance. Here are the starting points:
+
+```{r 12 starting point tables, echo=FALSE}
+
+starting_points <- read.csv("~/Desktop/Coevo/data/slimtestvarables_short.csv", header = TRUE)
+knitr::kable(starting_points, digits = 20)
+
+```
+
+
+I then ran SliM simulations with the same values from the 1 simulation experiment.
+
+I think the best way to view the output will be by looking at all the results but separated by which trial it belongs to. I need to think a bit more oh how separating them will work, but I think it will have to be by name. Well I made a mistake and am currently rerunning the experiment. I guess we will have to see what happens 
+
+
+
+
+
+
+
+
