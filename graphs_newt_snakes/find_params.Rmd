@@ -1,0 +1,100 @@
+---
+title: "Finding Sigma and Mu"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+
+#setwd("~/Desktop/Proposal Old Drafts")
+```
+
+## This is a r file to explore paramater values for my coevolution simulation 
+
+I ran a few experiments in the 1000 generation simulation and discovered that there were some combinations of sigma and mu that created "extreme" phenotypes (but not outside of the mathematical expectations). This markdown will hopefully help me visualize different values of sigma and mu and their resulting phenotypes. 
+
+
+### Math
+
+$$
+\text{Population size, } N = 10^4 
+$$
+$$
+\text{Time to most recent comman ancestor, } 2N 
+$$
+$$
+\text{Number of Mutations differ between two, } \sim 4N\mu L
+$$
+$$
+\mu = \text{mutation rate / bp, My simulation } 10^-12 \text{ to } 10^-8
+$$
+$$
+L = \text{sequence length }
+$$
+$$
+\sigma = \text{effect size SD, My simulation } 0.01 \text{ to } 0.5
+$$
+$$
+Var[phenotype] \sim 4N\mu L\sigma^2
+$$
+$$
+SD[phenotype] \sim \sigma \sqrt{4N\mu L} -> \sigma \sqrt{\mu}*2*10^6
+$$
+$$
+\mu = 10^-12 \sigma = 0.01, = 0.02
+$$
+$$
+\mu = 10^-8 \sigma = 0.5, = 100
+$$
+
+
+```{r find sigma and mu, echo=FALSE}
+
+sigma = seq(0.01, 0.5, length.out=100)
+mu = seq(10^-12, 10^-8, length.out=100)
+
+mat = mapply(rep, 1:4, 4:1)
+my_grid <- as.data.frame(expand.grid(sigma, mu))
+my_grid$results = mapply(`*`,sigma*2*10^6,rep(sqrt(mu),each=length(sigma)))
+
+ggplot(my_grid, aes(x = Var1, y=Var2)) +
+  geom_point(data=my_grid[my_grid$results <=5, ], aes(x = Var1, y=Var2), col="blue")+
+  geom_point(data=my_grid[my_grid$results <=2, ], aes(x = Var1, y=Var2), col="green")+
+  ggtitle("Value Combinations That Might Work") +
+  xlab("Sigma") + ylab("Mu")+
+  theme_bw()
+
+
+```
+
+
+I think it would be cool to draw them as lines (like take the max Mu that would produce the correct phenotype for every sigma value)
+
+```{r max unique values, echo=FALSE}
+
+#2=sigma*sqrt(mu)*2*10^6
+y_mu_2 = (2/(sigma*2*10^6))^2
+y_mu_5 = (5/(sigma*2*10^6))^2
+x_sigma_2 = 2/(sqrt(mu)*2*10^6)
+x_sigma_5 = 5/(sqrt(mu)*2*10^6)
+ggplot() +
+  geom_line(aes(x = sigma, y=y_mu_5), col="blue")+
+  geom_line(aes(x = sigma, y=y_mu_2), col="green")+
+  geom_line(aes(x = x_sigma_5, y=mu), col="blue")+
+  geom_line(aes(x = x_sigma_2, y=mu), col="green")+
+  scale_y_log10()+
+  #geom_point(data=my_grid[my_grid$results <=2, ], aes(x = Var1, y=Var2), col="green")+
+  ggtitle("Value Combinations That Might Work") +
+  xlab("Sigma") + ylab("Mu (log)")+ #xlim(0, 0.6)+
+  theme_bw()
+
+
+```
+
+
+
+

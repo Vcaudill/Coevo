@@ -34,13 +34,15 @@ initialize() {
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
 	defineConstant("simID", getSeed());
-	
+	total_mut_rate = newt_mut_rate + mu_rate;
+	//defineConstant(total_mut_rate, newt_mut_rate + mu_rate);
 	
 	initializeMutationType("m1", 0.5, "n", 0, newt_mu_effect_sd);
 	initializeMutationType("m2", 0.5, "n", 0, snake_mu_effect_sd);
 	initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate, snake_mu_rate)); // mutation proportions add the proportion (the target mutation rate)
 	initializeGenomicElement(g1, 0, G-1);
-	initializeMutationRate(mu_rate); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
+	
+	initializeMutationRate(total_mut_rate); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
 	initializeRecombinationRate(recomb);
 	
 	// TODO MAKE THE INTERACTIONS CONSISTENT

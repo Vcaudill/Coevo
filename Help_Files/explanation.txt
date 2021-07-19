@@ -7,59 +7,86 @@ MSprime - variable names/values separated with _ (need to add ID)
 
 CLUSTER FILES: which. I can now access though VS code
 
-SLiM_script/ has the 1 on 1 slim script. Where I was testing mutation rate and effect size.
-newt_snake_1on1.slim - 2d next on snake, no deleterious mutations or fitness cost
-slimloop.srun - loops through variables and calls another script to run the slim script
-runslim.srun - runs the slim script with the variables passed through a different script
-pheno_test_1000.srun - calls the slim script with variables given from a file <- I made this to see what the phenotypes are after 1000 generations
-Parsing.srun - takes files from a folder and uses it to run slim
-
-pheno_test_1000/ txt files and tress files to see what the phenotypes are after 1000 generations
-This test was done with a specific MSprime simulation both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees
-Next step clean slim text data and graph
-
-pheno_test_1000_2/ txt files and tress files to see what the phenotypes are after 1000 generations
-This test was done different MSprime simulations 
-Next step clean slim text data and graph
-
-MSprome_sim/ Place where all of the MSprime simulations will go
-- notes will need to add additional folders for specific experiments and random IDs at the end of names
-- will want to cycle though these files and parse out important variables (parsing.sh) 
+Expdata/ Place to hold the data from each of my experiments 
+Will always have tree files and text files and will be renamed as I do different experiments 
+this is like a motif 
 
 MSprime_script/ Where the files to run MSprime simulation lives
+/job_out/ place where the output and the errs go from jobs (its too larger now, dump? or fix?)
 snake_newt_gv_.py - simulates past mutations for newts and snakes
 msprimeloop.srun - loops though variables and calls another script to run the simulation
 runmsprime.srun - runs the msprime simulation
 msprime1000.srun - making the srun for the 1000 gen test, the output is going to MSprome_sim_1000
 
-MSprome_sim_1000/ Place where the MSprime 1000gen simulations will go
+MSprome_sim/ Place where all of the MSprime simulations will go
+- notes will need to add additional folders for specific experiments and random IDs at the end of names
+- will want to cycle though these files and parse out important variables (parsing.sh) 
+/small_1000/ this is the msprime simulations for the 12 starting points for the 1000 gen project
+/used_for_test_or_1000_gen/ msprime simulations for testing and the first sections of the 1000 gen project
 
-Expdata/ Place to hold the data from each of my experiments 
-Will always have tree files and text files and will be renamed as I do different experiments 
-this is like a motif 
+MSprome_sim_1000/ Place where the MSprime 1000gen simulations will go 
+each one of these was used in just one slim simulation (with the same corresponding values)
+
+Old_1000_try/
+/pheno_test_1000/ txt files and tress files to see what the phenotypes are after 1000 generations
+This test was done with a specific MSprime simulation both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees
+Next step clean slim text data and graph
+/pheno_test_1000_2/ txt files and tress files to see what the phenotypes are after 1000 generations
+This test was done different MSprime simulations 
+Next step clean slim text data and graph
+
+peter_sug_1000/ this is just a slight change in the 1on1 slim script 7/19/2021
+Peter made a suggestion for how to do the mutation rate for newts and snakes and total
+I am rerunning the 12 msprime and 143 slim simulations to see how the results differ.
+
+pheno_test_1000/ t files and tress files to see what the phenotypes are after 1000 generations for the simulations with different msprimes
+BUT I couldn't tell them apart so I redid the experiment in a new folder -> pheno_test_1000_12
+
+pheno_test_1000_12/ txt files and tress files to see what the phenotypes are after 1000 generations for the simulations with different msprimes
+a little bit more than 1000 different simulations. 143 slim simulations for 12 msprime simulations
+
+pheno_test_1000_cut/ this is where the "cut" files go.
+I just wanted a place to hold all the data after I got rid of the extra text
+thinking about deleting it
+mostly a copy of the experiments that I ran
+/text_files/ files from the 12 msprime simulation that were unidentifiable 
+/text_files_12/ files from the 12 msprime simulation that were identifiable 
+
+
+SLiM_script/ has the 1 on 1 slim script. Where I was testing mutation rate and effect size.
+/job_out/ place where the output and the errs go from jobs (its too larger now, dump? or fix?)
+data_cut - makes new folders and sut out the extra info from slim scrips
+newt_snake_1on1.slim - 2d next on snake, no deleterious mutations or fitness cost
+parsing_1000_small.srun - for and a while loop that goes through a file and runs the parameters from a csv while using the all the msprime simulations from a folder (must include the folder when running)
+parsing.srun - pulling out values from names of a folder
+pheno_test_1000.srun - calls the slim script with variables given from a file <- I made this to see what the phenotypes are after 1000 generations
+runslim.srun - runs the slim script with the variables passed through a different script (one of the most used files)
+slim_test_script.srun - file to run just one test file to check if slim & other stuff is working
+slimloop.srun - loops through variables and calls another script to run the slim script
+slimtestvarables_short.csv - place for the variables that I wish to test condensed version
+slimtestvarables.csv - place for the variables that I wish to test all possible combinations
+
+
+
 
 GIT/MY FILES:
-
-srun_scripts/ files for the cluster
-msprimeloop.srun - loops though variables and calls another script to run the simulation
-pheno_test_1000.srun  - calls the slim script with variables given from a file 
-slimfill.sh - practice pulling variables from a csv file
-parsing.sh - practice pulling variables from a file name
-slimloop.srun - loops through variables and calls another script to run the slim script
-runslim.srun - runs the slim script with the variables passed through a different script
-runsllim.txt - practice for running slim with variables passed from another script
-testloop.sh - - practice for looping variables to pass to another script
-runmsprime.srun - runs the msprime simulation
 
 data/ <- will never be pushed to git
 slimtestvarables.csv  - contains the variables for the 1000 gens experiment 
 csv_files/ large_eff/ sigma/ size/ 2d_size/ Contains the data from the matching phenotypes 3rd rotation experiment 
 
-newt_snake/
-nospace.slim - slim coevolution simulation without space
-newt_snake_1on1.slim - newt on snake coevolution in 2d 
-newt_vs_snake.slim - trial that I dont really use any more
-data/ <- tree files produced from slim while in testing mode (will not be on git)
+figures/ that I used in my rotation talks to explain how similar the two populations were
+
+graphs_newt_snakes/ r markdown files to show the results from the newt snake experiment
+Expected_results_fig.Rmd - proposal expected results (might have some good graph info) 
+fig_1000.Rmd - this is the r markdown for the 1000 generation experiment. As of 7/7/2021 there are 3 experiments (mistake experiment, experiment 1 and two simulation experiment)
+    there are some question I have about the slim and msprim script, like why do the newts start out higher? I will look into the msprime and sslim script to see what might be going on
+	As of 7/14/2021 There has been a forth experiment added. This experiment is called the 12 starting points and is explained in detal on the r markdown file
+find_params.Rmd - After the 1000 generation experiment Peter and I did some path to see if the phenotypes I got were expected
+	Spoiler: They were! Now (7/19/2021) I am looking at what parameters will result in phenotypes around 2 or 5  
+
+Help_Files/ Files like this one for the different directories and scripts and experiments that I do!
+explanation.txt - this file (1000 generation focused my split into 3 files for cluster/git/experiments)
 
 msprime/ the genetic variation simulations
 snake_newt_gv_.py <- making the standing genetic variation for the slim script for both the newt and the snake
@@ -68,6 +95,12 @@ snake_gen_diversity.py <- making the standing genetic variation for the snake
 merge_snake_newt.py <- combining the stand alones into one file (many problems currently 6/18/21)
 
 msprime_explore/ figuring out how to make msprime work
+	 
+newt_snake/ <- my slim scripts about coevoultion
+nospace.slim - slim coevolution simulation without space
+newt_snake_1on1.slim - newt on snake coevolution in 2d 
+newt_vs_snake.slim - trial that I dont really use any more
+data/ <- tree files produced from slim while in testing mode (will not be on git)
 
 python_script/ many of these scripts are for tests and animating the bias mig ancestry  
 python_test.py - testing the exponential and normal distributions 
@@ -82,6 +115,8 @@ animat_scatter.py - test for animation dots move and change sizes
 treesee.py - first attempt at animating and would get infinite loops (do not run)
 curious.py - made a short video of 100 generations with all of the individuals in the simulation lines traced the location of individuals from 1 individual PC 
 
+R_script/ these are to make the figures for the rotation talk they do have the name split information that i will use for my newts and snakes
+
 slim_script/ scriptss from summer 2020 when i was first learning about coevoultion
 phe_sel_virus_n_host_2d.slim - tracking number of mutations in 2d (x mutation 1 and y mutation2) seems like a gene for gene model
 trackall_test.slim - how to remember all individuals in a slim script bias mig
@@ -89,14 +124,21 @@ phe_sel_virus_n_host.slim - tracking number of mutations for a gene for gene mod
 large_effect.slim - virus and host tracking each other if there were large mutation effects
 large_small_2d.slim - how would the tracking be implicated if the effects were different for 2 mutations?
 
-figures/ that I used in my rotation talks to explain how similar the two populations were
+srun_scripts/ files for the cluster
+msprimeloop1000.srun - loops though variables from a file and calls another script to run the simulation
+msprimeloop.srun - loops though variables and calls another script to run the simulation
+pheno_test_1000.srun  - calls the slim script with variables given from a file 
+slimfill.sh - practice pulling variables from a csv file
+parsing.sh - practice pulling variables from a file name
+pheno_test_1000.srun - practice making directories and looping though values in a csv
+slimloop.srun - loops through variables and calls another script to run the slim script
+runslim.srun - runs the slim script with the variables passed through a different script
+runsllim.txt - practice for running slim with variables passed from another script
+pheno_test_1000.srun - practice for parsing simulation vales from msprime name
+testloop.sh - - practice for looping variables to pass to another script
+runmsprime.srun - runs the msprime simulation
 
-R_script/ these are to make the figures for the rotation talk they do have the name split information that i will use for my newts and snakes
 
-graphs_newt_snakes/ r markdown files to show the results from the newt snake experiment
-Expected_results_fig.Rmd - proposal expected results (might have some good graph info) 
-fig_1000.Rmd - this is the r markdown for the 1000 generation experiment. As of 7/7/2021 there are 3 experiments (mistake experiment, experiment 1 and two simulation experiment)
-    there are some question I have about the slim and msprim script, like why do the newts start out higher? I will look into the msprime and sslim script to see what might be going on
 
 
 EXPERIMENTS: 
@@ -111,9 +153,16 @@ Potential solutions:
 - Deleterious mutations 
 - Add fitness cost
 
+1000 Generation experiment aims to identify why some of the phenotypes seems to be extreme 
+- 1 msprime with switched mu and sd for 143 slim simulations
+- 1 msprime with corrected mu and sd for 143 slim simulations
+- 1 msprime for each slim simulation (each parameter values match in both simulations)
+- 12 starting points. There are 12 msprime simulations where each of these simulations will used to start 143 slim simulations (note Newts and Snakes will start off equally)
+- Peters slim suggestion (fix the total mutation rate and took at the ratio) - currently running
+
 GOALS:
 - Learn how to use snakemake
-
+- Rest after teaching 
 
 
  

@@ -38,6 +38,7 @@ In total there were 144 combinations. One simulation per combination (this exper
 
 ## Project future goal as of summer 2021
 My summer 2021 goal is to get the 1 on 1 simulation to run *correctly*. For this to happen I would like the simulation to have:
+
 -Realistic phenotypes (snake 0-3, newt 0-1.5(thoughts 2021?))
 -See if the levels of toxicity and resistance interact 
 -See groups of mutations/ certain phenotypes
