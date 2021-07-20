@@ -1155,3 +1155,601 @@ grid.arrange(graph_9[[1]], graph_9[[2]], graph_10[[1]], graph_10[[2]], graph_11[
 
 ```
 
+# The 12 Starting Points Experiment Redone with Peters SLiM code sugestions!
+
+I was worried about a few confusing parts in the SLiM code that dealt with the mutation rate of newts and snakes (discussed above). Peter suggested:
+newt_mu_rate = 1e-10;
+snake_mu_rate = 1e-11; 
+total_mu_rate = newt_mu_rate + snake_mu_rate:
+initializeMutationRate(total_mut_rate);
+initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate, snake_mu_rate));
+
+Extra note: In my code snake_mu_rate is called mu_rate
+
+```{r 12 points redone data collection, echo=FALSE}
+
+print("------------------------------------------------------------")
+print("                         TRIAL 1                            ")
+print("------------------------------------------------------------")
+
+files_1r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_1_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_1r)
+
+newt_max_pheno_1_1r = out[1]
+snake_max_pheno_1_1r = out[2]
+newt_min_pheno_1_1r  = out[3]
+snake_min_pheno_1_1r = out[4]
+true_max_1_1r = out[5]
+true_min_1_1r = out[6]
+min_difference_1_1r = out[7]
+max_difference_1_1r = out[8]
+my_mean_1r = out[9]
+my_sd_1r = out[10]
+mean_mean_dif_1r = out[11]
+sd_mean_dif_1r = out[12]
+
+
+print(paste0("Newt max pheno trial 1: ", newt_max_pheno_1_1r))
+print(paste0("Snake max phenot trial 1: ", snake_max_pheno_1_1r))
+print(paste0("Newt min pheno trial 1: ", newt_min_pheno_1_1r))
+print(paste0("Snake min Pheno trial 1: ", snake_min_pheno_1_1r))
+print(paste0("Mean of combined snake and newt trial 1: ", my_mean_1r))
+print(paste0("Sd of combined snake and newt trial 1: ", my_sd_1r))
+print(paste0("Mean of the mean difference trial 1: ", mean_mean_dif_1r))
+print(paste0("SD of the mean difference trial 1: ", sd_mean_dif_1r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 2                            ")
+print("------------------------------------------------------------")
+
+files_2r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_2_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_2r)
+
+newt_max_pheno_1_2r = out[1]
+snake_max_pheno_1_2r = out[2]
+newt_min_pheno_1_2r  = out[3]
+snake_min_pheno_1_2r = out[4]
+true_max_1_2r = out[5]
+true_min_1_2r = out[6]
+min_difference_1_2r = out[7]
+max_difference_1_2r = out[8]
+my_mean_2r = out[9]
+my_sd_2r = out[10]
+mean_mean_dif_2r = out[11]
+sd_mean_dif_2r = out[12]
+
+print(paste0("Newt max pheno trial 2: ", newt_max_pheno_1_2r))
+print(paste0("Snake max phenot trial 2: ", snake_max_pheno_1_2r))
+print(paste0("Newt min pheno trial 2: ", newt_min_pheno_1_2r))
+print(paste0("Snake min Pheno trial 2: ", snake_min_pheno_1_2r))
+print(paste0("Mean of combined snake and newt trial 2: ", my_mean_2r))
+print(paste0("Sd of combined snake and newt trial 2: ", my_sd_2r))
+print(paste0("Mean of the mean difference trial 2: ", mean_mean_dif_2r))
+print(paste0("SD of the mean difference trial 2: ", sd_mean_dif_2r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 3                            ")
+print("------------------------------------------------------------")
+
+files_3r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_3_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_3r)
+
+newt_max_pheno_1_3r = out[1]
+snake_max_pheno_1_3r = out[2]
+newt_min_pheno_1_3r  = out[3]
+snake_min_pheno_1_3r = out[4]
+true_max_1_3r = out[5]
+true_min_1_3r = out[6]
+min_difference_1_3r = out[7]
+max_difference_1_3r = out[8]
+my_mean_3r = out[9]
+my_sd_3r = out[10]
+mean_mean_dif_3r = out[11]
+sd_mean_dif_3r = out[12]
+
+print(paste0("Newt max pheno trial 3: ", newt_max_pheno_1_3r))
+print(paste0("Snake max phenot trial 3: ", snake_max_pheno_1_3r))
+print(paste0("Newt min pheno trial 3: ", newt_min_pheno_1_3r))
+print(paste0("Snake min Pheno trial 3: ", snake_min_pheno_1_3r))
+print(paste0("Mean of combined snake and newt trial 3: ", my_mean_3r))
+print(paste0("Sd of combined snake and newt trial 3: ", my_sd_3r))
+print(paste0("Mean of the mean difference trial 3: ", mean_mean_dif_3r))
+print(paste0("SD of the mean difference trial 3: ", sd_mean_dif_3r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 4                            ")
+print("------------------------------------------------------------")
+
+files_4r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_4_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_4r)
+
+newt_max_pheno_1_4r = out[1]
+snake_max_pheno_1_4r = out[2]
+newt_min_pheno_1_4r  = out[3]
+snake_min_pheno_1_4r = out[4]
+true_max_1_4r = out[5]
+true_min_1_4r = out[6]
+min_difference_1_4r = out[7]
+max_difference_1_4r = out[8]
+my_mean_4r = out[9]
+my_sd_4r = out[10]
+mean_mean_dif_4r = out[11]
+sd_mean_dif_4r = out[12]
+
+print(paste0("Newt max pheno trial 4: ", newt_max_pheno_1_4r))
+print(paste0("Snake max phenot trial 4: ", snake_max_pheno_1_4r))
+print(paste0("Newt min pheno trial 4: ", newt_min_pheno_1_4r))
+print(paste0("Snake min Pheno trial 4: ", snake_min_pheno_1_4r))
+print(paste0("Mean of combined snake and newt trial 4: ", my_mean_4r))
+print(paste0("Sd of combined snake and newt trial 4: ", my_sd_4r))
+print(paste0("Mean of the mean difference trial 4: ", mean_mean_dif_4r))
+print(paste0("SD of the mean difference trial 4: ", sd_mean_dif_4r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 5                            ")
+print("------------------------------------------------------------")
+
+files_5r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_5_", full.names=TRUE, recursive=FALSE)
+
+
+out = collect_data_points(files_5r)
+
+newt_max_pheno_1_5r = out[1]
+snake_max_pheno_1_5r = out[2]
+newt_min_pheno_1_5r  = out[3]
+snake_min_pheno_1_5r = out[4]
+true_max_1_5r = out[5]
+true_min_1_5r = out[6]
+min_difference_1_5r = out[7]
+max_difference_1_5r = out[8]
+my_mean_5r = out[9]
+my_sd_5r = out[10]
+mean_mean_dif_5r = out[11]
+sd_mean_dif_5r = out[12]
+
+print(paste0("Newt max pheno trial 5: ", newt_max_pheno_1_5r))
+print(paste0("Snake max phenot trial 5: ", snake_max_pheno_1_5r))
+print(paste0("Newt min pheno trial 5: ", newt_min_pheno_1_5r))
+print(paste0("Snake min Pheno trial 5: ", snake_min_pheno_1_5r))
+print(paste0("Mean of combined snake and newt trial 5: ", my_mean_5r))
+print(paste0("Sd of combined snake and newt trial 5: ", my_sd_5r))
+print(paste0("Mean of the mean difference trial 5: ", mean_mean_dif_5r))
+print(paste0("SD of the mean difference trial 5: ", sd_mean_dif_5r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 6                            ")
+print("------------------------------------------------------------")
+
+files_6r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_6_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_6r)
+
+newt_max_pheno_1_6r = out[1]
+snake_max_pheno_1_6r = out[2]
+newt_min_pheno_1_6r  = out[3]
+snake_min_pheno_1_6r = out[4]
+true_max_1_6r = out[5]
+true_min_1_6r = out[6]
+min_difference_1_6r = out[7]
+max_difference_1_6r = out[8]
+my_mean_6r = out[9]
+my_sd_6r = out[10]
+mean_mean_dif_6r = out[11]
+sd_mean_dif_6r = out[12]
+
+print(paste0("Newt max pheno trial 6: ", newt_max_pheno_1_6r))
+print(paste0("Snake max pheno trial 6: ", snake_max_pheno_1_6r))
+print(paste0("Newt min pheno trial 6: ", newt_min_pheno_1_6r))
+print(paste0("Snake min Pheno  trial 6: ", snake_min_pheno_1_6r))
+print(paste0("Mean of combined snake and newt trial 6: ", my_mean_6r))
+print(paste0("Sd of combined snake and newt trial 6: ", my_sd_6r))
+print(paste0("Mean of the mean difference trial 6: ", mean_mean_dif_6r))
+print(paste0("SD of the mean difference trial 6: ", sd_mean_dif_6r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 7                            ")
+print("------------------------------------------------------------")
+
+files_7r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_7_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_7r)
+
+newt_max_pheno_1_7r = out[1]
+snake_max_pheno_1_7r = out[2]
+newt_min_pheno_1_7r  = out[3]
+snake_min_pheno_1_7r = out[4]
+true_max_1_7r = out[5]
+true_min_1_7r = out[6]
+min_difference_1_7r = out[7]
+max_difference_1_7r = out[8]
+my_mean_7r = out[9]
+my_sd_7r = out[10]
+mean_mean_dif_7r = out[11]
+sd_mean_dif_7r = out[12]
+
+print(paste0("Newt max pheno trial 7: ", newt_max_pheno_1_7r))
+print(paste0("Snake max phenot trial 7: ", snake_max_pheno_1_7r))
+print(paste0("Newt min pheno trial 7: ", newt_min_pheno_1_7r))
+print(paste0("Snake min Pheno trial 7: ", snake_min_pheno_1_7r))
+print(paste0("Mean of combined snake and newt trial 7: ", my_mean_7r))
+print(paste0("Sd of combined snake and newt trial 7: ", my_sd_7r))
+print(paste0("Mean of the mean difference trial 7: ", mean_mean_dif_7r))
+print(paste0("SD of the mean difference trial 7: ", sd_mean_dif_7r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 8                            ")
+print("------------------------------------------------------------")
+
+files_8r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_8_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_8r)
+
+newt_max_pheno_1_8r = out[1]
+snake_max_pheno_1_8r = out[2]
+newt_min_pheno_1_8r  = out[3]
+snake_min_pheno_1_8r = out[4]
+true_max_1_8r = out[5]
+true_min_1_8r = out[6]
+min_difference_1_8r = out[7]
+max_difference_1_8r = out[8]
+my_mean_8r = out[9]
+my_sd_8r = out[10]
+mean_mean_dif_8r = out[11]
+sd_mean_dif_8r = out[12]
+
+print(paste0("Newt max pheno trial 8: ", newt_max_pheno_1_8r))
+print(paste0("Snake max phenot trial 8: ", snake_max_pheno_1_8r))
+print(paste0("Newt min pheno trial 8: ", newt_min_pheno_1_8r))
+print(paste0("Snake min Pheno trial 8: ", snake_min_pheno_1_8r))
+print(paste0("Mean of combined snake and newt trial 8: ", my_mean_8r))
+print(paste0("Sd of combined snake and newt trial 8: ", my_sd_8r))
+print(paste0("Mean of the mean difference trial 8: ", mean_mean_dif_8r))
+print(paste0("SD of the mean difference trial 8: ", sd_mean_dif_8r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 9                            ")
+print("------------------------------------------------------------")
+
+files_9r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_9", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_9r)
+
+newt_max_pheno_1_9r = out[1]
+snake_max_pheno_1_9r = out[2]
+newt_min_pheno_1_9r  = out[3]
+snake_min_pheno_1_9r = out[4]
+true_max_1_9r = out[5]
+true_min_1_9r = out[6]
+min_difference_1_9r = out[7]
+max_difference_1_9r = out[8]
+my_mean_9r = out[9]
+my_sd_9r = out[10]
+mean_mean_dif_9r = out[11]
+sd_mean_dif_9r = out[12]
+
+print(paste0("Newt max pheno trial 9: ", newt_max_pheno_1_9r))
+print(paste0("Snake max phenot trial 9: ", snake_max_pheno_1_9r))
+print(paste0("Newt min pheno trial 9: ", newt_min_pheno_1_9r))
+print(paste0("Snake min Pheno trial 9: ", snake_min_pheno_1_9r))
+print(paste0("Mean of combined snake and newt trial 9: ", my_mean_9r))
+print(paste0("Sd of combined snake and newt trial 9: ", my_sd_9r))
+print(paste0("Mean of the mean difference trial 9: ", mean_mean_dif_9r))
+print(paste0("SD of the mean difference trial 9: ", sd_mean_dif_9r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 10                           ")
+print("------------------------------------------------------------")
+
+files_10r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_10_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_10r)
+
+newt_max_pheno_1_10r = out[1]
+snake_max_pheno_1_10r = out[2]
+newt_min_pheno_1_10r  = out[3]
+snake_min_pheno_1_10r = out[4]
+true_max_1_10r = out[5]
+true_min_1_10r = out[6]
+min_difference_1_10r = out[7]
+max_difference_1_10r = out[8]
+my_mean_10r = out[9]
+my_sd_10r = out[10]
+mean_mean_dif_10r = out[11]
+sd_mean_dif_10r = out[12]
+
+print(paste0("Newt max pheno trial 10: ", newt_max_pheno_1_10r))
+print(paste0("Snake max phenot trial 10: ", snake_max_pheno_1_10r))
+print(paste0("Newt min pheno trial 10: ", newt_min_pheno_1_10r))
+print(paste0("Snake min Pheno trial 10: ", snake_min_pheno_1_10r))
+print(paste0("Mean of combined snake and newt trial 10: ", my_mean_10r))
+print(paste0("Sd of combined snake and newt trial 10: ", my_sd_10r))
+print(paste0("Mean of the mean difference trial 10: ", mean_mean_dif_10r))
+print(paste0("SD of the mean difference trial 10: ", sd_mean_dif_10r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 11                          ")
+print("------------------------------------------------------------")
+
+files_11r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_11_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_11r)
+
+newt_max_pheno_1_11r = out[1]
+snake_max_pheno_1_11r = out[2]
+newt_min_pheno_1_11r  = out[3]
+snake_min_pheno_1_11r = out[4]
+true_max_1_11r = out[5]
+true_min_1_11r = out[6]
+min_difference_1_11r = out[7]
+max_difference_1_11r = out[8]
+my_mean_11r = out[9]
+my_sd_11r = out[10]
+mean_mean_dif_11r = out[11]
+sd_mean_dif_11r = out[12]
+
+print(paste0("Newt max pheno trial 11: ", newt_max_pheno_1_11r))
+print(paste0("Snake max phenot trial 11: ", snake_max_pheno_1_11r))
+print(paste0("Newt min pheno trial 11: ", newt_min_pheno_1_11r))
+print(paste0("Snake min Pheno trial 11: ", snake_min_pheno_1_11r))
+print(paste0("Mean of combined snake and newt trial 11: ", my_mean_11r))
+print(paste0("Sd of combined snake and newt trial 11: ", my_sd_11r))
+print(paste0("Mean of the mean difference trial 11: ", mean_mean_dif_11r))
+print(paste0("SD of the mean difference trial 11: ", sd_mean_dif_11r))
+
+print("------------------------------------------------------------")
+print("                         TRIAL 12                           ")
+print("------------------------------------------------------------")
+
+files_12r <- list.files(path="~/Desktop/peter_sug_1000", pattern="file_small_trial_12_", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files_12r)
+
+newt_max_pheno_1_12r = out[1]
+snake_max_pheno_1_12r = out[2]
+newt_min_pheno_1_12r  = out[3]
+snake_min_pheno_1_12r = out[4]
+true_max_1_12r = out[5]
+true_min_1_12r = out[6]
+min_difference_1_12r = out[7]
+max_difference_1_12r = out[8]
+my_mean_12r = out[9]
+my_sd_12r = out[10]
+mean_mean_dif_12r = out[11]
+sd_mean_dif_12r = out[12]
+
+print(paste0("Newt max pheno trial 12: ", newt_max_pheno_1_12r))
+print(paste0("Snake max pheno trial 12: ", snake_max_pheno_1_12r))
+print(paste0("Newt min pheno trial 12: ", newt_min_pheno_1_12r))
+print(paste0("Snake min Pheno trial 12: ", snake_min_pheno_1_12r))
+print(paste0("Mean of combined snake and newt trial 12: ", my_mean_12r))
+print(paste0("Sd of combined snake and newt trial 12: ", my_sd_12r))
+print(paste0("Mean of the mean difference trial 12: ", mean_mean_dif_12r))
+print(paste0("SD of the mean difference trial 12: ", sd_mean_dif_12r))
+
+```
+
+```{r phenotype graph 12 points redone, echo=FALSE}
+
+title = "Trial 1 Phenotype Measurements for Newts and Snake"
+p_1r = phenotype_graph(files_1r, my_mean_1r, my_sd_1r, title)
+#p_1
+
+title = "Trial 2 Phenotype Measurements for Newts and Snake"
+p_2r = phenotype_graph(files_2r, my_mean_2r, my_sd_2r, title)
+#p_2 
+
+title = "Trial 3 Phenotype Measurements for Newts and Snake Trial 3"
+p_3r = phenotype_graph(files_3r, my_mean_3r, my_sd_3r, title)
+#p_3 
+
+title = "Trial 4 Phenotype Measurements for Newts and Snake"
+p_4r = phenotype_graph(files_4r, my_mean_4r, my_sd_4r, title)
+#p_4 
+
+grid.arrange(p_1r, p_2r, p_3r, p_4r, nrow = 2)
+
+title = "Trial 5 Phenotype Measurements for Newts and Snake"
+p_5r = phenotype_graph(files_5r, my_mean_5r, my_sd_5r, title)
+#p_5 
+
+title = "Trial 6 Phenotype Measurements for Newts and Snake"
+p_6r = phenotype_graph(files_6r, my_mean_6r, my_sd_6r, title)
+#p_6 
+
+title = "Trial 7 Phenotype Measurements for Newts and Snake"
+p_7r = phenotype_graph(files_7r, my_mean_7r, my_sd_7r, title)
+#p_7 
+
+title = "Trial 8 Phenotype Measurements for Newts and Snake"
+p_8r = phenotype_graph(files_8r, my_mean_8r, my_sd_8r, title)
+#p_8 
+
+grid.arrange(p_5r, p_6r, p_7r, p_8r, nrow=2)
+
+title = "Trial 9 Phenotype Measurements for Newts and Snake"
+p_9r = phenotype_graph(files_9r, my_mean_9r, my_sd_9r, title)
+#p_9 
+
+title = "Trial 10 Phenotype Measurements for Newts and Snake"
+p_10r = phenotype_graph(files_10r, my_mean_10r, my_sd_10r, title)
+#p_10 
+
+title = "Trial 11 Phenotype Measurements for Newts and Snake"
+p_11r = phenotype_graph(files_11r, my_mean_11r, my_sd_11r, title)
+#p_11 
+
+title = "Trial 12  Phenotype Measurements for Newts and Snake"
+p_12r = phenotype_graph(files_12r, my_mean_12r, my_sd_12r, title)
+#p_12 
+
+grid.arrange(p_9r, p_10r, p_11r, p_12r, nrow=2)
+
+```
+
+## Difference between snake and newt pheotypes
+
+
+```{r 12 sim pheno dif redone, echo=FALSE}
+
+
+title = "Trial 1: Difference Between Phenotypes (Snakes-Newts)"
+d_1r = differnce_graph(files_1r, mean_mean_dif_1r, sd_mean_dif_1r, min_difference_1_1r, max_difference_1_1r, title)
+
+title = "Trial 2: Difference Between Phenotypes (Snakes-Newts)"
+d_2r = differnce_graph(files_2r, mean_mean_dif_2r, sd_mean_dif_2r, min_difference_1_2r, max_difference_1_2r, title)
+
+title = "Trial 3: Difference Between Phenotypes (Snakes-Newts)"
+d_3r = differnce_graph(files_3r, mean_mean_dif_3r, sd_mean_dif_3r, min_difference_1_3r, max_difference_1_3r, title)
+
+title = "Trial 4: Difference Between Phenotypes (Snakes-Newts)"
+d_4r = differnce_graph(files_4r, mean_mean_dif_4r, sd_mean_dif_4r, min_difference_1_4r, max_difference_1_4r, title)
+
+grid.arrange(d_1r, d_2r, d_3r, d_4r, nrow = 2)
+
+title = "Trial 5: Difference Between Phenotypes (Snakes-Newts)"
+d_5r = differnce_graph(files_5r, mean_mean_dif_5r, sd_mean_dif_5r, min_difference_1_5r, max_difference_1_5r, title)
+
+title = "Trial 6: Difference Between Phenotypes (Snakes-Newts)"
+d_6r = differnce_graph(files_6r, mean_mean_dif_6r, sd_mean_dif_6r, min_difference_1_6r, max_difference_1_6r, title)
+
+title = "Trial 7: Difference Between Phenotypes (Snakes-Newts)"
+d_7r = differnce_graph(files_7r, mean_mean_dif_7r, sd_mean_dif_7r, min_difference_1_7r, max_difference_1_7r, title)
+
+title = "Trial 8: Difference Between Phenotypes (Snakes-Newts)"
+d_8r = differnce_graph(files_8r, mean_mean_dif_8r, sd_mean_dif_8r, min_difference_1_8r, max_difference_1_8r, title)
+
+grid.arrange(d_5r, d_6r, d_7r, d_8r, nrow = 2)
+
+title = "Trial 9: Difference Between Phenotypes (Snakes-Newts)"
+d_9r = differnce_graph(files_9r, mean_mean_dif_9r, sd_mean_dif_9r, min_difference_1_9r, max_difference_1_9r, title)
+
+title = "Trial 10: Difference Between Phenotypes (Snakes-Newts)"
+d_10r = differnce_graph(files_10r, mean_mean_dif_10r, sd_mean_dif_10r, min_difference_1_10r, max_difference_1_10rr, title)
+
+title = "Trial 11: Difference Between Phenotypes (Snakes-Newts)"
+d_11r = differnce_graph(files_11r, mean_mean_dif_11r, sd_mean_dif_11r, min_difference_1_11r, max_difference_1_11r, title)
+
+title = "Trial 12: Difference Between Phenotypes (Snakes-Newts)"
+d_12r = differnce_graph(files_12r, mean_mean_dif_12r, sd_mean_dif_12r, min_difference_1_12r, max_difference_1_12r, title)
+
+grid.arrange(d_9r, d_10r, d_11r, d_12r, nrow = 2)
+
+
+```
+
+## How much did the phenotypes of newts and snakes change over 1000 generations
+
+
+```{r 12 sim pheno change redone, echo=FALSE}
+
+title = "Trial 1 12sim: Phenotype Change"
+c_1r=phenotype_change_graph(files_1r, my_mean_1r, my_sd_1r, title)
+ 
+title = "Trial 2 12sim: Phenotype Change"
+c_2r=phenotype_change_graph(files_2r, my_mean_2r, my_sd_2r, title)
+
+title = "Trial 3 12sim: Phenotype Change"
+c_3r=phenotype_change_graph(files_3r, my_mean_3r, my_sd_3r, title)
+
+title = "Trial 4 12sim: Phenotype Change"
+c_4r=phenotype_change_graph(files_4r, my_mean_4r, my_sd_4r, title)
+
+grid.arrange(c_1r, c_2r, c_3r, c_4r, nrow = 2)
+
+title = "Trial 5 12sim: Phenotype Change"
+c_5r=phenotype_change_graph(files_5r, my_mean_5r, my_sd_5r, title)
+
+title = "Trial 6 12sim: Phenotype Change"
+c_6r=phenotype_change_graph(files_6r, my_mean_6r, my_sd_6r, title)
+
+title = "Trial 7 12sim: Phenotype Change"
+c_7r=phenotype_change_graph(files_7r, my_mean_7r, my_sd_7r, title)
+
+title = "Trial 8 12sim: Phenotype Change"
+c_8r=phenotype_change_graph(files_8r, my_mean_8r, my_sd_8r, title)
+
+grid.arrange(c_5r, c_6r, c_7r, c_8r, nrow = 2)
+
+title = "Trial 9 12sim: Phenotype Change"
+c_9r=phenotype_change_graph(files_9r, my_mean_9r, my_sd_9r, title)
+
+title = "Trial 10 12sim: Phenotype Change"
+c_10r=phenotype_change_graph(files_10r, my_mean_10r, my_sd_10r, title)
+
+title = "Trial 11 12sim: Phenotype Change"
+c_11r=phenotype_change_graph(files_11r, my_mean_11r, my_sd_11r, title)
+
+title = "Trial 12 12sim: Phenotype Change"
+c_12r=phenotype_change_graph(files_12r, my_mean_12r, my_sd_12r, title)
+
+grid.arrange(c_9r, c_10r, c_11r, c_12r, nrow = 2)
+
+```
+
+## Trasforming the phenotypes back
+
+```{r 12 point trasformation redone, echo=FALSE}
+
+title1 = "Trial 1: Newt trasnformed vs un-trasformed"
+title2 = "Trial 1: Snake trasnformed vs un-trasformed"
+graph_1r = untrasform(files_1r, my_mean_1r, my_sd_1r, title1, title2, is_log=FALSE)
+
+title1 = "Trial 2: Newt trasnformed vs un-trasformed"
+title2 = "Trial 2: Snake trasnformed vs un-trasformed"
+graph_2r = untrasform(files_2r, my_mean_2r, my_sd_2r, title1, title2, is_log=FALSE)
+
+title1 = "Trial 3: Newt trasnformed vs un-trasformed"
+title2 = "Trial 3: Snake trasnformed vs un-trasformed"
+graph_3r = untrasform(files_3r, my_mean_3r, my_sd_3r, title1, title2, is_log=FALSE)
+
+title1 = "Trial 4: Newt trasnformed vs un-trasformed"
+title2 = "Trial 4: Snake trasnformed vs un-trasformed"
+graph_4r = untrasform(files_4r, my_mean_4r, my_sd_4r, title1, title2, is_log=FALSE)
+
+grid.arrange(graph_1r[[1]], graph_1r[[2]], graph_2r[[1]], graph_2r[[2]], graph_3r[[1]], graph_3r[[2]], graph_4r[[1]], graph_4r[[2]], nrow = 4)
+
+title1 = "Trial 5: Newt trasnformed vs un-trasformed"
+title2 = "Trial 5: Snake trasnformed vs un-trasformed"
+graph_5r = untrasform(files_5r, my_mean_5r, my_sd_5r, title1, title2, is_log=FALSE)
+
+title1 = "Trial 6: Newt trasnformed vs un-trasformed"
+title2 = "Trial 6: Snake trasnformed vs un-trasformed"
+graph_6r = untrasform(files_6r, my_mean_6r, my_sd_6r, title1, title2, is_log=FALSE)
+
+title1 = "Trial 7: Newt trasnformed vs un-trasformed"
+title2 = "Trial 7: Snake trasnformed vs un-trasformed"
+graph_7r = untrasform(files_7r, my_mean_7r, my_sd_7r, title1, title2, is_log=FALSE)
+
+title1 = "Trial 8: Newt trasnformed vs un-trasformed"
+title2 = "Trial 8: Snake trasnformed vs un-trasformed"
+graph_8r = untrasform(files_8r, my_mean_8r, my_sd_8r, title1, title2, is_log=FALSE)
+
+grid.arrange(graph_5r[[1]], graph_5r[[2]], graph_6r[[1]], graph_6r[[2]], graph_7r[[1]], graph_7r[[2]], graph_8r[[1]], graph_8r[[2]], nrow = 4)
+
+title1 = "Trial 9: Newt trasnformed vs un-trasformed"
+title2 = "Trial 9: Snake trasnformed vs un-trasformed"
+graph_9r = untrasform(files_9r, my_mean_9r, my_sd_9r, title1, title2, is_log=FALSE)
+
+title1 = "Trial 10: Newt trasnformed vs un-trasformed"
+title2 = "Trial 10: Snake trasnformed vs un-trasformed"
+graph_10r = untrasform(files_10r, my_mean_10r, my_sd_10r, title1, title2, is_log=FALSE)
+
+title1 = "Trial 11: Newt trasnformed vs un-trasformed"
+title2 = "Trial 11: Snake trasnformed vs un-trasformed"
+graph_11r = untrasform(files_11r, my_mean_11r, my_sd_11r, title1, title2, is_log=FALSE)
+
+title1 = "Trial 12: Newt trasnformed vs un-trasformed"
+title2 = "Trial 12: Snake trasnformed vs un-trasformed"
+graph_12r = untrasform(files_12r, my_mean_12r, my_sd_12r, title1, title2, is_log=FALSE)
+
+grid.arrange(graph_9r[[1]], graph_9r[[2]], graph_10r[[1]], graph_10r[[2]], graph_11r[[1]], graph_11r[[2]], graph_12r[[1]], graph_12r[[2]], nrow = 4)
+
+
+```
+
+
+
