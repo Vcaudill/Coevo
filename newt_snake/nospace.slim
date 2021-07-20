@@ -82,12 +82,15 @@ early() {
 	//////QUESTION////////
 	// I would like some snakes to "run" into some newts then compair their phenotypes.
 	//Something feels off
-	snakeNeighbors = 	sample(p0.individuals, asInteger(0.30*p0.individualCount));
+	// on average how many newts do snakes interact with
+	snakeNeighbors = 	sample(p0.individuals, asInteger(0.80*p0.individualCount)); //a good percentage of the snakes will interact with newts
+	//snakeNeighbors = 	sample(p0.individuals, 10); // each snake will interacte with 10 newts
 	
 	for (ind_snake in snakeNeighbors){
 		// does a snake meet a newt? 
 		
-		newt_meet_snake = sample(p1.individuals, asInteger(interaction_rate*p1.individualCount));
+		//newt_meet_snake = sample(p1.individuals, asInteger(interaction_rate*p1.individualCount));
+		newt_meet_snake = sample(p1.individuals, asInteger(10)); // how many newts will be eaten by a snake (eatnewt=10)
 		
 		// then go one newt at a time and see the outcome of the interaction which is dependent on phenotypes (check to make sure newt is still alive)
 		for(ind_newt in newt_meet_snake){
@@ -131,6 +134,8 @@ early() {
 	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" + "    " +"Snake_pop_size"+"    "+ "time");
 	catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno");
 }
+
+// make some more diogosics like how many newts snakes are eating
 
 2: late() {
 	inds_n = p1.individuals;
