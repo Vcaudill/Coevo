@@ -84,9 +84,9 @@ x_sigma_5 = 5/(sqrt(mu)*2*10^6)
 ggplot() +
   geom_line(aes(x = sigma, y=y_mu_5), col="blue")+
   geom_line(aes(x = sigma, y=y_mu_2), col="green")+
-  #something might be out of order
-  #geom_line(aes(x = x_sigma_5, y=mu), col="blue")+
-  #geom_line(aes(x = x_sigma_2, y=mu), col="green")+
+  #lines are out of order, but the points line up. Looks Good!
+  #geom_point(aes(x = x_sigma_5, y=mu), col="blue")+
+  #geom_point(aes(x = x_sigma_2, y=mu), col="green")+
   scale_y_log10()+
   #geom_point(data=my_grid[my_grid$results <=2, ], aes(x = Var1, y=Var2), col="green")+
   ggtitle("Value Combinations That Might Work") +

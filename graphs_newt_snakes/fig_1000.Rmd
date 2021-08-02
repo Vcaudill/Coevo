@@ -1165,6 +1165,7 @@ initializeMutationRate(total_mut_rate);
 initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate, snake_mu_rate));
 
 Extra note: In my code snake_mu_rate is called mu_rate
+I found an error in the code which was not giving the correct mutation rate to snakes
 
 ```{r 12 points redone data collection, echo=FALSE}
 
