@@ -7,13 +7,15 @@ initialize() {
 	sigma_in = 0.5; // i want more of a decrease in fitness when there are too many neighbors!
 	
 	//Testing factors 	
-	defineConstant("mu_rate", 1e-8); //just be the snake mu
-	defineConstant("snake_mu_rate", 1); //snake mu/newt mu it will me more or less comman than nake	
-	defineConstant("newt_mu_rate", 50); //newt mu/ snake mu it will me more or less comman than nake
+	//defineConstant("mu_rate", 1e-10); //just be the snake mu
+	defineConstant("snake_mu_rate", 1e-6); //snake mu will be more or less comman than newt	
+	defineConstant("newt_mu_rate", 1e-10); //newt mu will be more or less comman than snake
 	defineConstant("snake_mu_effect_sd", 1/2);
 	defineConstant("newt_mu_effect_sd", 1/100);
 	//defineConstant("msprime_file", "MSprome_sim/both_su_1e-08_nu_1e-12_sue_0.25_nue_0.25.init.trees");
 	defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01
+	
+	total_mut_rate = newt_mu_rate + snake_mu_rate;
 	
 	
 	defineConstant("K", 500);  // carrying-capacity of snakes and newts
@@ -28,7 +30,7 @@ initialize() {
 	initializeMutationType("m2", 0.5, "n", 0, snake_mu_effect_sd);
 	initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate, snake_mu_rate)); // mutation proportions add the proportion (the target mutation rate)
 	initializeGenomicElement(g1, 0, G-1);
-	initializeMutationRate(mu_rate); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
+	initializeMutationRate(total_mut_rate); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
 	initializeRecombinationRate(recomb);
 
 }
@@ -79,12 +81,15 @@ early() {
 	
 	//Snake and Newt 1on1 interaction
 	
-	//////QUESTION////////
+	//////Interaction////////
 	// I would like some snakes to "run" into some newts then compair their phenotypes.
 	//Something feels off
-	// on average how many newts do snakes interact with
-	snakeNeighbors = 	sample(p0.individuals, asInteger(0.80*p0.individualCount)); //a good percentage of the snakes will interact with newts
-	//snakeNeighbors = 	sample(p0.individuals, 10); // each snake will interacte with 10 newts
+	// on average how many newts do snakes interact with? 
+	// how do I make the cosiquences of the interaction between newts and snakes equal?
+	// right now 10 snakes will each interact with 10 newts. 10 snakes will be tested and up to 100 newts
+	// What does this do to the results of my simulation?
+	//snakeNeighbors = 	sample(p0.individuals, asInteger(0.80*p0.individualCount)); //a good percentage of the snakes will interact with newts
+	snakeNeighbors = 	sample(p0.individuals, asInteger(10)); // 10 snakes will interacte with 10 newts
 	
 	for (ind_snake in snakeNeighbors){
 		// does a snake meet a newt? 
@@ -129,10 +134,30 @@ early() {
 // The varabales that I want to collect from slim 
 
 1 early(){
+
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	
+	
+	// caculating the phenotype, but using the exponet to only have postive phenotypes
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
+
+
 	// header info
 	//cat("gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density");
 	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" + "    " +"Snake_pop_size"+"    "+ "time");
 	catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno");
+	
+	if (sim.generation == 1) {
+		//	cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
+		//	cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
+		//catn("    " + clock());
+		catn("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s));
+	
+	
+	}
+
 }
 
 // make some more diogosics like how many newts snakes are eating
@@ -145,7 +170,8 @@ early() {
 	// caculating the phenotype, but using the exponet to only have postive phenotypes
 	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
-	
+
+
 	if ((sim.generation % 20) == 0) {
 		//	cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
 		//	cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));

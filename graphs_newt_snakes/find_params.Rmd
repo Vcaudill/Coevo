@@ -17,7 +17,6 @@ library(gridExtra)
 
 I ran a few experiments in the 1000 generation simulation and discovered that there were some combinations of sigma and mu that created "extreme" phenotypes (but not outside of the mathematical expectations). This markdown will hopefully help me visualize different values of sigma and mu and their resulting phenotypes. 
 
-
 ### Math
 
 $$
@@ -51,6 +50,9 @@ $$
 \mu = 10^-8 \sigma = 0.5, = 100
 $$
 
+# Different Combinations 
+
+Here I am using different values with the above formula to try to get the phenotypes of 5 and 2 
 
 ```{r find sigma and mu, echo=FALSE}
 
@@ -61,12 +63,13 @@ mat = mapply(rep, 1:4, 4:1)
 my_grid <- as.data.frame(expand.grid(sigma, mu))
 my_grid$results = mapply(`*`,sigma*2*10^6,rep(sqrt(mu),each=length(sigma)))
 
-ggplot(my_grid, aes(x = Var1, y=Var2)) +
-  geom_point(data=my_grid[my_grid$results <=5, ], aes(x = Var1, y=Var2), col="blue")+
-  geom_point(data=my_grid[my_grid$results <=2, ], aes(x = Var1, y=Var2), col="green")+
+ggplot(my_grid, aes(x = Var1, y=Var2, colour = results)) +
+  geom_point(data=my_grid[my_grid$results <=5, ], aes(x = Var1, y=Var2, colour="Less than 5"))+
+  geom_point(data=my_grid[my_grid$results <=2, ], aes(x = Var1, y=Var2, colour="Less than 2"))+
   ggtitle("Value Combinations That Might Work") +
-  xlab("Sigma") + ylab("Mu")+
-  theme_bw()
+  xlab("Sigma") + ylab("Mu")+  
+  theme_bw()+
+  scale_color_manual(name = "Fake Phenotypes", values = c("Less than 5" = "blue", "Less than 2" = "green"))
 
 
 ```
@@ -82,8 +85,8 @@ y_mu_5 = (5/(sigma*2*10^6))^2
 x_sigma_2 = 2/(sqrt(mu)*2*10^6)
 x_sigma_5 = 5/(sqrt(mu)*2*10^6)
 ggplot() +
-  geom_line(aes(x = sigma, y=y_mu_5), col="blue")+
-  geom_line(aes(x = sigma, y=y_mu_2), col="green")+
+  geom_line(aes(x = sigma, y=y_mu_5, colour="Less than 5"))+
+  geom_line(aes(x = sigma, y=y_mu_2, colour="Less than 2"))+
   #lines are out of order, but the points line up. Looks Good!
   #geom_point(aes(x = x_sigma_5, y=mu), col="blue")+
   #geom_point(aes(x = x_sigma_2, y=mu), col="green")+
@@ -91,7 +94,9 @@ ggplot() +
   #geom_point(data=my_grid[my_grid$results <=2, ], aes(x = Var1, y=Var2), col="green")+
   ggtitle("Value Combinations That Might Work") +
   xlab("Sigma") + ylab("Mu (log)")+ #xlim(0, 0.6)+
-  theme_bw()
+  theme_bw()+
+  scale_color_manual(name = "Fake Phenotypes", values = c("Less than 5" = "blue", "Less than 2" = "green"))
+
 
 
 ```
