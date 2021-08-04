@@ -100,7 +100,15 @@ ggplot() +
 
 
 ```
+# Values to try
 
+For the less than 5 
+sigma = 0.1, 0.2, 0.3
+mu = 6.25e-10, 1.5625e-10, 6.944444e-11
+
+For the less than 5 
+sigma = 0.1, 0.2, 0.3
+mu = 1e-10, 2.5e-11, 1.111111e-11
 
 
 
