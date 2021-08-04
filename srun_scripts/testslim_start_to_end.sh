@@ -25,4 +25,4 @@ namebase="test_su_${snake_mu_rate}_nu_${newt_mu_rate}_sue_${snake_mu_effect_sd}_
 python 'msprime/test_snake_newt_msprime.py' ${snake_mu_rate} ${newt_mu_rate} ${snake_mu_effect_sd} ${newt_mu_effect_sd} ${datadir} ${tag}
 
 # the spatial slim script that goes to 1000 generations
-slim -m -t -d "mu_rate = ${snake_mu_rate}" -d "newt_mu_rate = ${newt_mu_rate}" -d "snake_mu_effect_sd = ${snake_mu_effect_sd}" -d "newt_mu_effect_sd = ${newt_mu_effect_sd}" -d "msprime_file = '${msprime_file}'" -d "outpath = '${outpath}'" 'newt_snake/test_newt_snake_1on1.slim' > ${treename}/file_${namebase}_${tag}.txt;
+slim -m -t -d "mu_rate = ${snake_mu_rate}" -d "newt_mu_rate = ${newt_mu_rate}" -d "snake_mu_effect_sd = ${snake_mu_effect_sd}" -d "newt_mu_effect_sd = ${newt_mu_effect_sd}" -d "msprime_file = '${msprime_file}'" -d "outpath = '${treename}'" 'newt_snake/test_newt_snake_1on1.slim' > ${outpath}/file_${namebase}_${tag}.txt;
