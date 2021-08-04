@@ -6,15 +6,14 @@ import os
 import sys
 from sys import argv
 # import util
-# testing vscode&git 
-#print("hello")
+
 
 sequence_length = 100000000
 '''
 datadir = "newt_snake/data"
 snake_mu_rate = 1e-10
 newt_mu_rate = 1e-10  # does this need to be 50 times more than the snake?
-snake_mu_effect_sd = 0.01
+snake_mu_effect_sd = 0.05
 newt_mu_effect_sd = 0.01
 name_of_file = "both_newt_snake_annotated.init.trees"
 
