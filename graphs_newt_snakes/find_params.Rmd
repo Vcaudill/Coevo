@@ -1,6 +1,8 @@
 ---
 title: "Finding Sigma and Mu"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -102,13 +104,473 @@ ggplot() +
 ```
 # Values to try
 
-For the less than 5 
-sigma = 0.1, 0.2, 0.3
-mu = 6.25e-10, 1.5625e-10, 6.944444e-11
+For this experiment I ran 6 simulations with different sigma and mu values to try to get the phenotype of newts and snakes at or below a certain value (in this case 5 and 2). It do this experiment I set the values for SD[phenotype] and sigma (0.1, 0.2, 0.3) and solved for mu. I ran 1 simulation per pair (so far) just to see where the newt and snake phenotypes would end up.
 
-For the less than 5 
-sigma = 0.1, 0.2, 0.3
-mu = 1e-10, 2.5e-11, 1.111111e-11
+*For the less than 5* 
+Pairs:
+
+* sigma = 0.1, mu = 6.25e-10
+* sigma = 0.2, mu = 1.5625e-10
+* sigma = 0.3, mu = 6.944444e-11
+
+
+*For the less than 2* 
+Pairs:
+
+* sigma = 0.1, mu = 1e-10
+* sigma = 0.2, mu = 2.5e-11
+* sigma = 0.3, mu = 1.111111e-11
+
+```{r functions, echo=FALSE}
+
+collect_data_points <- function(files) {
+  newt_max_pheno_1 = 0
+  snake_max_pheno_1 = 0
+  newt_min_pheno_1 = 0
+  snake_min_pheno_1 = 0
+  true_max_1 = 0
+  true_min_1 = 0
+  min_difference_1 = 0
+  max_difference_1 = 0
+  mean = 0
+  sd = 0
+  mean_mean_dif = 0
+  sd_mean_dif = 0
+ 
+
+  for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+  
+  file$Newt_max_Pheno[file$Newt_max_Pheno == "NULL"] <- NA
+  file$Snake_max_Pheno[file$Snake_max_Pheno == "NULL"] <- NA
+  file$Newt_min_Pheno[file$Newt_min_Pheno == "NULL"] <- NA
+  file$Snake_min_Pheno[file$Snake_min_Pheno == "NULL"] <- NA
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  file$Newt_mean_Pheno <- lapply(file$Newt_mean_Pheno,as.numeric)
+  file$Snake_mean_Pheno <- lapply(file$Snake_mean_Pheno,as.numeric)
+  file$Newt_max_Pheno <- lapply(file$Newt_max_Pheno,as.numeric)
+  file$Snake_max_Pheno <- lapply(file$Snake_max_Pheno,as.numeric)
+  file$Newt_min_Pheno <- lapply(file$Newt_min_Pheno,as.numeric)
+  file$Snake_min_Pheno <- lapply(file$Snake_min_Pheno,as.numeric)
+  
+  mean = mean(c(as.numeric(file$Newt_mean_Pheno), as.numeric(file$Snake_mean_Pheno)), na.rm = TRUE)
+  sd = sd(c(as.numeric(file$Newt_mean_Pheno), as.numeric(file$Snake_mean_Pheno)), na.rm = TRUE)
+  mean_mean_dif = mean(as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno),na.rm = TRUE)
+  sd_mean_dif = sd(as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno),na.rm = TRUE)
+  
+
+    if (max(as.numeric(file$Newt_max_Pheno), na.rm = TRUE) > newt_max_pheno_1){
+    newt_max_pheno_1 = max(as.numeric(file$Newt_max_Pheno), na.rm = TRUE) }
+  
+  if (max(as.numeric(file$Snake_max_Pheno), na.rm = TRUE) > snake_max_pheno_1){
+    snake_max_pheno_1 = max(as.numeric(file$Snake_max_Pheno), na.rm = TRUE) }
+  
+  if (min(as.numeric(file$Newt_min_Pheno), na.rm = TRUE) < newt_min_pheno_1){
+    newt_min_pheno_1 = min(as.numeric(file$Newt_min_Pheno), na.rm = TRUE) }
+  
+  if (min(as.numeric(file$Snake_min_Pheno), na.rm = TRUE) < snake_min_pheno_1){
+    snake_min_pheno_1 = min(as.numeric(file$Snake_min_Pheno), na.rm = TRUE) }
+  
+  if (min(as.numeric(file$Snake_mean_Pheno), na.rm = TRUE) - max(as.numeric(file$Newt_mean_Pheno), na.rm = TRUE) < min_difference_1){
+    min_difference_1 = min(as.numeric(file$Snake_mean_Pheno), na.rm = TRUE) - max(as.numeric(file$Newt_mean_Pheno), na.rm = TRUE)
+  }
+  
+  
+  if (max(as.numeric(file$Snake_mean_Pheno), na.rm = TRUE) - min(as.numeric(file$Newt_mean_Pheno), na.rm = TRUE) > max_difference_1){
+    max_difference_1 = max(as.numeric(file$Snake_mean_Pheno), na.rm = TRUE) - min(as.numeric(file$Newt_mean_Pheno), na.rm = TRUE)
+  }
+  }
+  
+    if (newt_max_pheno_1 > snake_max_pheno_1){
+    true_max_1 = newt_max_pheno_1 }
+  if ( snake_max_pheno_1 > newt_max_pheno_1){
+    true_max_1 = snake_max_pheno_1 }
+  
+    if (newt_min_pheno_1 < snake_min_pheno_1){
+    true_min_1 = newt_min_pheno_1 }
+  if ( snake_min_pheno_1 < newt_min_pheno_1){
+    true_min_1 = snake_min_pheno_1 }
+  
+  return(c(newt_max_pheno_1, snake_max_pheno_1, newt_min_pheno_1, snake_min_pheno_1, true_max_1, true_min_1, min_difference_1, max_difference_1, mean, sd, mean_mean_dif, sd_mean_dif))
+}
+
+
+phenotype_graph_s <- function(files, the_mean, the_sd, title, subt, is_log=FALSE, boxy=FALSE){
+  
+  file1 <- read.table(files[1], header = TRUE)
+  file1$Newt_mean_Pheno[file1$Newt_mean_Pheno == "NULL"] <- NA
+  file1$Snake_mean_Pheno[file1$Snake_mean_Pheno == "NULL"] <- NA
+  file1$Newt_mean_Pheno[file1$Newt_sd_Pheno == "NULL"] <- NA
+  file1$Snake_mean_Pheno[file1$Snake_sd_Pheno == "NULL"] <- NA
+  
+  
+p <- ggplot(file1, aes(x=gen)) +
+  xlim(0, 1000)+
+  #ylim(0, true_max_1)+
+  #geom_line(aes(y = Newt_mean_Pheno, colour="Newt")) + 
+  #geom_boxplot(aes(x=gen+5, group = gen, lower=Newt_mean_Pheno-Newt_sd_Pheno, upper=Newt_mean_Pheno+Newt_sd_Pheno, middle=Newt_mean_Pheno, ymin=Newt_mean_Pheno-3*Newt_sd_Pheno, ymax=Newt_mean_Pheno+3*Newt_sd_Pheno, colour="Newt"), stat="identity", position = position_dodge(width = 0.9), alpha = .3, width=3.15)+
+  #geom_line(aes(y = Snake_mean_Pheno, colour="Snake"), linetype="twodash")+
+  #geom_boxplot(aes(x=gen-5,group = gen, lower=Snake_mean_Pheno-Snake_sd_Pheno, upper=Snake_mean_Pheno+Snake_sd_Pheno, middle=Snake_mean_Pheno, ymin=Snake_mean_Pheno-3*Snake_sd_Pheno, ymax=Snake_mean_Pheno+3*Snake_sd_Pheno, colour="Snake"), stat="identity", position = "identity", alpha = .3, width=3.15)+
+  #geom_errorbar(aes(x = gen+5, colour="Newt", ymin = Newt_mean_Pheno - 2*Newt_sd_Pheno, ymax = Newt_mean_Pheno + 2*Newt_sd_Pheno))+ # error bar to show variation
+  #geom_errorbar(aes(x = gen-5, colour="Snake", ymin = Snake_mean_Pheno - 2*Snake_sd_Pheno, ymax = Snake_mean_Pheno + 2*Snake_sd_Pheno))+ # error bar to show variation
+  ggtitle(title, subtitle = subt) +
+  xlab("Generation") + ylab("Average Phenotypes")+
+  scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw()
+
+
+if(boxy==FALSE){
+ p= p + geom_line(aes(y = Newt_mean_Pheno, colour="Newt")) + geom_line(aes(y = Snake_mean_Pheno, colour="Snake"), linetype="twodash")
+    
+  
+}
+
+
+if(boxy==TRUE){
+  p = p +  geom_boxplot(aes(x=gen-5,group = gen, lower=Snake_mean_Pheno-Snake_sd_Pheno, upper=Snake_mean_Pheno+Snake_sd_Pheno, middle=Snake_mean_Pheno, ymin=Snake_mean_Pheno-3*Snake_sd_Pheno, ymax=Snake_mean_Pheno+3*Snake_sd_Pheno, colour="Snake"), stat="identity", position = "identity", alpha = .3, width=3.15)+
+      geom_boxplot(aes(x=gen+5, group = gen, lower=Newt_mean_Pheno-Newt_sd_Pheno, upper=Newt_mean_Pheno+Newt_sd_Pheno, middle=Newt_mean_Pheno, ymin=Newt_mean_Pheno-3*Newt_sd_Pheno, ymax=Newt_mean_Pheno+3*Newt_sd_Pheno, colour="Newt"), stat="identity", position = position_dodge(width = 0.9), alpha = .3, width=3.15)
+}
+
+if(is_log==TRUE){
+  p = p + ylab("Average Phenotypes (Log)") + scale_y_log10(limits=c(the_mean-(the_sd*3), the_mean+(the_sd*10)))
+  }
+
+return(p)
+}
+
+differnce_graph <- function(files, the_mean, the_sd, min_difference_1, max_difference_1, title, is_log=FALSE){
+  
+ file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=gen)) +
+  xlim(0, 1000)+
+  geom_line(aes(y = abs(Snake_mean_Pheno - Newt_mean_Pheno)), color = "mediumseagreen") + 
+  ggtitle(title) +
+  xlab("Generation") + ylab("Average Difference")+
+  theme_bw()
+
+if(is_log==TRUE){
+  p = p + scale_y_log10(limits=c(min_difference_1, max_difference_1)) + ylab("Average Difference (Log)")
+}
+
+if(is_log==FALSE){
+  p = p + ylim(abs(the_mean)-the_sd*10, abs(the_mean)+the_sd*10)
+}
+
+for (current_file in files){
+  #print(current_file)
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  file <- file[complete.cases(file), ]
+  file$mean_dif = as.numeric(file$Snake_mean_Pheno) - as.numeric(file$Newt_mean_Pheno)
+  file$mean_dif[file$mean_dif == 0] <- 0.01
+  file$pos <- "Snake"
+  file$pos[file$mean_dif < 0] <- "Newt"
+  file$pos[file$mean_dif ==  0.01] <- "ZEqual"
+
+ p <- p + geom_line(data=file, aes(x=gen, y=abs(mean_dif), color = pos), na.rm=TRUE)
+  #Sys.sleep(2) na.rm=TRUE
+ # color = "mediumseagreen"
+
+}
+return(p)
+}
+
+
+phenotype_change_graph_s <- function(files, the_mean, the_sd, title, is_log=FALSE, xlim_value){
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=1:144)) +
+  xlim(0, xlim_value)+
+  ggtitle(title) +
+  xlab("Simulation number") + ylab("Phenotype")+
+  theme_bw()
+
+
+if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype  (Log)")
+  
+}
+
+i=1
+for (current_file in files){
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
+  file <- file[complete.cases(file), ]
+ p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])+0.1), color= darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])+0.1), color=lighten("darkred"))  + 
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])+0.1), color=darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])+0.1), color=lighten("steelblue"))+
+  geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Newt_mean_Pheno[1])+0.1, yend=as.numeric(Newt_mean_Pheno[50])+0.1, colour="Newt"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))+
+   geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Snake_mean_Pheno[1])+0.1, yend=as.numeric(Snake_mean_Pheno[50])+0.1, colour="Snake"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))
+   
+ i = i+1
+}
+p <- p +
+ scale_colour_manual(name = "Species", values = c("Newt" = "darkred", "Snake"="steelblue"))
+return(p)
+}
+  
+untrasform <- function(files, the_mean, the_sd, title1, title2, is_log=FALSE){
+
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=as.numeric(Newt_mean_Pheno))) +
+  #ylim(0, true_max_1)+
+  geom_line(aes(y = (log(as.numeric(Newt_mean_Pheno))*10)), color = "darkred") + 
+  ggtitle(title1) +
+  xlab("Trasnformed") + ylab("Untransformed")+
+  theme_bw()
+q <- ggplot(file1, aes(x=as.numeric(Snake_mean_Pheno))) +
+  #ylim(0, true_max_1)+
+  geom_line(aes(y = (log(as.numeric(Snake_mean_Pheno))*10)), color = "steelblue") + 
+  ggtitle(title2) +
+  xlab("Transformed") + ylab("Untransformed")+
+  theme_bw()
+
+
+for (current_file in files){
+  #print(current_file)
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- NA
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- NA
+  file <- file[complete.cases(file), ]
+  #print(file$Newt_mean_Pheno)
+  #print(exp(file$Newt_mean_Pheno/10))
+  #print(log(as.numeric(file$Newt_mean_Pheno))*10)
+  file <- read.table(current_file, header = TRUE)
+ p <- p + geom_line(data=file, aes(y = (log(as.numeric(Newt_mean_Pheno))*10)), color = "darkred",na.rm = TRUE) 
+
+ q <- q + geom_line(data=file, aes(y = (log(as.numeric(Snake_mean_Pheno))*10)), color="steelblue", linetype="twodash", na.rm = FALSE)
+}
+return(list(p,q))
+
+}
+
+```
+
+
+# Test 1 Under 5
+
+For this test I ran 3 simulations (msprime and slim, a "set") to see if the phenotypes would be under 5. I looked at the maximum and minimum phenotypes for newts and snakes. The first set of figures below show the mean phenotypes for the newts and snakes every 20 generations. Newts are red and snakes are blue. Surprisingly, (or not?) the snakes have a higher mean phenotype. The phenotypes of both newts and snake are increasing as the generation increases.  The second set of figures are boxplots calculated from the mean and standard deviation each generation for one simulation. Sense these are values for only one simulation the standard deviation can be large. 
+
+Extra notes:
+
+* 1000 gen slim simulations only take a few minutes at most on the cluster 
+* boxplots are calculated from mean and sd (box is 2sd and line is 3sd)
+
+```{r data from the mistake folder, echo=FALSE}
+files <- list.files(path="~/Desktop/findparams/under_5", pattern="file_*", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files)
+
+newt_max_pheno_u5 = out[1]
+snake_max_pheno_u5 = out[2]
+newt_min_pheno_u5  = out[3]
+snake_min_pheno_u5 = out[4]
+true_max_u5 = out[5]
+true_min_u5 = out[6]
+min_difference_u5 = out[7]
+max_difference_u5 = out[8]
+my_mean_u5 = out[9]
+my_sd_u5 = out[10]
+mean_mean_dif_u5 = out[11]
+sd_mean_dif_u5 = out[12]
+
+print(paste0("Newt max pheno: ", newt_max_pheno_u5))
+print(paste0("Snake max phenot: ", snake_max_pheno_u5))
+print(paste0("Newt min pheno: ", newt_min_pheno_u5))
+print(paste0("Snake min Pheno: ", snake_min_pheno_u5))
+print(paste0("Mean of combined snake and newt: ", my_mean_u5))
+print(paste0("Sd of combined snake and newt: ", my_sd_u5))
+print(paste0("Mean of the mean difference: ", mean_mean_dif_u5))
+print(paste0("SD of the mean difference: ", sd_mean_dif_u5))
+
+```
+
+```{r phenotype graph for under 5, echo=FALSE}
+myfiles <- list.files(path="~/Desktop/findparams/under_5", pattern="file_*", full.names=TRUE, recursive=FALSE)
+
+# sigma = 0.1, mu = 6.25e-10
+# sigma = 0.2, mu = 1.5625e-10
+# sigma = 0.3, mu = 6.944444e-11
+
+p_1 = phenotype_graph_s(files=myfiles[1], the_mean=my_mean_u5, the_sd=my_sd_u5, title="Under 5: Phenotype Measurements for Newts and Snakes",subt="sigma = 0.2, mu = 1.5625e-10", is_log=FALSE)
+
+p_2 = phenotype_graph_s(files=myfiles[2], the_mean=my_mean_u5, the_sd=my_sd_u5, title="Under 5: Phenotype Measurements for Newts and Snakes",subt="sigma = 0.1, mu = 6.25e-10" , is_log=FALSE)
+
+p_3 = phenotype_graph_s(files=myfiles[3], the_mean=my_mean_u5, the_sd=my_sd_u5, title="Under 5: Phenotype Measurements for Newts and Snakes", subt="sigma = 0.3, mu = 6.944444e-11" , is_log=FALSE)
+
+grid.arrange(p_1, p_2, p_3, nrow=2)
+
+p_1 = phenotype_graph_s(files=myfiles[1], the_mean=my_mean_u5, the_sd=my_sd_u5, title="Under 5: Phenotype Measurements for Newts and Snakes",subt="sigma = 0.2, mu = 1.5625e-10", is_log=FALSE, boxy = TRUE)
+
+p_2 = phenotype_graph_s(files=myfiles[2], the_mean=my_mean_u5, the_sd=my_sd_u5, title="Under 5: Phenotype Measurements for Newts and Snakes",subt="sigma = 0.1, mu = 6.25e-10" , is_log=FALSE, boxy = TRUE)
+
+p_3 = phenotype_graph_s(files=myfiles[3], the_mean=my_mean_u5, the_sd=my_sd_u5, title="Under 5: Phenotype Measurements for Newts and Snakes", subt="sigma = 0.3, mu = 6.944444e-11" , is_log=FALSE, boxy = TRUE)
+
+grid.arrange(p_1, p_2, p_3, nrow=2)
+
+
+```
+
+Some things that I noticed was that snakes had a higher phenotype than the newts in all of the simulations. Snakes also had a higher standard deviation than newts. Sense there is only one simulation per test values I am not sure what a normal simulation would look like (solution run more simulations with the same values? should they used the same msprime file?). It looks like the phenotypes are going above 5, is this normal or just a fluke? I personally like aesthetics of the sigma = 0.1, mu = 6.25e-10 boxplot, is there some sort of space thing creating the high variance?  
+
+# Looking at the difference for under 5
+
+Here I look at the difference between the snake and newt mean phenotypes (snake-newt). Pink lines indicate that the snake mean phenotype was higher than the newt mean phenotype. Blue lines indicate that the mean phenotype of newts was higher. In the three simulations that I ran for the under 5 test the snake phenotype was always higher than the newts phenotype. 
+
+```{r difference under 5, echo=FALSE}
+
+## need to work on making this figure better 
+files <- list.files(path="~/Desktop/findparams/under_5", pattern="file_*", full.names=TRUE, recursive=FALSE)
+title = "Under 5: Difference Between Phenotypes (Snakes-Newts)"
+p = differnce_graph(files, mean_mean_dif_u5, sd_mean_dif_u5, min_difference_1_u5, max_difference_1_u5, title, is_log=FALSE)
+
+p
+```
+
+The difference between the mean snake phenotype and the mean newt phenotype (pink lines) increased as the generation increased. What does it mean when the difference between the mean was increasing? was the snake mean phenotype increasing faster than the newts? Where there a few snakes that got really resistance to the newts (increasing the overall mean)? Was the increase in the newts phenotype slower than the snakes, how to tell and if so why? Ironically, it kind of matches what is seen in the wild (snake resistance > newt toxin)? Would be cool to see the spatial aspect...
+
+# Showing the pheotype change for under 5
+
+Here, I just look at the starting and ending mean phenotypes values for each of the simulations. The arrows start at the beginning phenotypes and point to the ending phenotypes. Newts are red and snakes are blue.
+
+These are the simulation numbers:
+
+1. sigma = 0.2, mu = 1.5625e-10
+2. sigma = 0.1, mu = 6.25e-10
+3. sigma = 0.3, mu = 6.944444e-11
+
+```{r pheno change under 5, echo=FALSE}
+
+files <- list.files(path="~/Desktop/findparams/under_5", pattern="file_*", full.names=TRUE, recursive=FALSE)
+title = "Under 5: Phenotype Change"
+p=phenotype_change_graph_s(files, my_mean_u5, my_sd_u5, title, is_log=FALSE, xlim_value=4)
+  
+p 
+
+```
+
+There was a positive change in the snake phenotype for all three simulations. Why is one of then so much larger than the others? The newt phenotype increased in 2 out of 3 of the simulations. Again, why?
+
+# Trasforming Phenotypes for under 5
+
+I want to see what the un-transformed phenotypes are and compare them to their transformed form. To do this I use the mean phenotype values.
+
+I calculated the phenotypes from this expression, newt pheno = exp(inds_n.sumOfMutationsOfType(m1)/10). So to un-transform and find the # of mutations I need to ln both sides of the equation ln(pheno=e^(sumOfMutations/10)). Then solve for sumOfMutations,  sumOfMutations = 10 * ln(pheno)
+
+
+```{r trasformation under 5, echo=FALSE}
+
+files <- list.files(path="~/Desktop/findparams/under_5", pattern="file_*", full.names=TRUE, recursive=FALSE)
+
+title1 = "Under 5: Newt trasnformed vs un-trasformed"
+title2 = "Under 5: Snake trasnformed vs un-trasformed"
+graph = untrasform(files, my_mean_u5, my_sd_u5, title1, title2, is_log=FALSE)
+graph[1]
+graph[2]
+
+```
+
+Both the transformed lines curve and are 5 and under. How do I know if the phenotypes will remain 5 and under?
+
+# Test 2 Under 2
+
+For this test I again ran 3 simulations (msprime and slim, a "set") to see if the phenotypes would be 2 or under. I looked at the maximum and minimum phenotypes for newts and snakes. The first set of figures below show the mean phenotypes for the newts and snakes every 20 generations. Surprisingly, (or not?) the snakes have a higher mean phenotype. The phenotypes of both newts and snake are increasing as the generation increases.  The second set of figures are boxplots calculated from the mean and standard deviation each generation for one simulation. Sense these are values for only one simulation the standard deviation can be large. 
+
+```{r data from the under 2 folder, echo=FALSE}
+files <- list.files(path="~/Desktop/findparams/under_2", pattern="file_*", full.names=TRUE, recursive=FALSE)
+
+out = collect_data_points(files)
+
+newt_max_pheno_u2 = out[1]
+snake_max_pheno_u2 = out[2]
+newt_min_pheno_u2 = out[3]
+snake_min_pheno_u2 = out[4]
+true_max_u2 = out[5]
+true_min_u2 = out[6]
+min_difference_u2 = out[7]
+max_difference_u2 = out[8]
+my_mean_u2 = out[9]
+my_sd_u2 = out[10]
+mean_mean_dif_u2 = out[11]
+sd_mean_dif_u2 = out[12]
+
+print(paste0("Newt max pheno: ", newt_max_pheno_u2))
+print(paste0("Snake max phenot: ", snake_max_pheno_u2))
+print(paste0("Newt min pheno: ", newt_min_pheno_u2))
+print(paste0("Snake min Pheno: ", snake_min_pheno_u2))
+print(paste0("Mean of combined snake and newt: ", my_mean_u2))
+print(paste0("Sd of combined snake and newt: ", my_sd_u2))
+print(paste0("Mean of the mean difference: ", mean_mean_dif_u2))
+print(paste0("SD of the mean difference: ", sd_mean_dif_u2))
+
+```
+
+```{r phenotype graph for under 2, echo=FALSE}
+myfiles <- list.files(path="~/Desktop/findparams/under_2", pattern="file_*", full.names=TRUE, recursive=FALSE)
+
+# sigma = 0.1, mu = 1e-10
+# sigma = 0.2, mu = 2.5e-11
+# sigma = 0.3, mu = 1.111111e-11
+
+p_1 = phenotype_graph_s(files=myfiles[1], the_mean=my_mean_u2, the_sd=my_sd_u2, title="Under 2: Phenotype Measurements for Newts and Snakes",subt="sigma = 0.3, mu = 1.111111e-11", is_log=FALSE)
+
+p_2 = phenotype_graph_s(files=myfiles[2], the_mean=my_mean_u2, the_sd=my_sd_u2, title="Under 2: Phenotype Measurements for Newts and Snakes",subt="sigma = 0.1, mu = 1e-10" , is_log=FALSE)
+
+p_3 = phenotype_graph_s(files=myfiles[3], the_mean=my_mean_u2, the_sd=my_sd_u2, title="Under 2: Phenotype Measurements for Newts and Snakes", subt="sigma = 0.2, mu = 2.5e-11" , is_log=FALSE)
+
+grid.arrange(p_1, p_2, p_3, nrow=2)
+
+p_1 = phenotype_graph_s(files=myfiles[1], the_mean=my_mean_u2, the_sd=my_sd_u2, title="Under 2: Phenotype Measurements for Newts and Snakes",subt="sigma = 0.3, mu = 1.111111e-11", is_log=FALSE, boxy = TRUE)
+
+p_2 = phenotype_graph_s(files=myfiles[2], the_mean=my_mean_u2, the_sd=my_sd_u2, title="Under 2: Phenotype Measurements for Newts and Snakes",subt="sigma = 0.1, mu = 1e-10" , is_log=FALSE, boxy = TRUE)
+
+p_3 = phenotype_graph_s(files=myfiles[3], the_mean=my_mean_u2, the_sd=my_sd_u2, title="Under 2: Phenotype Measurements for Newts and Snakes", subt="sigma = 0.2, mu = 2.5e-11" , is_log=FALSE, boxy = TRUE)
+
+grid.arrange(p_1, p_2, p_3, nrow=2)
+
+```
+
+
+Wow, theses simulations are very different from each other
 
 
 
+```{r difference under 2, echo=FALSE}
+
+## need to work on making this figure better 
+files <- list.files(path="~/Desktop/findparams/under_2", pattern="file_*", full.names=TRUE, recursive=FALSE)
+title = "Under 2: Difference Between Phenotypes (Snakes-Newts)"
+p = differnce_graph(files, mean_mean_dif_u2, sd_mean_dif_u2, min_difference_1_u2, max_difference_1_u2, title, is_log=FALSE)
+
+p
+```
+
+```{r pheno change for under 2, echo=FALSE}
+
+files <- list.files(path="~/Desktop/findparams/under_2", pattern="file_*", full.names=TRUE, recursive=FALSE)
+title = "Under 5: Phenotype Change"
+p=phenotype_change_graph_s(files, my_mean_u2, my_sd_u2, title, is_log=FALSE, xlim_value=4)
+  
+p 
+
+```
+
+```{r trasformation under 2, echo=FALSE}
+
+files <- list.files(path="~/Desktop/findparams/under_2", pattern="file_*", full.names=TRUE, recursive=FALSE)
+
+title1 = "Under 2: Newt trasnformed vs un-trasformed"
+title2 = "Under 2: Snake trasnformed vs un-trasformed"
+graph = untrasform(files, my_mean_u2, my_sd_u2, title1, title2, is_log=FALSE)
+graph[1]
+graph[2]
+
+```
