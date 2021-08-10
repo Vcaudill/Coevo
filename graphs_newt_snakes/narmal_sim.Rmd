@@ -1,0 +1,146 @@
+---
+title: "What is a Normal Simulation Like"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+
+#setwd("~/Desktop/Proposal Old Drafts")
+```
+
+
+# Goals
+
+I will try to discern what a typical simulation looks like. I attempt to do this by looking at many simulations under the same parameters. There are 110 simulations for a combination. I don't think 100 repeated simulations will cover all the possible outcomes, but it will be a good beginning.
+
+The first set of simulations I will look at parameters of sigma = 0.2, mu = 1.5625e-10. I will look at the means and standard deviation for each of the simulations over the 1000 generations. I am going to specifically look at the similarities and differences between each of theses simulations. I predict that they  will look similar at the beginning and vary as the amount of generations increases. 
+
+Newts and  snakes should evenly have the higher phenotype (be about 50-50).
+
+- collect the means, highs, lows, and sds for the phenotypes of newts and snakes
+
+thinking of making a data frame for each thing to look at columns -> generation, rows -> trials
+
+```{r, making data frames}
+
+making_data_frames <- function(files, spe_col) {
+i=1
+for (current_file in files){
+  #print(current_file)
+  if(i ==1){
+    file <- read.table(current_file, header = TRUE)
+  
+    file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+
+    file %>% 
+      select(spe_col, gen) %>%
+      #rownames_to_column() %>% 
+      gather(variable, value, -gen) %>% 
+      spread(gen, value) -> new_file
+      
+    new_file$variable[i] <- paste0(spe_col,"_trial_", i)
+    i = i + 1
+    next
+    }
+  file <- read.table(current_file, header = TRUE)
+  
+  file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+
+file %>% 
+  select(spe_col, gen) %>%
+  #rownames_to_column() %>% 
+  gather(variable, value, -gen) %>% 
+  spread(gen, value) -> temp_file
+
+temp_file$variable[1] <- paste0(spe_col,"_trial_", i)
+
+new_file<-rbind(new_file, temp_file)
+i = i + 1
+}
+return(new_file)
+}
+
+```
+
+
+```{r, making figures}
+phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE){
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+  
+  
+  Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_newt$type <- "Newt"
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  data_frame_snake$type <- "Snake"
+  
+ combo <- rbind(data_frame_newt, data_frame_snake)
+ 
+ small_combo <- aggregate(as.numeric(combo$value),by=list(Number=as.numeric(combo$Number),type=combo$type),data=combo,FUN=mean, na.action = TRUE)
+
+ 
+if(boxy==TRUE){
+  p <- ggplot(combo) +
+  #xlim(0, 1000)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(value), color=type) )
+  }
+if(boxy==FALSE){
+  p <- ggplot(small_combo) +
+  #xlim(0, 1000)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_point(aes(x=factor(as.numeric(Number)), y=as.numeric(x), color=type) )
+}
+
+
+return(p)
+}
+
+
+
+```
+
+```{r, data collection}
+
+files <- list.files(path="~/Desktop/findparams_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+
+file <- read.table(files[1], header = TRUE)
+
+Newt_mean <- making_data_frames(files, all_of("Newt_mean_Pheno"))
+Newt_min <- making_data_frames(files, all_of("Newt_min_Pheno"))
+Newt_max <- making_data_frames(files, all_of("Newt_max_Pheno"))
+Newt_sd <- making_data_frames(files, all_of("Newt_sd_Pheno"))
+Snake_mean <- making_data_frames(files, all_of("Snake_mean_Pheno"))
+Snake_min <- making_data_frames(files, all_of("Snake_min_Pheno"))
+Snake_max <- making_data_frames(files, all_of("Snake_max_Pheno"))
+Snake_sd <- making_data_frames(files, all_of("Snake_sd_Pheno"))
+```
+
+```{r, comparative figures for sigma = 0.2, mu = 1.5625e-10}
+sp<-phenotype_boxplot(Newt_mean, Snake_mean, title="Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10")
+sp
+
+
+sdp<-phenotype_boxplot(Newt_sd, Snake_sd, title="Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE)
+sdp
+
+
+```

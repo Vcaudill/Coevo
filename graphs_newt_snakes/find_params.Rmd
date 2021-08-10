@@ -1,8 +1,8 @@
 ---
 title: "Finding Sigma and Mu"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -257,7 +257,10 @@ if(is_log==TRUE){
 }
 
 if(is_log==FALSE){
-  p = p + ylim(abs(the_mean)-the_sd*10, abs(the_mean)+the_sd*10)
+  if((abs(the_mean)-the_sd*10 < min_difference_1) & (abs(the_mean)+the_sd*10 > max_difference_1)){
+    p = p + ylim(abs(the_mean)-the_sd*10, abs(the_mean)+the_sd*10)
+  }else{p = p + ylim(min_difference_1-the_sd*5, max_difference_1+the_sd*5)}
+  
 }
 
 for (current_file in files){
@@ -430,7 +433,7 @@ Here I look at the difference between the snake and newt mean phenotypes (snake-
 ## need to work on making this figure better 
 files <- list.files(path="~/Desktop/findparams/under_5", pattern="file_*", full.names=TRUE, recursive=FALSE)
 title = "Under 5: Difference Between Phenotypes (Snakes-Newts)"
-p = differnce_graph(files, mean_mean_dif_u5, sd_mean_dif_u5, min_difference_1_u5, max_difference_1_u5, title, is_log=FALSE)
+p = differnce_graph(files, mean_mean_dif_u5, sd_mean_dif_u5, min_difference_u5, max_difference_u5, title, is_log=FALSE)
 
 p
 ```
@@ -539,29 +542,53 @@ grid.arrange(p_1, p_2, p_3, nrow=2)
 ```
 
 
-Wow, theses simulations are very different from each other
+Wow, theses simulations are very different from each other. Is there more variation between individuals when the average phenotype is higher. What do I expect from a normal run? How might the msprime impact the results? Like if there was a few more mutations in one species than the other, how whould I be able to compare different simulations?
 
+# Looking at the difference between phenotypes for under 2
 
+Here I graph the difference between phenotypes (snake resistance - newt toxicity). I sort of expected them to be "strait lines" because the newt and snake would be coevolving with each other. In this case two are slightly increasing?, but the difference seems to be close to 0. The other line is staying flat and snake resistance is higher than newt toxicity. Is this what I expect? 
+
+Extra notes:
+
+* Found a way to make the limits on the graph nicer so they don't leave out any line (hopefully)
+* This time around the differences between the phenotypes was smaller than the paramiters used for under 5
 
 ```{r difference under 2, echo=FALSE}
 
 ## need to work on making this figure better 
 files <- list.files(path="~/Desktop/findparams/under_2", pattern="file_*", full.names=TRUE, recursive=FALSE)
 title = "Under 2: Difference Between Phenotypes (Snakes-Newts)"
-p = differnce_graph(files, mean_mean_dif_u2, sd_mean_dif_u2, min_difference_1_u2, max_difference_1_u2, title, is_log=FALSE)
+p = differnce_graph(files, mean_mean_dif_u2, sd_mean_dif_u2, min_difference_u2, max_difference_u2, title, is_log=FALSE)
 
 p
 ```
 
+# Looking at the Phenotype change for under 2
+
+I graphed the starting and end mean phenotype for both the snakes and newts. The arrow points the way that the phenotype has moved (up = an increase, down = a decrease). Here the arrows look a lot smaller than the arrows for the under 5 experiment, but that might just be because of the very few experiments that I ran.
+
+These are the simulation numbers:
+
+1. sigma = 0.3, mu = 1.111111e-11
+2. sigma = 0.1, mu = 1e-10
+3. sigma = 0.2, mu = 2.5e-11
+
+
 ```{r pheno change for under 2, echo=FALSE}
 
 files <- list.files(path="~/Desktop/findparams/under_2", pattern="file_*", full.names=TRUE, recursive=FALSE)
-title = "Under 5: Phenotype Change"
+title = "Under 2: Phenotype Change"
 p=phenotype_change_graph_s(files, my_mean_u2, my_sd_u2, title, is_log=FALSE, xlim_value=4)
   
 p 
 
 ```
+
+I wonder if the difference between the starting mean phenotype will have an effect on the direction and lenght of the arrow? This could be just the randomness of 3 single simulations.
+
+# Trasforming the under 2 phenotypes
+
+I look at the un-transformed phenotypes compared to their transformed values. I use the mean phenotype values and calculated the phenotypes from this expression, newt pheno = exp(inds_n.sumOfMutationsOfType(m1)/10). 
 
 ```{r trasformation under 2, echo=FALSE}
 
@@ -574,3 +601,14 @@ graph[1]
 graph[2]
 
 ```
+
+The transformation lines in the under 2 simulations look more linear than in the under 5 simulations. This might be do to the range in phenotypes being smaller. Based on the max/min and mean phenotypes and the transformation equation nothing seems unexpected. 
+
+# Thoghts about next steps.
+
+I think the parameters that I chose are generating the phenotypes that I expect. It would be cool to pick one set of parameters (maybe sigma = 0.2, mu = 1.5625e-10) and do two things. One I would like to run a bunch of short simulations and see what a normal range of values are. Second I would like to extend the number of generations and see if the pheotypes keep increasing forever.
+
+I also want to start collecting more information, but I am not sure what information I should be collecting.
+Right now I have these columns `r colnames(read.table(files[1], header = TRUE))` and information recored in the trees
+
+
