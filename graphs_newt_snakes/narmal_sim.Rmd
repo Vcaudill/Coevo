@@ -40,7 +40,7 @@ for (current_file in files){
     file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
       # might want to change to all_of(spe_col)
     file %>% 
-      select(spe_col, gen) %>%
+      select(all_of(spe_col), gen) %>%
       #rownames_to_column() %>% 
       gather(variable, value, -gen) %>% 
       spread(gen, value) -> new_file
@@ -54,7 +54,7 @@ for (current_file in files){
   file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
 
 file %>% 
-  select(spe_col, gen) %>%
+  select(all_of(spe_col), gen) %>%
   #rownames_to_column() %>% 
   gather(variable, value, -gen) %>% 
   spread(gen, value) -> temp_file
@@ -71,12 +71,20 @@ return(new_file)
 
 
 ```{r, making figures}
-phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE){
+phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0){
   data_frame_newt_temp <- Newt_file
   data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
   
   data_frame_snake_temp <- Snake_file
   data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+  
+   if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+ }
   
   
   Number <- colnames(data_frame_newt_temp)
@@ -89,6 +97,8 @@ phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE){
  
  small_combo <- aggregate(as.numeric(combo$value),by=list(Number=as.numeric(combo$Number),type=combo$type),data=combo,FUN=mean, na.action = TRUE)
 
+ 
+ 
  
 if(boxy==TRUE){
   p <- ggplot(combo) +
@@ -120,15 +130,15 @@ starting_end_comparison <- function(Newt_file, Snake_file, title, subt, f_point,
   test_newt_mean<-dplyr::select(Newt_file, c(f_point,l_point))
   test_newt_mean %>% 
   rename(
-    "newt_start" = f_point,
-    "newt_end" = l_point
+    "newt_start" = all_of(f_point),
+    "newt_end" = all_of(l_point)
     ) -> test_newt_mean
   
   test_snake_mean<-dplyr::select(Snake_file, c(f_point, l_point))
   test_snake_mean %>% 
   rename(
-    "snake_start" = f_point,
-    "snake_end" = l_point
+    "snake_start" = all_of(f_point),
+    "snake_end" = all_of(l_point)
     ) -> test_snake_mean
   all_points <- cbind(test_newt_mean, test_snake_mean)
   newt_adv_beg<- as.numeric(all_points$newt_start)- as.numeric(all_points$snake_start) >0
@@ -143,7 +153,7 @@ starting_end_comparison <- function(Newt_file, Snake_file, title, subt, f_point,
   ggplot(all_points.count, aes(factor(key), (Freq/ nrow(test_newt_mean)), fill = value)) + geom_bar(stat="identity", position = "dodge") +
     ggtitle(title, subtitle = subt) +
     scale_fill_manual(name = "Species", values = c('TRUE' = "darkred", 'FALSE' = "steelblue"), labels=c("Snakes", "Newts"))+
-    xlab("Counts") + ylab("Frequency")+ scale_x_discrete(labels=c("Begining", "Ending"))+
+    xlab("Counts") + ylab("Frequency")+ scale_x_discrete(labels=c("Beginning ", "Ending"))+
     theme_bw()
 
   
@@ -231,21 +241,11 @@ Snake_max <- making_data_frames(files, all_of("Snake_max_Pheno"))
 Snake_sd <- making_data_frames(files, all_of("Snake_sd_Pheno"))
 ```
 
-```{r, comparative figures for sigma = 0.2, mu = 1.5625e-10}
-sp<-phenotype_boxplot(Newt_mean, Snake_mean, title="Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE)
-sp
+# Comparisons
 
+To start I am going to compare newts and snakes starting and ending phenotypes. Put more specifically, I will look at each simulation and record which species had a higher phenotype at the beginning and end of each of the simulations. The hope is that both newts and snakes have an equal (random) opportunity to have a higher phenotype. The ending could be skewed if coevoultion took place (but it is unknown, and I predict that it will be close 1000gen isn't a long time). I will look at the difference in the mean phenotype and the difference in standard deviations.  
 
-sdp<-phenotype_boxplot(Newt_sd, Snake_sd, title="Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE)
-sdp
-
-sp2<-phenotype_boxplot(Newt_mean, Snake_mean, title="Averaging the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=FALSE)
-sp2
-
-
-sdp2<-phenotype_boxplot(Newt_sd, Snake_sd, title="Averaging the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=FALSE)
-sdp2
-
+```{r, begining and end comparison }
 
 sec<-starting_end_comparison(Newt_mean, Snake_mean, title="Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, Mean)", subt="sigma = 0.2, mu = 1.5625e-10", f_point="1", l_point="1000")
 sec
@@ -253,6 +253,41 @@ sec
 sdsec<-starting_end_comparison(Newt_sd, Snake_sd, title="Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, SD)", subt="sigma = 0.2, mu = 1.5625e-10", f_point="1", l_point="1000")
 sdsec
 
+```
+
+It looks like newts had a higher mean and sd in the beginning of the simulation more than half of the trials that I ran. Probably not statistically significant (thought is to run more simulations to see or look at the other combos that I ran and see if it still happens there). The ending phenotypes are strange. I do not really know if there is something happening or if the advantage from the beginning of the run is leading to a newt advantage. I want to look at the other parameters to see if this is a reoccurring trend. 
+
+Next, I want to look at the distribution of mean phenotype values for every 100th generation. This will look into how the mean phenotype changes over time. I can look at the distributions of the mean and the standard devation of the phenotype. 
+
+```{r, comparative figures for sigma = 0.2, mu = 1.5625e-10 change in phenotype}
+sp<-phenotype_boxplot(Newt_mean, Snake_mean, title="Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10)
+sp
+
+
+sdp<-phenotype_boxplot(Newt_sd, Snake_sd, title="Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10)
+sdp
+
+
+```
+
+It seems like the mean phenotype of the newts and snakes are not exploding when using this set of parameters. It does look like there is more variation in the average phenotypes and sd as the number of generations increased. Nothing out of the ordinary.
+
+Here, I will look at the barest of trends. Specifically, I will look at the trend of the mean of means and the mean of the standard deviation. This will show the average trend that my simulations are taking. 
+
+
+```{r, general trends}
+sp2<-phenotype_boxplot(Newt_mean, Snake_mean, title="Averaging the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=FALSE)
+sp2
+
+
+sdp2<-phenotype_boxplot(Newt_sd, Snake_sd, title="Averaging the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=FALSE)
+sdp2
+
+```
+
+The phenotypes of newts and snakes are multiplicative, so the sd might go up faster? Is this why the standard devation has the weird curve?
+
+```{r, other figs}
 n<-phenotype_trends(Newt_mean, title="Newt Average Phenotype Trends By Generations", subt="sigma = 0.2, mu = 1.5625e-10", my_color="darkred", is_log=FALSE)
 n
   
