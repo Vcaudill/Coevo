@@ -10,6 +10,7 @@ library(viridis)
 library(colorspace)
 library(gridExtra)
 library(tidyverse)
+require(reshape2)
 
 #setwd("~/Desktop/Proposal Old Drafts")
 ```
@@ -21,7 +22,7 @@ I will try to discern what a typical simulation looks like. I attempt to do this
 
 The first set of simulations I will look at parameters of sigma = 0.2, mu = 1.5625e-10. I will look at the means and standard deviation for each of the simulations over the 1000 generations. I am going to specifically look at the similarities and differences between each of theses simulations. I predict that they  will look similar at the beginning and vary as the amount of generations increases. 
 
-Newts and  snakes should evenly have the higher phenotype (be about 50-50).
+Newts and  snakes should evenly have the larger phenotype (be about 50-50).
 
 - collect the means, highs, lows, and sds for the phenotypes of newts and snakes
 
@@ -37,7 +38,7 @@ for (current_file in files){
     file <- read.table(current_file, header = TRUE)
   
     file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
-
+      # might want to change to all_of(spe_col)
     file %>% 
       select(spe_col, gen) %>%
       #rownames_to_column() %>% 
@@ -114,6 +115,102 @@ if(boxy==FALSE){
 return(p)
 }
 
+starting_end_comparison <- function(Newt_file, Snake_file, title, subt, f_point, l_point){
+
+  test_newt_mean<-dplyr::select(Newt_file, c(f_point,l_point))
+  test_newt_mean %>% 
+  rename(
+    "newt_start" = f_point,
+    "newt_end" = l_point
+    ) -> test_newt_mean
+  
+  test_snake_mean<-dplyr::select(Snake_file, c(f_point, l_point))
+  test_snake_mean %>% 
+  rename(
+    "snake_start" = f_point,
+    "snake_end" = l_point
+    ) -> test_snake_mean
+  all_points <- cbind(test_newt_mean, test_snake_mean)
+  newt_adv_beg<- as.numeric(all_points$newt_start)- as.numeric(all_points$snake_start) >0
+  newt_adv_end<- as.numeric(all_points$newt_end)- as.numeric(all_points$snake_end) >0
+  
+  data_frame_all_points<- data.frame(newt_adv_beg, newt_adv_end)
+  data_frame_all_points <- gather(data_frame_all_points, )
+  
+  all_points.count<-as.data.frame(table(data_frame_all_points))
+
+  
+  ggplot(all_points.count, aes(factor(key), (Freq/ nrow(test_newt_mean)), fill = value)) + geom_bar(stat="identity", position = "dodge") +
+    ggtitle(title, subtitle = subt) +
+    scale_fill_manual(name = "Species", values = c('TRUE' = "darkred", 'FALSE' = "steelblue"), labels=c("Snakes", "Newts"))+
+    xlab("Counts") + ylab("Frequency")+ scale_x_discrete(labels=c("Begining", "Ending"))+
+    theme_bw()
+
+  
+}
+
+
+phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE){
+  data_frame_temp <- as.data.frame(t(file))
+  
+  colnames(data_frame_temp) <- data_frame_temp[1,]
+  names(data_frame_temp) <- colnames(data_frame_temp)
+  steps <- colnames(file[ , !(names(file) %in% "variable")])
+data_frame_temp <- data_frame_temp[-1, ] 
+data_frame_temp$steps <- as.numeric(unlist(steps))
+  
+  graph_file <- melt(data_frame_temp,  id.vars = 'steps', variable.name = 'series')
+  
+    p <- ggplot(graph_file, aes(steps, as.numeric(value))) + geom_line(aes(colour = series))+ 
+    ggtitle(title, subtitle = subt) +
+    scale_color_manual(values = rep(my_color, nrow(file)))+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() + theme(legend.position="none")
+    
+    if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype (Log)")
+    }
+    return(p)
+}
+
+phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE){
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+  
+  
+  Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  dif <- as.numeric(data_frame_snake$value)-as.numeric(data_frame_newt$value)
+  
+  df_dif <- as.data.frame(dif)
+  df_dif$Number <- as.numeric(data_frame_newt$Number)
+  df_dif$trial <- rep(Newt_mean$variable, ncol(Newt_mean)-1)
+  if(boxy==TRUE){
+ p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(dif)), color="darkolivegreen" )
+ }
+ if(boxy==FALSE){
+   p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_line(aes(x=as.numeric(Number), y=as.numeric(dif), color=trial ))+ 
+     theme(legend.position="none")+
+     scale_color_manual(values = rep("darkolivegreen", nrow(Newt_file)))
+   
+ 
+ }
+  return(p)
+}
 
 
 ```
@@ -135,12 +232,37 @@ Snake_sd <- making_data_frames(files, all_of("Snake_sd_Pheno"))
 ```
 
 ```{r, comparative figures for sigma = 0.2, mu = 1.5625e-10}
-sp<-phenotype_boxplot(Newt_mean, Snake_mean, title="Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10")
+sp<-phenotype_boxplot(Newt_mean, Snake_mean, title="Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE)
 sp
 
 
 sdp<-phenotype_boxplot(Newt_sd, Snake_sd, title="Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE)
 sdp
 
+sp2<-phenotype_boxplot(Newt_mean, Snake_mean, title="Averaging the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=FALSE)
+sp2
 
+
+sdp2<-phenotype_boxplot(Newt_sd, Snake_sd, title="Averaging the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=FALSE)
+sdp2
+
+
+sec<-starting_end_comparison(Newt_mean, Snake_mean, title="Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, Mean)", subt="sigma = 0.2, mu = 1.5625e-10", f_point="1", l_point="1000")
+sec
+
+sdsec<-starting_end_comparison(Newt_sd, Snake_sd, title="Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, SD)", subt="sigma = 0.2, mu = 1.5625e-10", f_point="1", l_point="1000")
+sdsec
+
+n<-phenotype_trends(Newt_mean, title="Newt Average Phenotype Trends By Generations", subt="sigma = 0.2, mu = 1.5625e-10", my_color="darkred", is_log=FALSE)
+n
+  
+s<-phenotype_trends(Snake_mean, title="Snake Average Phenotype Trends By Generations", subt="sigma = 0.2, mu = 1.5625e-10", my_color="Steelblue", is_log=FALSE)
+s
+
+
+bp <- phenotype_dif_boxplot(Newt_mean, Snake_mean, title="Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=TRUE)
+bp
+
+bp2 <- phenotype_dif_boxplot(Newt_mean, Snake_mean, title="Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=FALSE)
+bp2
 ```
