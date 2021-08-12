@@ -1,0 +1,80 @@
+---
+title: "Space Display"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+
+#setwd("~/Desktop/Proposal Old Drafts")
+```
+
+# Goals
+
+I am trying to see if there are any spatial correlations between newts and snakes. Like any areas with elevated phenotypes with the newts and snakes
+
+MSprime: both_1000_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.init.trees
+text: file_redo_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.txt
+SLiM: mu_rate_1.11e-11_newt_mu_rate_1.11e-11_snake_mu_effect_sd_0.3_newt_mu_effect_sd_0.3_sigma_0.5_ID_3913371281942_late_1000_.trees
+* working on renaming the slim files to have the FN number, but right now I can connect them from the slim id in the .txt file
+
+```{r space plot, echo=FALSE}
+space_data <- read.table("~/Desktop/pulled_info_test.txt", header = TRUE)
+
+ggplot(space_data[which(space_data$gen == 1),], aes(x=loc_x, y=loc_y, color=type)) +
+    ggtitle("Start Space: Generation 1", subtitle = "file_redo_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.txt") +
+    xlab("Longitude") + ylab("Latitude")+
+    #theme(plot.title = element_text(size=5)) +
+    theme_bw() +  #theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    scale_color_manual(name = "Species", values = c('Newt' = "darkred", 'Snake' = "steelblue"), labels=c("Snakes", "Newts"))+
+    geom_point(aes(alpha=ind_phy))
+
+ggplot(space_data[which(space_data$gen == 1000),], aes(x=loc_x, y=loc_y, color=type)) +
+    ggtitle("End Space: Generation 1000", subtitle = "file_redo_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.txt") +
+    xlab("Longitude") + ylab("Latitude")+
+    #theme(plot.title = element_text(size=5)) +
+    scale_fill_manual(name = "Species", values = c('TRUE' = "darkred", 'FALSE' = "steelblue"), labels=c("Snakes", "Newts"))+
+    scale_color_manual(name = "Species", values = c('Newt' = "darkred", 'Snake' = "steelblue"), labels=c("Snakes", "Newts"))+
+    theme_bw() +  #theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_point(aes(alpha=ind_phy))
+
+```
+# Distributions 
+
+Look at the phenotype distributions of newts and snakes in the 1st and 1000th generation. The dashed lines are the mean phenotype values 
+
+```{r distribution plot, echo=FALSE}
+
+mu_1gen <- ddply(space_data[which(space_data$gen == 1),], "type", summarise, grp.mean=mean(ind_phy))
+mu_1000gen <- ddply(space_data[which(space_data$gen == 1),], "type", summarise, grp.mean=mean(ind_phy))
+
+
+ggplot(space_data[which(space_data$gen == 1),], aes(x=ind_phy, color=type, fill=type), alpha=0.3) +
+  ggtitle("Start Space: Generation 1", subtitle = "file_redo_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.txt") +
+  xlab("Phenotype") + ylab("Count")+
+  geom_histogram(position="identity", alpha=0.3)+
+  geom_vline(data=mu_1gen, aes(xintercept=grp.mean, color=type),
+             linetype="dashed")+
+  scale_color_manual(name = "Species", values = c('Newt' = "darkred", 'Snake' = "steelblue"), labels=c("Snakes", "Newts"))+ 
+  scale_fill_manual(name = "Species", values = c('Newt' = "darkred", 'Snake' = "steelblue"), labels=c("Snakes", "Newts"))+ 
+  theme_bw()
+
+
+ggplot(space_data[which(space_data$gen == 1000),], aes(x=ind_phy, color=type, fill=type), alpha=0.3) +
+  ggtitle("Start Space: Generation 1000", subtitle = "file_redo_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.txt") +
+  xlab("Phenotype") + ylab("Count")+
+  geom_histogram(position="identity", alpha=0.3)+
+  geom_vline(data=mu_1000gen, aes(xintercept=grp.mean, color=type),
+             linetype="dashed")+
+  scale_color_manual(name = "Species", values = c('Newt' = "darkred", 'Snake' = "steelblue"), labels=c("Snakes", "Newts"))+ 
+  scale_fill_manual(name = "Species", values = c('Newt' = "darkred", 'Snake' = "steelblue"), labels=c("Snakes", "Newts"))+ 
+  theme_bw()
+
+```
