@@ -1,0 +1,117 @@
+initialize() {
+	
+	initializeSLiMModelType("nonWF");
+	initializeSLiMOptions(dimensionality="xy");
+	initializeTreeSeq();
+	sigma_i = 1; // area for individulas to mate with might condider one for each species (2)
+	recomb=1e-8;
+	sigma_in = 0.5; // i want more of a decrease in fitness when there are too many neighbors!
+	
+	//Testing factors 	
+	//defineConstant("mu_rate", 1e-8); //just be the snake mu
+	defineConstant("snake_mu_rate", 1e-10); //snake mu/newt mu it will me more or less comman than nake	
+	defineConstant("newt_mu_rate", 1e-10); //newt mu/ snake mu it will me more or less comman than nake
+	defineConstant("snake_mu_effect_sd", 0.1);
+	defineConstant("newt_mu_effect_sd", 0.1);
+	total_mut_rate = newt_mu_rate + snake_mu_rate;
+
+	setSeed(3913371281942);
+	defineConstant("sigma_M", 0.33); // the meeting interactison term
+	defineConstant("K", 1);  // carrying-capacity per unit square (roughly)
+	defineConstant("SD", sigma_in);  // sigma_D, the dispersal distance
+	defineConstant("SI", sigma_in);  // sigma_I, the spatial interaction distance
+	defineConstant("surs", sigma_in);  // surs, the surviver distance
+	defineConstant("SM", SI);  // sigma_M, the mate choice distance
+	defineConstant("L", 4);    // mean lifetime at stationarity (what id the life times are different for each species?)
+	defineConstant("W", 35.0);  // width and height of the simulated area
+	defineConstant("G", 1e8);  // genome length
+	defineConstant("FECUN", 1/(L)); // mean fecundity
+	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
+	defineConstant("interaction_rate", 0.05);  // how the interation curve is defined  
+	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
+	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
+	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
+	
+	initializeMutationType("m1", 0.5, "n", 0, newt_mu_effect_sd);
+	initializeMutationType("m2", 0.5, "n", 0, snake_mu_effect_sd);
+	initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate, snake_mu_rate)); // mutation proportions add the proportion (the target mutation rate)
+	initializeGenomicElement(g1, 0, G-1);
+	
+	initializeMutationRate(total_mut_rate); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
+	initializeRecombinationRate(recomb);
+
+
+}
+
+
+
+1 {
+	//file_redo_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.txt this is the text file that contains the slim id and the FN whihc connects it to the msprime
+	
+	
+	//This is the msprime for thiss simulation 
+	sim.readFromPopulationFile("Coevo/newt_snake/data/space_test/both_1000_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.init.trees");
+
+	p1.setSpatialBounds(c(0, 0, W, W)); //newt
+	p0.setSpatialBounds(c(0, 0, W, W)); //snake
+	//	// would it be better to add them on the same plot
+	//	// random initial positions
+	for (ind in p1.individuals) {
+		ind.setSpatialPosition(p1.pointUniform());
+	}
+	for (ind in p0.individuals) {
+		ind.setSpatialPosition(p0.pointUniform());
+	}
+	
+	//Info that	I want: Generation, individul phenotype, type, loc x, loc y
+	
+	// header info
+	cat("gen" + "    " + "ind_phy" + "    " + "type" + "    " + "loc_x"+ "    " + "loc_y");
+	catn();
+	
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	
+	
+	// caculating the phenotype, but using the exponet to only have postive phenotypes
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
+	
+	if (sim.generation==1) {
+		for (ind_newt in p1.individuals){
+			catn(sim.generation + "    "  + phenotypes_n[ind_newt.index] + "    " + "Newt" + "    " + ind_newt.x + "    " + ind_newt.y);}
+		
+		for (ind_snake in p0.individuals){
+			catn(sim.generation + "    "  + phenotypes_s[ind_snake.index] + "    " + "Snake" + "    " + ind_snake.x + "    " + ind_snake.y);	}
+	
+	}}
+
+
+1000{
+	sim.readFromPopulationFile("Coevo/newt_snake/data/space_test/mu_rate_1.11e-11_newt_mu_rate_1.11e-11_snake_mu_effect_sd_0.3_newt_mu_effect_sd_0.3_sigma_0.5_ID_3913371281942_late_1000_.trees");
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	
+	
+	// caculating the phenotype, but using the exponet to only have postive phenotypes
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
+	
+	if ((sim.generation % 20) == 0) {
+		for (ind_newt in p1.individuals){
+				catn(sim.generation + "    "  + phenotypes_n[ind_newt.index] + "    " + "Newt" + "    " + ind_newt.x + "    " + ind_newt.y);	}
+
+for (ind_snake in p0.individuals){
+				catn(sim.generation + "    "  + phenotypes_s[ind_snake.index] + "    " + "Snake" + "    " + ind_snake.x + "    " + ind_snake.y);	}
+	
+	
+	}
+}
+
+
+
+1000 late() {
+
+	catn("Done!");
+	sim.simulationFinished();
+}

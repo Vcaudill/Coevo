@@ -26,7 +26,7 @@ SLiM: mu_rate_1.11e-11_newt_mu_rate_1.11e-11_snake_mu_effect_sd_0.3_newt_mu_effe
 * working on renaming the slim files to have the FN number, but right now I can connect them from the slim id in the .txt file
 
 ```{r space plot, echo=FALSE}
-space_data <- read.table("~/Desktop/pulled_info_test.txt", header = TRUE)
+space_data <- read.table("~/Desktop/Coevo/newt_snake/data/space_test/pulled_info_test.txt", header = TRUE)
 
 ggplot(space_data[which(space_data$gen == 1),], aes(x=loc_x, y=loc_y, color=type)) +
     ggtitle("Start Space: Generation 1", subtitle = "file_redo_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.txt") +
