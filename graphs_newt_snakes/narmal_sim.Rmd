@@ -4,7 +4,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(ggplot2)
 library(viridis)
 library(colorspace)
@@ -71,7 +71,7 @@ return(new_file)
 
 
 ```{r, making figures}
-phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0){
+phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE){
   data_frame_newt_temp <- Newt_file
   data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
   
@@ -121,20 +121,22 @@ if(boxy==FALSE){
     geom_point(aes(x=factor(as.numeric(Number)), y=as.numeric(x), color=type) )
 }
 
+ if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
 
 return(p)
 }
 
-starting_end_comparison <- function(Newt_file, Snake_file, title, subt, f_point, l_point){
+starting_end_comparison <- function(Newt_file, Snake_file, title, subt, f_point, l_point, leg_off=FALSE){
 
-  test_newt_mean<-dplyr::select(Newt_file, c(f_point,l_point))
+  test_newt_mean<-dplyr::select(Newt_file, c(all_of(f_point),all_of(l_point)))
   test_newt_mean %>% 
   rename(
     "newt_start" = all_of(f_point),
     "newt_end" = all_of(l_point)
     ) -> test_newt_mean
   
-  test_snake_mean<-dplyr::select(Snake_file, c(f_point, l_point))
+  test_snake_mean<-dplyr::select(Snake_file, c(all_of(f_point), all_of(l_point)))
   test_snake_mean %>% 
   rename(
     "snake_start" = all_of(f_point),
@@ -150,17 +152,18 @@ starting_end_comparison <- function(Newt_file, Snake_file, title, subt, f_point,
   all_points.count<-as.data.frame(table(data_frame_all_points))
 
   
-  ggplot(all_points.count, aes(factor(key), (Freq/ nrow(test_newt_mean)), fill = value)) + geom_bar(stat="identity", position = "dodge") +
+ p <-  ggplot(all_points.count, aes(factor(key), (Freq/ nrow(test_newt_mean)), fill = value)) + geom_bar(stat="identity", position = "dodge") +
     ggtitle(title, subtitle = subt) +
     scale_fill_manual(name = "Species", values = c('TRUE' = "darkred", 'FALSE' = "steelblue"), labels=c("Snakes", "Newts"))+
     xlab("Counts") + ylab("Frequency")+ scale_x_discrete(labels=c("Beginning ", "Ending"))+
     theme_bw()
-
-  
+ if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+  return(p)
 }
 
 
-phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE){
+phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE, leg_off=FALSE){
   data_frame_temp <- as.data.frame(t(file))
   
   colnames(data_frame_temp) <- data_frame_temp[1,]
@@ -180,16 +183,25 @@ data_frame_temp$steps <- as.numeric(unlist(steps))
     if(is_log==TRUE){
   p = p + scale_y_log10() + ylab("Phenotype (Log)")
     }
+     if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
     return(p)
 }
 
-phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE){
+phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE){
   data_frame_newt_temp <- Newt_file
   data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
   
-  data_frame_snake_temp <- Snake_file
+  data_frame_snake_temp <- Snake_file 
   data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
-  
+
+  if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+ }
   
   Number <- colnames(data_frame_newt_temp)
   data_frame_newt <- gather(data_frame_newt_temp, Number, value)
@@ -198,7 +210,7 @@ phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE
   
   df_dif <- as.data.frame(dif)
   df_dif$Number <- as.numeric(data_frame_newt$Number)
-  df_dif$trial <- rep(Newt_mean$variable, ncol(Newt_mean)-1)
+  
   if(boxy==TRUE){
  p <- ggplot(df_dif) +
     ggtitle(title, subtitle = subt) +
@@ -208,6 +220,7 @@ phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE
     geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(dif)), color="darkolivegreen" )
  }
  if(boxy==FALSE){
+   df_dif$trial <- rep(Newt_file$variable, ncol(Newt_file)-1)
    p <- ggplot(df_dif) +
     ggtitle(title, subtitle = subt) +
     xlab("Generation") + ylab("Average Phenotype Differences")+
@@ -215,10 +228,10 @@ phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE
     theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
     geom_line(aes(x=as.numeric(Number), y=as.numeric(dif), color=trial ))+ 
      theme(legend.position="none")+
-     scale_color_manual(values = rep("darkolivegreen", nrow(Newt_file)))
-   
- 
+     scale_color_manual(values = rep("darkolivegreen", nrow(data_frame_newt_temp)))
  }
+   if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
   return(p)
 }
 
@@ -227,7 +240,7 @@ phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE
 
 ```{r, data collection}
 
-files <- list.files(path="~/Desktop/findparams_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+files <- list.files(path="~/Desktop/findparams_u5_new", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
 
 file <- read.table(files[1], header = TRUE)
 
@@ -241,63 +254,367 @@ Snake_max <- making_data_frames(files, all_of("Snake_max_Pheno"))
 Snake_sd <- making_data_frames(files, all_of("Snake_sd_Pheno"))
 ```
 
-# Comparisons
+# Phenotype and SD Comparisons in Newts and Snakes
 
-To start I am going to compare newts and snakes starting and ending phenotypes. Put more specifically, I will look at each simulation and record which species had a higher phenotype at the beginning and end of each of the simulations. The hope is that both newts and snakes have an equal (random) opportunity to have a higher phenotype. The ending could be skewed if coevoultion took place (but it is unknown, and I predict that it will be close 1000gen isn't a long time). I will look at the difference in the mean phenotype and the difference in standard deviations.  
+To start I am going to compare newts and snakes starting and ending phenotypes. Put more specifically, I will look at each simulation and record which species had a higher phenotype at the beginning and end of each of the simulations. The hope is that both newts and snakes have an equal (random) opportunity to have a higher phenotype. The ending could be skewed if coevoultion took place (but it is unknown, and I predict that the phenotypes will be close at 1000gen because it isn't a long time). I will look at the difference in the mean phenotype and the difference in standard deviations.  
 
 ```{r, begining and end comparison }
 
 sec<-starting_end_comparison(Newt_mean, Snake_mean, title="Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, Mean)", subt="sigma = 0.2, mu = 1.5625e-10", f_point="1", l_point="1000")
-sec
+
 
 sdsec<-starting_end_comparison(Newt_sd, Snake_sd, title="Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, SD)", subt="sigma = 0.2, mu = 1.5625e-10", f_point="1", l_point="1000")
-sdsec
+
+
+grid.arrange(sec, sdsec, nrow=1)
 
 ```
 
-It looks like newts had a higher mean and sd in the beginning of the simulation more than half of the trials that I ran. Probably not statistically significant (thought is to run more simulations to see or look at the other combos that I ran and see if it still happens there). The ending phenotypes are strange. I do not really know if there is something happening or if the advantage from the beginning of the run is leading to a newt advantage. I want to look at the other parameters to see if this is a reoccurring trend. 
+It looks like newts had a higher mean and sd in the beginning of the simulation more than half of the trials that I ran. Probably not statistically significant (thought is to run more simulations to see or look at the other combos that I ran and see if it still happens there). The ending phenotypes are strange. I do not really know if there is something happening or if the advantage from the beginning of the run is leading to a newt advantage. I want to look at the other parameters to see if this is a reoccurring trend. The species with a higher SD remained close to 50%, in fact it seems to have gotten closer to each other ass the simulations ran on.
 
-Next, I want to look at the distribution of mean phenotype values for every 100th generation. This will look into how the mean phenotype changes over time. I can look at the distributions of the mean and the standard devation of the phenotype. 
+# Varation in the Phenotype of Newts and Snakes
 
-```{r, comparative figures for sigma = 0.2, mu = 1.5625e-10 change in phenotype}
+Next, I want to look at the distribution of mean phenotype values for every 100th generation. This will look into how the mean phenotype changes over time. I can look at the distributions of the mean and the standard deviation of the phenotype. I predict that the means will increase. The slop of the increase should be do to the interaction between species (maybe a larger increase could be obtained by stronger selection?). In my simulations there is interspecific an intraspecific interactions. I wonder which one (or both?) is having more of an effect on the populations phenotype.
+
+```{r, comparative figures this params}
 sp<-phenotype_boxplot(Newt_mean, Snake_mean, title="Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10)
-sp
-
 
 sdp<-phenotype_boxplot(Newt_sd, Snake_sd, title="Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10)
-sdp
 
-
+grid.arrange(sp, sdp, nrow=1)
 ```
 
-It seems like the mean phenotype of the newts and snakes are not exploding when using this set of parameters. It does look like there is more variation in the average phenotypes and sd as the number of generations increased. Nothing out of the ordinary.
+It seems like the mean phenotype of the newts and snakes are not exploding when using this set of parameters. They are however going up very slowly. It does look like there is more variation in the average phenotypes and sd as the number of generations increased. Nothing out of the ordinary. Why do some of the phenotpes in the simulations not increase while others do? What makes them different?
+
+# Phenotype Trends of Newts and Snakes
 
 Here, I will look at the barest of trends. Specifically, I will look at the trend of the mean of means and the mean of the standard deviation. This will show the average trend that my simulations are taking. 
 
 
 ```{r, general trends}
 sp2<-phenotype_boxplot(Newt_mean, Snake_mean, title="Averaging the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=FALSE)
-sp2
-
 
 sdp2<-phenotype_boxplot(Newt_sd, Snake_sd, title="Averaging the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=FALSE)
-sdp2
+
+grid.arrange(sp2, sdp2, nrow=1)
 
 ```
 
-The phenotypes of newts and snakes are multiplicative, so the sd might go up faster? Is this why the standard devation has the weird curve?
+The phenotypes of newts and snakes are multiplicative, so the sd might go up faster? Is this why the standard devation has the weird curve? There does seem to be some NAs in one of the simulations. Did the newts die out?
 
-```{r, other figs}
+# Individula Species Phenotype Trends
+
+In this section I am going to look at the general phenotype trend of newts and snakes for all of my simulations. In each of these figures there will be just one species (either a snake or a newt). This will look at how the phenotype of the newts and snakes change over time. I expect that newts and ssnake pheotype will increase over time.
+
+```{r, ind species figs}
 n<-phenotype_trends(Newt_mean, title="Newt Average Phenotype Trends By Generations", subt="sigma = 0.2, mu = 1.5625e-10", my_color="darkred", is_log=FALSE)
-n
   
 s<-phenotype_trends(Snake_mean, title="Snake Average Phenotype Trends By Generations", subt="sigma = 0.2, mu = 1.5625e-10", my_color="Steelblue", is_log=FALSE)
-s
 
-
-bp <- phenotype_dif_boxplot(Newt_mean, Snake_mean, title="Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=TRUE)
-bp
-
-bp2 <- phenotype_dif_boxplot(Newt_mean, Snake_mean, title="Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=FALSE)
-bp2
+grid.arrange(n, s, nrow=1)
 ```
+
+It seems like some of the phenotypes of newts and snakes increases over time, but some seem to not change at all. A few of the simulations seem to have a high starting phenotype value, why is this? I was expecting to see a smaller start value (around 5 for this set of parameters). However, most of the simulation begin under 5. I wonder what will happen if I were to set up a fitness cost for having a paarticular phenotype?
+
+# Differences
+
+This section focuses on the difference between the newt and the snake phenotype. I predict that the phenotype of the species remain close to each other. There is a chance that one species will "escape" and that the difference would be large. I expect (from our calculations) that the begining of the simulation the phenotypes of newts and snakes will be close (in all of them, so a stubby boxplot). As the generations increase I think that boxplot will grow, maybe due to coevolution maybe do to other factors?
+
+
+```{r, the differences}
+bp <- phenotype_dif_boxplot(Newt_mean, Snake_mean, title="Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=TRUE, section=TRUE, section_num=10)
+
+bp2 <- phenotype_dif_boxplot(Newt_mean, Snake_mean, title="Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=FALSE, section=FALSE, section_num=0)
+
+grid.arrange(bp, bp2, nrow=1)
+```
+
+The boxplots seem to remain in the center for all of the generations. There some points outside of the boxplots that R considers outliers (mostly they are from a particular simulation(s)). It seems like the phenotypes are closely matching with each other which is a good sign that they are coevolving (hopefully)?
+
+
+The last step in this rmarkdown is to check out the other paramiters and note if something seems out of the ordinary. I will split it by where the phenotype is supposed to start.
+
+# Under 5
+
+*For the less than 5* 
+Pairs:
+
+* sigma = 0.1, mu = 6.25e-10
+* sigma = 0.2, mu = 1.5625e-10 <- looked at above 
+* sigma = 0.3, mu = 6.944444e-11
+
+
+```{r, data collection under 5}
+
+files_0.1 <- list.files(path="~/Desktop/findparams_u5_new", pattern="nu_*6.25", full.names=TRUE, recursive=FALSE)
+
+Newt_mean_01 <- making_data_frames(files_0.1, all_of("Newt_mean_Pheno"))
+Newt_min_01 <- making_data_frames(files_0.1, all_of("Newt_min_Pheno"))
+Newt_max_01 <- making_data_frames(files_0.1, all_of("Newt_max_Pheno"))
+Newt_sd_01 <- making_data_frames(files_0.1, all_of("Newt_sd_Pheno"))
+Snake_mean_01 <- making_data_frames(files_0.1, all_of("Snake_mean_Pheno"))
+Snake_min_01 <- making_data_frames(files_0.1, all_of("Snake_min_Pheno"))
+Snake_max_01 <- making_data_frames(files_0.1, all_of("Snake_max_Pheno"))
+Snake_sd_01 <- making_data_frames(files_0.1, all_of("Snake_sd_Pheno"))
+
+files_0.3 <- list.files(path="~/Desktop/findparams_u5_new", pattern="nu_*6.9", full.names=TRUE, recursive=FALSE)
+
+Newt_mean_03 <- making_data_frames(files_0.3, all_of("Newt_mean_Pheno"))
+Newt_min_03 <- making_data_frames(files_0.3, all_of("Newt_min_Pheno"))
+Newt_max_03 <- making_data_frames(files_0.3, all_of("Newt_max_Pheno"))
+Newt_sd_03 <- making_data_frames(files_0.3, all_of("Newt_sd_Pheno"))
+Snake_mean_03 <- making_data_frames(files_0.3, all_of("Snake_mean_Pheno"))
+Snake_min_03 <- making_data_frames(files_0.3, all_of("Snake_min_Pheno"))
+Snake_max_03 <- making_data_frames(files_0.3, all_of("Snake_max_Pheno"))
+Snake_sd_03 <- making_data_frames(files_0.3, all_of("Snake_sd_Pheno"))
+
+
+```
+
+# Phenotype and SD Comparisons in Newts and Snakes
+
+```{r, begining and end comparison under 5}
+
+z<-starting_end_comparison(Newt_mean_01, Snake_mean_01, title="0.1: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, Mean)", subt="sigma = 0.1, mu = 6.25e-10", f_point="1", l_point="1000", leg_off = TRUE)
+
+y<-starting_end_comparison(Newt_sd_01, Snake_sd_01, title="0.1: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, SD)", subt="sigma = 0.1, mu = 6.25e-10", f_point="1", l_point="1000", leg_off = TRUE)
+
+x<-starting_end_comparison(Newt_mean_03, Snake_mean_03, title="0.3: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, Mean)", subt="sigma = 0.3, mu = 6.94e-11", f_point="1", l_point="1000", leg_off = TRUE)
+
+w<-starting_end_comparison(Newt_sd_03, Snake_sd_03, title="0.3: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, SD)", subt="sigma = 0.3, mu = 6.94e-11", f_point="1", l_point="1000", leg_off = TRUE)
+
+grid.arrange(z, y, nrow=1)
+grid.arrange( x, w, nrow=1)
+```
+
+
+# Varation in the Phenotype of Newts and Snakes
+
+
+```{r, comparative figures for u5}
+a<-phenotype_boxplot(Newt_mean_01, Snake_mean_01, title="01 Mean: Variation in Phenotype For N&S by Generation", subt="sigma = 0.1, mu = 6.25e-10", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+b<-phenotype_boxplot(Newt_sd_01, Snake_sd_01, title="01 SD: Variation in Phenotype For N&S by Generation", subt="sigma = 0.1, mu = 6.25e-10", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+c<-phenotype_boxplot(Newt_mean_03, Snake_mean_03, title="03 Mean: Variation in Phenotype For N&S by Generation", subt="sigma = 0.3, mu = 6.94e-11", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+d<-phenotype_boxplot(Newt_sd_03, Snake_sd_03, title="03 SD: Variation in Phenotype For N&S by Generation", subt="sigma = 0.3, mu = 6.94e-11", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+grid.arrange(a, b, nrow=1)
+grid.arrange(c, d, nrow=1)
+
+```
+
+
+# Individula Species Phenotype Trends
+
+
+```{r, ind species figs u5}
+n01<-phenotype_trends(Newt_mean_01, title="Newt Average Phenotype Trends By Generations", subt="sigma = 0.1, mu = 6.25e-10", my_color="darkred", is_log=FALSE)
+  
+s01<-phenotype_trends(Snake_mean_01, title="Snake Average Phenotype Trends By Generations", subt="sigma = 0.1, mu = 6.25e-10", my_color="Steelblue", is_log=FALSE)
+
+n03<-phenotype_trends(Newt_mean_03, title="Newt Average Phenotype Trends By Generations", subt="sigma = 0.3, mu = 6.94e-11", my_color="darkred", is_log=FALSE)
+  
+s03<-phenotype_trends(Snake_mean_03, title="Snake Average Phenotype Trends By Generations", subt="sigma = 0.3, mu = 6.94e-11", my_color="Steelblue", is_log=FALSE)
+
+grid.arrange(n01, s01,nrow=1)
+grid.arrange(n03, s03, nrow=1)
+```
+
+
+# Phenotype Trends of Newts and Snakes Under 5
+
+
+```{r, general trends under 5}
+e<-phenotype_boxplot(Newt_mean_01, Snake_mean_01, title="01 Mean: Averaging For N&S by Generation", subt="sigma = 0.1, mu = 6.25e-10", boxy=FALSE)
+
+f<-phenotype_boxplot(Newt_sd_01, Snake_sd_01, title="01 SD: Averaging For N&S by Generation", subt="sigma = 0.1, mu = 6.25e-10", boxy=FALSE)
+
+g<-phenotype_boxplot(Newt_mean_01, Snake_mean_03, title="03 Mean: Averaging For N&S by Generation", subt="sigma = 0.3, mu = 6.94e-11", boxy=FALSE)
+
+h<-phenotype_boxplot(Newt_sd_01, Snake_sd_03, title="03 SD: Averaging For N&S by Generation", subt="sigma = 0.3, mu = 6.94e-11", boxy=FALSE)
+
+
+grid.arrange(e, f, nrow=1)
+grid.arrange(g, h, nrow=1)
+
+```
+
+# Differences U5
+
+
+```{r, the differences u5}
+h <- phenotype_dif_boxplot(Newt_mean_01, Snake_mean_01, title="Differences", subt="sigma = 0.1, mu = 6.25e-10",boxy=TRUE, section=TRUE, section_num=10)
+
+i <- phenotype_dif_boxplot(Newt_mean_01, Snake_mean_01, title="Differences", subt="sigma = 0.1, mu = 6.25e-10",boxy=FALSE, section=FALSE, section_num=0)
+
+j <- phenotype_dif_boxplot(Newt_mean_03, Snake_mean_03, title="Differences", subt="sigma = 0.3, mu = 6.94e-11",boxy=TRUE, section=TRUE, section_num=10)
+
+k <- phenotype_dif_boxplot(Newt_mean_03, Snake_mean_03, title="Differences", subt="sigma = 0.3, mu = 6.94e-11",boxy=FALSE, section=FALSE, section_num=0)
+
+grid.arrange(h, i, nrow=1)
+grid.arrange(j, k, nrow=1)
+```
+
+
+# Under 2
+*For the less than 2* 
+Pairs:
+
+* sigma = 0.1, mu = 1e-10
+* sigma = 0.2, mu = 2.5e-11
+* sigma = 0.3, mu = 1.111111e-11
+
+```{r, data collection under 2}
+
+files_2_0.1 <- list.files(path="~/Desktop/findparams_u2_new", pattern="nue_*0.1", full.names=TRUE, recursive=FALSE)
+
+Newt_mean_2_01 <- making_data_frames(files_2_0.1, all_of("Newt_mean_Pheno"))
+Newt_min_2_01 <- making_data_frames(files_2_0.1, all_of("Newt_min_Pheno"))
+Newt_max_2_01 <- making_data_frames(files_2_0.1, all_of("Newt_max_Pheno"))
+Newt_sd_2_01 <- making_data_frames(files_2_0.1, all_of("Newt_sd_Pheno"))
+Snake_mean_2_01 <- making_data_frames(files_2_0.1, all_of("Snake_mean_Pheno"))
+Snake_min_2_01 <- making_data_frames(files_2_0.1, all_of("Snake_min_Pheno"))
+Snake_max_2_01 <- making_data_frames(files_2_0.1, all_of("Snake_max_Pheno"))
+Snake_sd_2_01 <- making_data_frames(files_2_0.1, all_of("Snake_sd_Pheno"))
+
+files_2_0.2 <- list.files(path="~/Desktop/findparams_u2_new", pattern="nue_*0.2", full.names=TRUE, recursive=FALSE)
+
+Newt_mean_2_02 <- making_data_frames(files_2_0.2, all_of("Newt_mean_Pheno"))
+Newt_min_2_02 <- making_data_frames(files_2_0.2, all_of("Newt_min_Pheno"))
+Newt_max_2_02 <- making_data_frames(files_2_0.2, all_of("Newt_max_Pheno"))
+Newt_sd_2_02 <- making_data_frames(files_2_0.2, all_of("Newt_sd_Pheno"))
+Snake_mean_2_02 <- making_data_frames(files_2_0.2, all_of("Snake_mean_Pheno"))
+Snake_min_2_02 <- making_data_frames(files_2_0.2, all_of("Snake_min_Pheno"))
+Snake_max_2_02 <- making_data_frames(files_2_0.2, all_of("Snake_max_Pheno"))
+Snake_sd_2_02 <- making_data_frames(files_2_0.2, all_of("Snake_sd_Pheno"))
+
+files_2_0.3 <- list.files(path="~/Desktop/findparams_u2_new", pattern="nue_*0.3", full.names=TRUE, recursive=FALSE)
+
+Newt_mean_2_03 <- making_data_frames(files_2_0.3, all_of("Newt_mean_Pheno"))
+Newt_min_2_03 <- making_data_frames(files_2_0.3, all_of("Newt_min_Pheno"))
+Newt_max_2_03 <- making_data_frames(files_2_0.3, all_of("Newt_max_Pheno"))
+Newt_sd_2_03 <- making_data_frames(files_2_0.3, all_of("Newt_sd_Pheno"))
+Snake_mean_2_03 <- making_data_frames(files_2_0.3, all_of("Snake_mean_Pheno"))
+Snake_min_2_03 <- making_data_frames(files_2_0.3, all_of("Snake_min_Pheno"))
+Snake_max_2_03 <- making_data_frames(files_2_0.3, all_of("Snake_max_Pheno"))
+Snake_sd_2_03 <- making_data_frames(files_2_0.3, all_of("Snake_sd_Pheno"))
+```
+
+
+# Phenotype and SD Comparisons in Newts and Snakes
+
+```{r, begining and end comparison under 2}
+
+a2<-starting_end_comparison(Newt_mean_2_01, Snake_mean_2_01, title="0.1: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, Mean)", subt="sigma = 0.1, mu = 1e-10", f_point="1", l_point="1000", leg_off = FALSE)
+
+b2<-starting_end_comparison(Newt_sd_2_01, Snake_sd_2_01, title="0.1: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, SD)", subt="sigma = 0.1, mu = 1e-10", f_point="1", l_point="1000", leg_off = FALSE)
+
+c2<-starting_end_comparison(Newt_mean_2_02, Snake_mean_2_02, title="0.2: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, Mean)", subt="sigma = 0.2, mu = 2.5e-11", f_point="1", l_point="1000", leg_off = FALSE)
+
+d2<-starting_end_comparison(Newt_sd_2_02, Snake_sd_2_02, title="0.2: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, SD)", subt="sigma = 0.2, mu = 2.5e-11", f_point="1", l_point="1000", leg_off = FALSE)
+
+e2<-starting_end_comparison(Newt_mean_2_03, Snake_mean_2_03, title="0.3: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, Mean)", subt="sigma = 0.3, mu = 1.11e-11", f_point="1", l_point="1000", leg_off = FALSE)
+
+f2<-starting_end_comparison(Newt_sd_2_03, Snake_sd_2_03, title="0.3: Comparison of Starting and Ending Newt and Snake Phenotypes (Larger, SD)", subt="sigma = 0.3, mu = 1.11e-11", f_point="1", l_point="1000", leg_off = FALSE)
+
+grid.arrange(a2, b2, nrow=1)
+grid.arrange(c2, d2, nrow=1)
+grid.arrange(e2, f2, nrow=1)
+```
+
+
+# Varation in the Phenotype of Newts and Snakes
+
+
+```{r, comparative figures for u2}
+p1<-phenotype_boxplot(Newt_mean_2_01, Snake_mean_2_01, title="01 Mean: Variation in Phenotype For N&S by Generation", subt="sigma = 0.1, mu = 1e-10", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+p2<-phenotype_boxplot(Newt_sd_2_01, Snake_sd_2_01, title="01 SD: Variation in Phenotype For N&S by Generation", subt="sigma = 0.1, mu = 1e-10", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+p3<-phenotype_boxplot(Newt_mean_2_02, Snake_mean_2_02, title="02 Mean: Variation in Phenotype For N&S by Generation", subt="sigma = 0.2, mu = 2.5e-11", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+p4<-phenotype_boxplot(Newt_sd_2_02, Snake_sd_2_02, title="02 SD: Variation in Phenotype For N&S by Generation", subt="sigma = 0.2, mu = 2.5e-11", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+p5<-phenotype_boxplot(Newt_mean_2_03, Snake_mean_2_03, title="03 Mean: Variation in Phenotype For N&S by Generation", subt="sigma = 0.3, mu = 1.11e-11", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+p6<-phenotype_boxplot(Newt_sd_2_03, Snake_sd_2_03, title="03 SD: Variation in Phenotype For N&S by Generation", subt="sigma = 0.3, mu = 1.11e-11", boxy=TRUE, section=TRUE, section_num=10, leg_off = TRUE)
+
+grid.arrange(p1, p2, nrow=1)
+grid.arrange(p3, p4, nrow=1)
+grid.arrange(p5, p6, nrow=1)
+```
+
+
+# Individula Species Phenotype Trends
+
+
+```{r, ind species figs u2}
+n21<-phenotype_trends(Newt_mean_2_01, title="Newt Average Phenotype Trends By Generations", subt="sigma = 0.1, mu = 1e-10", my_color="darkred", is_log=FALSE)
+  
+s21<-phenotype_trends(Snake_mean_2_01, title="Snake Average Phenotype Trends By Generations", subt="sigma = 0.1, mu = 1e-10", my_color="Steelblue", is_log=FALSE)
+
+n22<-phenotype_trends(Newt_mean_2_02, title="Newt Average Phenotype Trends By Generations", subt="sigma = 0.2, mu = 2.5e-11", my_color="darkred", is_log=FALSE)
+  
+s22<-phenotype_trends(Snake_mean_2_02, title="Snake Average Phenotype Trends By Generations", subt="sigma = 0.2, mu = 2.5e-11", my_color="Steelblue", is_log=FALSE)
+
+n23<-phenotype_trends(Newt_mean_2_03, title="Newt Average Phenotype Trends By Generations", subt="sigma = 0.3, mu = 1.11e-11", my_color="darkred", is_log=FALSE)
+  
+s23<-phenotype_trends(Snake_mean_2_03, title="Snake Average Phenotype Trends By Generations", subt="sigma = 0.3, mu = 1.11e-11", my_color="Steelblue", is_log=FALSE)
+
+grid.arrange(n21, s21, nrow=1)
+grid.arrange(n22, s22, nrow=1)
+grid.arrange(n23, s23, nrow=1)
+```
+
+
+# Phenotype Trends of Newts and Snakes Under 5
+
+
+```{r, general trends under 2}
+q1<-phenotype_boxplot(Newt_mean_2_01, Snake_mean_2_01, title="01 Mean: Averaging For N&S by Generation", subt="sigma = 0.1, mu = 1e-10", boxy=FALSE)
+
+q2<-phenotype_boxplot(Newt_sd_2_01, Snake_sd_2_01, title="01 SD: Averaging For N&S by Generation", subt="sigma = 0.1, mu = 1e-10", boxy=FALSE)
+
+q3<-phenotype_boxplot(Newt_mean_2_02, Snake_mean_2_02, title="02 Mean: Averaging For N&S by Generation", subt="sigma = 0.2, mu = 2.5e-11", boxy=FALSE)
+
+q4<-phenotype_boxplot(Newt_sd_2_02, Snake_sd_2_02, title="02 SD: Averaging For N&S by Generation", subt="sigma = 0.2, mu = 2.5e-11", boxy=FALSE)
+
+q5<-phenotype_boxplot(Newt_mean_2_03, Snake_mean_2_03, title="03 Mean: Averaging For N&S by Generation", subt="sigma = 0.3, mu = 1.11e-11", boxy=FALSE)
+
+q6<-phenotype_boxplot(Newt_sd_2_03, Snake_sd_2_03, title="03 SD: Averaging For N&S by Generation", subt="sigma = 0.3, mu = 1.11e-11", boxy=FALSE)
+
+grid.arrange(q1, q2, nrow=1)
+grid.arrange(q3, q4, nrow=1)
+grid.arrange(q5, q6, nrow=1)
+
+```
+
+# Differences U2
+
+
+* sigma = 0.1, mu = 1e-10
+* sigma = 0.2, mu = 2.5e-11
+* sigma = 0.3, mu = 1.11e-11
+
+```{r, the differences u2}
+w1 <- phenotype_dif_boxplot(Newt_mean_2_01, Snake_mean_2_01, title="Differences", subt="sigma = 0.1, mu = 1e-10",boxy=TRUE, section=TRUE, section_num=10)
+
+w2 <- phenotype_dif_boxplot(Newt_mean_2_01, Snake_mean_2_01, title="Differences", subt="sigma = 0.1, mu = 1e-10",boxy=FALSE, section=FALSE, section_num=0)
+
+w3 <- phenotype_dif_boxplot(Newt_mean_2_02, Snake_mean_2_02, title="Differences", subt="sigma = 0.2, mu = 2.5e-11",boxy=TRUE, section=TRUE, section_num=10)
+
+w4 <- phenotype_dif_boxplot(Newt_mean_2_03, Snake_mean_2_03, title="Differences", subt="sigma = 0.2, mu = 2.5e-11",boxy=FALSE, section=FALSE, section_num=0)
+
+w5 <- phenotype_dif_boxplot(Newt_mean_2_03, Snake_mean_2_03, title="Differences", subt="sigma = 0.3, mu = 1.11e-11",boxy=TRUE, section=TRUE, section_num=10)
+
+w6 <- phenotype_dif_boxplot(Newt_mean_2_03, Snake_mean_2_03, title="Differences", subt="sigma = 0.3, mu = 1.11e-111",boxy=FALSE, section=FALSE, section_num=0)
+
+grid.arrange(w1, w2, nrow=1)
+grid.arrange(w3, w4, nrow=1)
+grid.arrange(w5, w6, nrow=1)
+```
+
+Will try to write more later 08/13/2021
+
