@@ -1,0 +1,67 @@
+#!/bin/bash
+#SBATCH --account=kernlab          ### SLURM account which will be charged for the job
+#SBATCH --partition=kern        ### Partition (like a queue in PBS)
+#SBATCH --job-name=dis      ### Job Name
+#SBATCH --output=dis-%j.out         ### File in which to store job output
+#SBATCH --error=dis-%j.out          ### File in which to store job error messages
+#SBATCH --time=3-10:10:00       ### Wall clock time limit in Days-HH:MM:SS
+#SBATCH --nodes=1               ### Node count required for the job
+#SBATCH --ntasks-per-node=1     ### Nuber of tasks to be launched per Node
+#SBATCH --cpus-per-task=1       ### Number of cpus (cores) per task
+#SBATCH --mem-per-cpu=1G
+
+#loop though a folder of msprime trees
+#pull out FN Number
+#search slim tree folder for a file with same FN number
+#put both files and seed number into a specfic slim script to get data on individuals
+
+conda activate animate 
+
+outpath="/home/vcaudill/kernlab/coevo/plotting/u2_figs"
+[ ! -d "$outpath" ] && mkdir -p "$outpath"
+
+thefolder="/home/vcaudill/kernlab/coevo/findparams/u2/*"
+
+for file_name in $thefolder;
+do 
+arrIN=(${file_name//_/ })
+
+snake_mu_rate=${arrIN[3]}
+newt_mu_rate=${arrIN[5]}
+snake_mu_effect_sd=${arrIN[7]}
+newt_mu_effect_sd_fix=${arrIN[9]}
+newt_mu_effect_sd_fix=(${newt_mu_effect_sd_fix//.init/ })
+newt_mu_effect_sd=(${newt_mu_effect_sd_fix//=/ })
+new_FN=${arrIN[10]}
+FN_fix=(${new_FN//.init/ })
+FN=(${FN_fix//=/ })
+echo running 
+echo msprime ${file_name} #this is the msprime file
+slim_file="$(grep -l $FN /home/vcaudill/kernlab/coevo/findparams/u2/tree_files/*)" 
+
+echo slim ${slim_file} #this is the matching slim tree file
+arrsplit=(${slim_file//ID_/ })
+part1=${arrsplit[1]}
+slim_ID=(${part1//_late/ })
+#echo ${arrsplit[1]}
+
+
+txt_file="$(grep -l ${slim_ID}  /home/vcaudill/kernlab/coevo/findparams/u2/text_files/*)"
+arrtextsplit=(${txt_file//redo_/ })
+textpart1=${arrtextsplit[1]}
+the_name=(${textpart1//.txt/ })
+the_name=${the_name[0]}
+
+
+# slim script grabbing the info from the first and 1000 gen
+
+slim -m -t -d "the_seed = ${slim_ID}" -d "msprime_file = '${file_name}'" -d "the_slim_file = '${slim_file}'" '/home/vcaudill/kernlab/coevo/SLiM_script/pull_ind_info.slim' > test_case.txt
+# Taking out the extra things slim puts in
+egrep -v "WARNING|Starting|Initial*|initial*|OUT|Mut*|done|Done|!" 'test_case.txt' > temp && mv temp 'test_case.txt'
+tail -n +6 'test_case.txt' > temp && mv temp 'test_case.txt' 
+
+# Run through R to make markdowns or pngs?
+
+Rscript space_assemble.R ${the_name} ${outpath} 'test_case.txt' ${the_name}
+
+done

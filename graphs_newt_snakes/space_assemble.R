@@ -91,7 +91,7 @@ p6<-ggplot(space_data[which(space_data$gen == 1000),], aes(x=ind_phy, color=type
   scale_fill_manual(name = "Species", values = c('Newt' = "darkred", 'Snake' = "steelblue"), labels=c("Newts", "Snakes"))+ 
   theme_bw()
 
-grid.arrange(p1, p2, p3, p4, 
-             ncol = 2, nrow = 2)
+grid.arrange(p1, p2, p3, p4, p5, p6,
+             ncol = 2, nrow = 3)
 
 dev.off()
