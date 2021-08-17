@@ -8,8 +8,11 @@ MSprime - variable names/values separated with _ (need to add ID)
 GIT/MY FILES:
 
 data/ <- will never be pushed to git
+newts_annotated.init.trees - dealing with trying to annotate the newts 
+slimtestvarables_short -  short version for speficic testing the 12 starts 
 slimtestvarables.csv  - contains the variables for the 1000 gens experiment 
 csv_files/ large_eff/ sigma/ size/ 2d_size/ Contains the data from the matching phenotypes 3rd rotation experiment 
+test/ files to test slim with 
 
 figures/ that I used in my rotation talks to explain how similar the two populations were
 
@@ -18,25 +21,49 @@ Expected_results_fig.Rmd - proposal expected results (might have some good graph
 fig_1000.Rmd - this is the r markdown for the 1000 generation experiment. As of 7/7/2021 there are 3 experiments (mistake experiment, experiment 1 and two simulation experiment)
     there are some question I have about the slim and msprim script, like why do the newts start out higher? I will look into the msprime and sslim script to see what might be going on
 	As of 7/14/2021 There has been a forth experiment added. This experiment is called the 12 starting points and is explained in detal on the r markdown file
-find_params.Rmd - After the 1000 generation experiment Peter and I did some path to see if the phenotypes I got were expected
-	Spoiler: They were! Now (7/19/2021) I am looking at what parameters will result in phenotypes around 2 or 5  
+find_params.Rmd - After the 1000 generation experiment Peter and I did some math to see if the phenotypes I got were expected
+	Spoiler: They were! Now (7/19/2021) I am looking at what parameters will result in phenotypes around 2 or 5 (findparams folder on the cluster)
+	In this markdown I write out the math that will determine what the phenotypes for newts and snakes are ment to start at.
+	I plotted the diffent combinations that could result in the expected phenotypes and choose 6 to test (3 uner 2 and 3 under 5) 
+	This mathmatical formual worked as expected! Here you can see the mean and sd of the phenotypes change with each generation
+	The SD increases as the number of generations increased. Sometimes the mean phenotype increased. This lead me to think about what a normal simulation might look like 
+narmal_sim.Rmd - ah spelling. This is an R markdown that trys to show what a normal slimulation might look like for the 1on1 newts.
+	I run about 110 simulations (both msprime and slim) and found that newts and snakes strart off with a higher phenotype about half the time (good)
+	Varration between the mean phenotypes was about the same for newts annd snakes (increased as generations increased)
+	Phenotypes of newts and snakes increased over time.
+	The difference between the newt and snake phenotype remained near 0 (the phenotype of one of the species is not exploiding) yay!
+	Very similar things were seen for both the under 5 and under 2
+	- One thing that concerned me is that in all 6 sets of simulations there were more simulations were newts started off with a higher phenotype. Why is that?
+	To answer this I looked at the distributions of the newt and snake phenotypes and the locations of the newts and snakes
+space_assemble.R - the shorted version of the r markdown (Space_display.Rmd) to run in my assembole line to look at the distibutions of newts and snakes
+Space_display.Rmd - this rmarkdown looks at the location and phenotype of individulas in the 1st and 1000th generation. (2 version; 1 were I look at the alpha by phenotype and one version were I look at percentages to the max)
+	It also looks at the phenotype distibutions for the 1st and 1000 generation
+	We ran this for all of the findparams simulations to see that the newts and snakes were not avoiding each other.
+		The pictures look good. But the species thats starts with an advantage seems to keep their advantage. Is this due to drift or selection? more test to come
 
 Help_Files/ Files like this one for the different directories and scripts and experiments that I do!
-explanation.txt - this file (1000 generation focused my split into 3 files for cluster/git/experiments)
+cluster_files.txt -  just what is on the cluser. I needed to mave it to its own file to help with organization
+explanation.txt - this file (1000 generation focused my split into 3 files for cluster/git/experiments) and now there are even more expeiments!
 
 msprime/ the genetic variation simulations
 snake_newt_gv_.py <- making the standing genetic variation for the slim script for both the newt and the snake
 newt_gen_diversity.py <- making the standing genetic variation for the newt
 snake_gen_diversity.py <- making the standing genetic variation for the snake
 merge_snake_newt.py <- combining the stand alones into one file (many problems currently 6/18/21)
+test_snake_newt_msprime.py<- same thing as snake_newt_gv_.py but for testing the pipeline 
 
 msprime_explore/ figuring out how to make msprime work
 	 
 newt_snake/ <- my slim scripts about coevoultion
-nospace.slim - slim coevolution simulation without space
+/data/ <- tree files produced from slim while in testing mode (will not be on git)
+//space_test/ <- files that i used in the rmarkdown Space_display 
 newt_snake_1on1.slim - newt on snake coevolution in 2d 
 newt_vs_snake.slim - trial that I dont really use any more
-data/ <- tree files produced from slim while in testing mode (will not be on git)
+nospace.slim - slim coevolution simulation without space
+pull_ind_info.slim - used a msprime and slim tree file to recretate the locations and phenotypes of individulas
+test_case_1.txt - saved info from pull_ind_info.slim
+test_newt_snake_1on1.slim - file used to test the pipeline (do not play with)
+
 
 python_script/ many of these scripts are for tests and animating the bias mig ancestry  
 python_test.py - testing the exponential and normal distributions 
@@ -60,19 +87,25 @@ phe_sel_virus_n_host.slim - tracking number of mutations for a gene for gene mod
 large_effect.slim - virus and host tracking each other if there were large mutation effects
 large_small_2d.slim - how would the tracking be implicated if the effects were different for 2 mutations?
 
+space_pic/ pictures of the distibutions both locations and phenotypes of newts and snakes - not on git
+
 srun_scripts/ files for the cluster
+distribution.srun - this is a masterpice that finds files from different folders and runs different programs to generate the distribution pictures
 msprimeloop1000.srun - loops though variables from a file and calls another script to run the simulation
 msprimeloop.srun - loops though variables and calls another script to run the simulation
-pheno_test_1000.srun  - calls the slim script with variables given from a file 
-slimfill.sh - practice pulling variables from a csv file
 parsing.sh - practice pulling variables from a file name
-pheno_test_1000.srun - practice making directories and looping though values in a csv
-slimloop.srun - loops through variables and calls another script to run the slim script
+parsing.srun - pulling variables from a file name
+pheno_test_1000.srun  - calls the slim script with variables given from a file 
+run_pairs.bash - working on trying to run a pair of numbers in a loop
+runmsprime.srun - runs the msprime simulation
 runslim.srun - runs the slim script with the variables passed through a different script
 runsllim.txt - practice for running slim with variables passed from another script
-pheno_test_1000.srun - practice for parsing simulation vales from msprime name
+slim1000fromdifmsprime.srun - parcing values and running through files in a folder (making 1 slim run from 1 msprime file)
+slimfill.sh - practice pulling variables from a csv file
+slimloop.srun - loops through variables and calls another script to run the slim script
 testloop.sh - - practice for looping variables to pass to another script
-runmsprime.srun - runs the msprime simulation
+testslim_start_to_end.sh - made a script that will run both msprime and slim for Peter to practice with
+twoloops.bash - making two loops with in 1 script to run a slim script multiple times with the same msprime simulation
 
 
 
