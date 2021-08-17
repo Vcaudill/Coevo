@@ -15,7 +15,8 @@ initialize() {
 	defineConstant("newt_mu_effect_sd", 0.1);
 	total_mut_rate = newt_mu_rate + snake_mu_rate;
 
-	setSeed(3913371281942);
+	//setSeed(3913371281942);
+	setSeed(the_seed);
 	defineConstant("sigma_M", 0.33); // the meeting interactison term
 	defineConstant("K", 1);  // carrying-capacity per unit square (roughly)
 	defineConstant("SD", sigma_in);  // sigma_D, the dispersal distance
@@ -50,8 +51,8 @@ initialize() {
 	
 	
 	//This is the msprime for thiss simulation 
-	sim.readFromPopulationFile("Coevo/newt_snake/data/space_test/both_1000_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.init.trees");
-
+	//sim.readFromPopulationFile("Coevo/newt_snake/data/space_test/both_1000_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_17018532.init.trees");
+	sim.readFromPopulationFile(msprime_file);
 	p1.setSpatialBounds(c(0, 0, W, W)); //newt
 	p0.setSpatialBounds(c(0, 0, W, W)); //snake
 	//	// would it be better to add them on the same plot
@@ -88,7 +89,8 @@ initialize() {
 
 
 1000{
-	sim.readFromPopulationFile("Coevo/newt_snake/data/space_test/mu_rate_1.11e-11_newt_mu_rate_1.11e-11_snake_mu_effect_sd_0.3_newt_mu_effect_sd_0.3_sigma_0.5_ID_3913371281942_late_1000_.trees");
+	//sim.readFromPopulationFile("Coevo/newt_snake/data/space_test/mu_rate_1.11e-11_newt_mu_rate_1.11e-11_snake_mu_effect_sd_0.3_newt_mu_effect_sd_0.3_sigma_0.5_ID_3913371281942_late_1000_.trees");
+	sim.readFromPopulationFile(the_slim_file);
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
 	

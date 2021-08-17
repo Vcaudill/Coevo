@@ -6,6 +6,8 @@ i.Rproj.user
 #keep data file out of git
 */data/*
 data/*
+*/space_pic/*
+space_pic/*
 */msprime_explore/*
 msprime_explore/*
 
