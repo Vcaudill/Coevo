@@ -36,6 +36,8 @@ initialize() {
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
 	defineConstant("simID", getSeed());
+	defineConstant("some_value", 30); // this is the amount of parents for the 15th genereation half of value will be new individulas with a mutation
+	defineConstant("sc_size", 10); // selectionCoeff of the artifical mutation
 	
 	//Mutation turning off for this simulation
 	initializeMutationType("m1", 0.5, "n", 0, newt_mu_effect_sd);
@@ -79,22 +81,39 @@ reproduction(p1) {//newts
 	return;
 }
 
-//Adding in some newts with a higer phenotype
-15  reproduction(p1) {
+//Adding in some newts with a higher phenotype
+//15  reproduction(p1) {
+//	// Creating a population of newts and snakes with no varation in the phenotype
+//	self.active = 0;
+//	upgraded_newts = 	sample(p1.individuals, some_value); //new newts to be upgraded
+//	pos = c(W/2, W/2) + rnorm(2, 0, SD);
+//	for (i in seq(0, some_value - 2, by=2)){
+//		//pos = individual.spatialPosition + rnorm(2, 0, SD);
+//		parent1 = upgraded_newts[i];
+//		parent2 = upgraded_newts[i + 1];
+//		litterSize = rpois(1, 2.3);
+//		offspring = subpop.addCrossed(parent1, parent2);
+//		offspring.setSpatialPosition(p1.pointReflected(pos));
+//		offspring.setValue("snakes_killed",0);
+//		offspring.genomes.addNewMutation(m1, sc_size, 10384623);
+//	}
+//}
+
+//Adding in some snakes with a higher phenotype
+15  reproduction(p0) {
 	// Creating a population of newts and snakes with no varation in the phenotype
 	self.active = 0;
-	some_value= 30;
-	upgraded_newts = 	sample(p1.individuals, some_value); //new newts to be upgraded
+	upgraded_snakes = 	sample(p1.individuals, some_value); //new newts to be upgraded
 	pos = c(W/2, W/2) + rnorm(2, 0, SD);
 	for (i in seq(0, some_value - 2, by=2)){
 		//pos = individual.spatialPosition + rnorm(2, 0, SD);
-		parent1 = upgraded_newts[i];
-		parent2 = upgraded_newts[i + 1];
+		parent1 = upgraded_snakes[i];
+		parent2 = upgraded_snakes[i + 1];
 		litterSize = rpois(1, 2.3);
 		offspring = subpop.addCrossed(parent1, parent2);
-		offspring.setSpatialPosition(p1.pointReflected(pos));
-		offspring.setValue("snakes_killed",0);
-		offspring.genomes.addNewMutation(m1, 10, 10384623);
+		offspring.setSpatialPosition(p0.pointReflected(pos));
+		offspring.setValue("newts_killed",0);
+		offspring.genomes.addNewMutation(m2, sc_size, 10384623);
 	}
 }
 
@@ -132,7 +151,6 @@ reproduction(p0) {//snakes
 	for (ind in p0.individuals) {
 		ind.setSpatialPosition(p0.pointUniform());
 		ind.setValue("newts_killed",0);
-	
 	}
 	
 	i1.evaluate();
@@ -156,10 +174,10 @@ early() {
 	// caculating the phenotype, how to caculate it when there is not mutation
 	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); //Should stay 0 untell I reset it
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //Should stay 0 untell I reset it
-catn(sim.generation);
-//	catn("newts");
-catn(phenotypes_n);
-//	
+//print statements
+catn("Generation: " + sim.generation);
+catn("Individulas with M1 mutation: " + sum(inds_n.sumOfMutationsOfType(m1)>0));
+catn("Individulas with M2 mutation: " + sum(inds_s.sumOfMutationsOfType(m2)>0));
 	
 	// construct phenotypes and fitness effects from QTLs 
 	inds_n.z = phenotypes_n;
@@ -250,15 +268,26 @@ catn(phenotypes_n);
 
 //Snake a Newt display 
 1: late() {
-inds = sim.subpopulations.individuals;
+//inds = sim.subpopulations.individuals;
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
  
 
 // construct phenotypes and fitness effects from QTLs
- phenotypes = inds.sumOfMutationsOfType(m1);
- inds.z = phenotypes;
+ phenotypes_n = inds_n.sumOfMutationsOfType(m1);
+phenotypes_s = inds_s.sumOfMutationsOfType(m2);
+ inds_n.z = phenotypes_n;
+ inds_s.z = phenotypes_s;
  
 // color individuals according to phenotype
- for (ind in inds){
+ for (ind in p1.individuals){
+
+hue = ((ind.z + 1) / (1 * 2)) * 0.66;
+
+ind.color = rgb2color(hsv2rgb(c(hue, 1.0, 1.0)));
+
+}
+ for (ind in p0.individuals){
 
 hue = ((ind.z + 1) / (1 * 2)) * 0.66;
 
