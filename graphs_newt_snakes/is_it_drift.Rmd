@@ -1,0 +1,320 @@
+---
+title: "Is It Drift?"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+setwd("~/Desktop/Coevo/graphs_newt_snakes")
+```
+
+## The Goal of this R Markdown is to determine if the increase in the Newt and Snake phenotypes is caused by drift
+
+Background:
+
+In the newts and snakes 1on1 simulations I noticed that the mean phenotype of newts and snakes increased at a steady rate. If the mean newt phenotype was higher than the mean snake phenotype at the beginning of the simulation, it would still be higher at the end of the simulation. This is somewhat expected, because its better for the newts to be more toxic than the snakes can handle. To be able to eat the newts, snakes need to increase their resistance. It makes since that both of the phenotypes increased, but it is weird that they never seemed to cross. It is also possible that these phenotypes increase because of drift.
+
+![u2 red higher](data/phenotype_dis_sample/u2_su_1.11e-11_nu_1.11e-11_sue_0.3_nue_0.3_3372316791.png)
+![u2 blue higher](data/phenotype_dis_sample/u2_su_1e-10_nu_1e-10_sue_0.1_nue_0.1_2843220669.png)
+
+⁩
+I also noticed the distribution of newt and snake phenotypes were different between the under 5 and under 2 simulations. The under 2 were more normal while the under 5 had a long right tail. If I use the values for under 5 I could get more extreme phenotypes for some newts or snakes.
+
+![u5 distribution](data/phenotype_dis_sample/u5_su_1.56e-10_nu_1.56e-10_sue_0.2_nue_0.2_506026437.png)
+
+These observations lead me to ask, is drift causing the the mean of the higher phenotype to stay higher or is it selection?
+To attempt to answer this question I will look at two things. 1 How many newts kill snakes (and vice-versa). 2 What would happen if there were no mutations (no genetic variation) and an artificial (beneficial) mutation was released into the population.
+
+
+## The Newt and Snake Interaction
+
+I have the mean amount and sd of newts and snakes that have been eaten by the opposite species. This info will hopefully give me an idea on how the newts and snakes are interacting.
+
+```{r, making data frames}
+
+making_data_frames <- function(files, spe_col) {
+i=1
+for (current_file in files){
+ # print(current_file)
+
+  if(i ==1){
+    file <- read.table(current_file, header = TRUE)
+  
+    file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+      # might want to change to all_of(spe_col)
+    file %>% 
+      select(all_of(spe_col), gen) %>%
+      #rownames_to_column() %>% 
+      gather(variable, value, -gen) %>% 
+      spread(gen, value) -> new_file
+      
+    new_file$variable[i] <- paste0(spe_col,"_trial_", i)
+    i = i + 1
+    next
+    }
+  file <- read.table(current_file, header = TRUE)
+  
+  file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+
+file %>% 
+  select(all_of(spe_col), gen) %>%
+  #rownames_to_column() %>% 
+  gather(variable, value, -gen) %>% 
+  spread(gen, value) -> temp_file
+
+temp_file$variable[1] <- paste0(spe_col,"_trial_", i)
+
+new_file<-rbind(new_file, temp_file)
+i = i + 1
+}
+return(new_file)
+}
+
+```
+
+
+```{r, making figures}
+
+phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE, x_label, y_label){
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+  
+   if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+ }
+  
+  
+  Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_newt$type <- "Newt"
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  data_frame_snake$type <- "Snake"
+  
+ combo <- rbind(data_frame_newt, data_frame_snake)
+ 
+ small_combo <- aggregate(as.numeric(combo$value),by=list(Number=as.numeric(combo$Number),type=combo$type),data=combo,FUN=mean, na.action = TRUE)
+
+ 
+ 
+ 
+if(boxy==TRUE){
+  p <- ggplot(combo) +
+  #xlim(0, 1000)+
+    ggtitle(title, subtitle = subt) +
+    xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(value), color=type) )
+  }
+if(boxy==FALSE){
+  p <- ggplot(small_combo) +
+  #xlim(0, 1000)+
+    ggtitle(title, subtitle = subt) +
+    xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_point(aes(x=factor(as.numeric(Number)), y=as.numeric(x), color=type) )
+}
+
+ if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+
+return(p)
+}
+
+
+var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE){
+
+  data_frame_newt_temp_x <- Newt_file_x
+  data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
+  
+  data_frame_snake_temp_x <- Snake_file_x
+  data_frame_snake_temp_x <- data_frame_snake_temp_x[ , !(names(data_frame_snake_temp_x) %in% "variable")]
+  
+  data_frame_newt_temp_y <- Newt_file_y
+  data_frame_newt_temp_y <- data_frame_newt_temp_y[ , !(names(data_frame_newt_temp_y) %in% "variable")]
+  
+  data_frame_snake_temp_y <- Snake_file_y
+  data_frame_snake_temp_y <- data_frame_snake_temp_y[ , !(names(data_frame_snake_temp_y) %in% "variable")]
+  
+  
+  
+  Number <- colnames(data_frame_newt_temp_x)
+  data_frame_newt_x <- gather(data_frame_newt_temp_x, Number, value_x)
+  data_frame_newt_x$type <- "Newt"
+  data_frame_newt_y <- gather(data_frame_newt_temp_y, Number, value_y)
+  data_frame_newt <- cbind(data_frame_newt_x, data_frame_newt_y)
+  data_frame_newt <- data_frame_newt[-4]
+  data_frame_snake_x <- gather(data_frame_snake_temp_x, Number, value_x)
+  data_frame_snake_x$type <- "Snake"
+  data_frame_snake_y <- gather(data_frame_snake_temp_y, Number, value_y)
+  data_frame_snake <- cbind(data_frame_snake_x, data_frame_snake_y)
+  data_frame_snake <- data_frame_snake[-4]
+  
+ combo <- rbind(data_frame_newt, data_frame_snake)
+ combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
+ 
+p <- ggplot(combo_s) +
+  #xlim(0, 1000)+
+    ggtitle(title, subtitle = subt) +
+    xlab(x_label) + ylab(y_label)+
+    geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color=type), alpha=0.1)+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  if(logy==TRUE){
+    p = p + scale_y_log10()
+  }
+  return(p)
+ 
+  
+}
+
+```
+
+Important things to look at:
+mean_newts_eaten and mean_snakes_eaten (mean of #eaten/age)
+sd_newts_eaten and sd_snakes_eaten (sd of #eaten/age)
+Newt_pop_size and Snake_pop_size
+Newt_density and Snake_density
+
+
+```{r, food data input}
+
+files <- list.files(path="~/Desktop/food/u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+
+file <- read.table(files[1], header = TRUE)
+
+Newt_mean <- making_data_frames(files, all_of("Newt_mean_Pheno"))
+Newt_sd <- making_data_frames(files, all_of("Newt_sd_Pheno"))
+Snake_mean <- making_data_frames(files, all_of("Snake_mean_Pheno"))
+Snake_sd <- making_data_frames(files, all_of("Snake_sd_Pheno"))
+mean_newts_eaten <- making_data_frames(files, all_of("mean_newts_eaten"))
+mean_snakes_eaten <- making_data_frames(files, all_of("mean_snakes_eaten"))
+sd_newts_eaten <- making_data_frames(files, all_of("sd_newts_eaten"))
+sd_snakes_eaten <- making_data_frames(files, all_of("sd_snakes_eaten"))
+Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
+Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
+Newt_density <- making_data_frames(files, all_of("Newt_density"))
+Snake_density <- making_data_frames(files, all_of("Snake_density"))
+
+```
+
+
+To make sure my simulations are working correctly, I am going to graph the mean and standard deviation of newt and snake phenotypes by generation. I expect the mean phenotype to increase as the number of generations increase (because it has in the other simulations). I will also graph the mean and  standard deviation of the number of newts and snakes eaten by the other species (color indicates species that was killed). I predict that number of newts/snakes killed by the other species to increase as the number of generations increases (similar to what the phenotypes do). I also predict that the standard deviation of how many newts and snakes are killed by the other species to increase as the number of generations increases. This thought stems from the idea that the higher a phenotype on individual the more likely this individual will eat more of the other species. Although, this thought might be flawed if one species has a higher phenotype it is possible for 2 things to happen; 1 the other species may also have a high phenotype limiting the chance for successful encounters, or 2 if the species (and its' family & friends) has too high of a phenotype there might not be any of the opposite species around.
+
+
+```{r, trying to see things by generoration}
+
+sp<-phenotype_boxplot(Newt_mean, Snake_mean, title="Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=5, x_label="Generation", y_label="Average Phenotype")
+
+sdp<-phenotype_boxplot(Newt_sd, Snake_sd, title="Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=5, x_label="Generation", y_label="Average Phenotype")
+
+grid.arrange(sp, sdp, nrow=1)
+
+spf<-phenotype_boxplot(mean_newts_eaten, mean_snakes_eaten, title="Mean Newts and Snakes killed by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=5, x_label="Generation", y_label="Average Killed")
+
+sdpf<-phenotype_boxplot(sd_newts_eaten, sd_snakes_eaten, title="Sd of Newts and Snakes killed by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=5, x_label="Generation", y_label="Average Killed")
+
+grid.arrange(spf, sdpf, nrow=1)
+```
+
+The phenotypes of newts and snakes go up as the generations increase. The SD also increases with time. For the amount of newts and snakes killed by the other species seemed to go up from the first generation and then decrease as the number of generations increased. There is a wide range of means for this plot, were some end up really high while others stay really low. It doesn't seem to be following what I had predicted (a higher phenotype = more of the other species killed). To get a better idea of what might influence newts and snakes being killed I will look at the different aspects of the newts and snakes interaction.
+
+
+To get a better mental image of whats going on with the interaction I will plot density by newts/snakes killed, phenotype by newts/snakes killed, and population size by newts/snakes killed. I predict the density and population size plots should be very similar. I expect that a higher population size = higher density. I predict that as the density/population size increase the number of newts and snakes killed by the other species will increase. I would hope that phenotype by newts/snakes killed would also show an increasing pattern, as the phenotypes got larger the more newts and snakes would be killed. But since it did not look that way in the generation plot, I predict that there is no change in the amount of newts and snakes killed.
+
+
+```{r, more figures}
+p1 <- var_by_var(Newt_density, Snake_density, mean_newts_eaten, mean_snakes_eaten, title="Density vs Food", subt="sigma = 0.2, mu = 1.5625e-10", y_label="Species Killed by the Other Species", x_label="Density" ) 
+
+
+p2 <- var_by_var( Newt_mean, Snake_mean, mean_newts_eaten, mean_snakes_eaten, title="Phenotype vs Food", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Phenotype", y_label="Species Killed by the Other Species") 
+
+
+p3 <- var_by_var( Newt_pop_size, Snake_pop_size, mean_newts_eaten, mean_snakes_eaten, title="Population Size vs Food", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Population Size", y_label="Species Killed by the Other Species") 
+
+
+
+grid.arrange(p1, p3, p2, nrow=2)
+```
+
+After plotting these three figures I noticed that density and population size are the same (weird I thought they would be similar not exact). There is a bit of confusion that I had when looking at these plots due to the color. Red is not only the newt density/population size/phenotype, it is also the amount of newts killed. The blue points represent the snake density/population size/phenotype and the amount of snakes killed. (Might refer to them as "newt deaths" and "snake deaths") They do show the trend I was expecting; higher density = more interactions. What I did not expect was the separation of color, newts seem to have lower population sizes and densities, while snakes had a higher population size and density. The strait line at 300 and .25 is from the simulations starting points. I found it weird that the data gets nosier as the population size/density gets to its highest point. Also it looks like the amount of newts and snakes killed by the other species decreases when the population density is over 0.75. Could this be due to one species having a low amount of individuals?
+
+The phenotype vs food is a mess. I am having a lot of trouble seeing a potential trend. Maybe the way I chose to color the points is making this more difficult.
+
+
+## Is it Coevolution
+
+I ran a second experiment to see if the increase in phenotypes was due to coevolution or just drift. In this second experiment I created two populations with no mutations, every individual had the same phenotype. In the 15th generation I introduced new individuals into a population with a beneficial mutation to see if it would spread to the rest of the population. This mutation could only be passed down through mating and if there were no longer individuals with this mutation it would be lost forever. I fist ran this experiment with the newts being the population to get the mutation and then ran some experiments where the snakes got the mutation. I also ran experiments were both populations got a mutation in the 15th generation. I will repeat the simulation 50 times and record the outcome.
+
+I predict that the mutation will increase and spread through out the population in some, but not all of the populations. But at what point is it drift? or is it selection? What fraction are we looking for?
+
+Starting parameters:
+sigma_i = 1, recomb=1e-8, sigma_in = 0.5, *sigma_M = 0.33*,  *K =1*,  SD = sigma_in,  SI = sigma_in,  surs = sigma_in,  SM = SI,  L = 4,  W = 35.0, G = 1e8, FECUN = 1/(L)),  RHO = FECUN/((1+FECUN) * K), initializeRecombinationRate(recomb)
+
+Interaction Constants:
+	 *interaction_rate = 0.05*,  PE = 0.1,  w = 10,  c = 0.0, *some_value = 30 (half number of new individuals)*,  *sc_size = 10 (selection coefficient)*
+	
+I bolded things that I thought might have an impact on if the mutation would spread
+
+
+```{r, newt results table}
+
+# experiment giving newt the mutation
+Notes <- c("Newts", "interaction rate = 0.07", "sigma_M = 0.4", "sc_size = 0.5","sc_size = 15, some value = 60") 
+
+Yes <- c(8, 9, 11, 3, 16)/50
+No <- c(42, 41, 39, 47, 34)/50
+
+newt_results_df <- data.frame(Notes, Yes, No)
+knitr::kable(newt_results_df, "simple")
+```
+
+Seems like having more individuals and a higher selection coefficient lead to the mutation spreading to all of the individuals in the population.
+
+```{r, snake results table}
+# experiment giving snake the mutation
+Notes <- c("Snakes", "interaction rate = 0.5", "sigma_M = 0.4", "sc_size = 0.5","sc_size = 15, some value = 60")
+
+Yes <- c(7, 10, 4, 0, 19)/50
+No <- c(43, 40, 46, 50, 31)/50
+snake_results_df <- data.frame(Notes, Yes, No)
+knitr::kable(snake_results_df, "simple")
+```
+
+This is also the case when snakes get the mutation
+
+
+```{r, both result table}
+Notes <-("sc_size = 15, some vaalue = 60" )
+
+
+Snake_Yes <- 15/50
+Newt_Yes <- 15/50
+Snake_No <- 35/50
+Newt_No <- 35/50
+
+both_results_df <- data.frame(Notes, Snake_Yes, Newt_Yes, Snake_No, Newt_No)
+knitr::kable(both_results_df, "simple")
+
+
+```
+
+When both species get the mutation I saw each combination happen sometimes the mutation would spread in both the snakes and newts populations. Other times only the mutation woyld only spread in one population and there were time when the mutation dies out in both populations.
