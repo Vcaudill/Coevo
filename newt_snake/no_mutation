@@ -35,9 +35,10 @@ initialize() {
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
-	defineConstant("simID", getSeed());
-	defineConstant("some_value", 30); // this is the amount of parents for the 15th genereation half of value will be new individulas with a mutation
-	defineConstant("sc_size", 10); // selectionCoeff of the artifical mutation
+setSeed(1634323401222);	
+	//defineConstant("simID", getSeed());
+	defineConstant("some_value", 60); // this is the amount of parents for the 15th genereation half of value will be new individulas with a mutation
+	defineConstant("sc_size", 15); // selectionCoeff of the artifical mutation
 	
 	//Mutation turning off for this simulation
 	initializeMutationType("m1", 0.5, "n", 0, newt_mu_effect_sd);
@@ -82,22 +83,22 @@ reproduction(p1) {//newts
 }
 
 //Adding in some newts with a higher phenotype
-//15  reproduction(p1) {
-//	// Creating a population of newts and snakes with no varation in the phenotype
-//	self.active = 0;
-//	upgraded_newts = 	sample(p1.individuals, some_value); //new newts to be upgraded
-//	pos = c(W/2, W/2) + rnorm(2, 0, SD);
-//	for (i in seq(0, some_value - 2, by=2)){
-//		//pos = individual.spatialPosition + rnorm(2, 0, SD);
-//		parent1 = upgraded_newts[i];
-//		parent2 = upgraded_newts[i + 1];
-//		litterSize = rpois(1, 2.3);
-//		offspring = subpop.addCrossed(parent1, parent2);
-//		offspring.setSpatialPosition(p1.pointReflected(pos));
-//		offspring.setValue("snakes_killed",0);
-//		offspring.genomes.addNewMutation(m1, sc_size, 10384623);
-//	}
-//}
+15  reproduction(p1) {
+	// Creating a population of newts and snakes with no varation in the phenotype
+	self.active = 0;
+	upgraded_newts = 	sample(p1.individuals, some_value); //new newts to be upgraded
+	pos = c(W/2, W/2) + rnorm(2, 0, SD);
+	for (i in seq(0, some_value - 2, by=2)){
+		//pos = individual.spatialPosition + rnorm(2, 0, SD);
+		parent1 = upgraded_newts[i];
+		parent2 = upgraded_newts[i + 1];
+		litterSize = rpois(1, 2.3);
+		offspring = subpop.addCrossed(parent1, parent2);
+		offspring.setSpatialPosition(p1.pointReflected(pos));
+		offspring.setValue("snakes_killed",0);
+		offspring.genomes.addNewMutation(m1, sc_size, 10384623);
+	}
+}
 
 //Adding in some snakes with a higher phenotype
 15  reproduction(p0) {
