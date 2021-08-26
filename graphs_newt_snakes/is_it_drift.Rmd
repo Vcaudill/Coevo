@@ -257,7 +257,7 @@ grid.arrange(p1, p3, p2, nrow=2)
 
 After plotting these three figures I noticed that density and population size are the same (weird I thought they would be similar not exact). There is a bit of confusion that I had when looking at these plots due to the color. Red is not only the newt density/population size/phenotype, it is also the amount of newts killed. The blue points represent the snake density/population size/phenotype and the amount of snakes killed. (Might refer to them as "newt deaths" and "snake deaths") They do show the trend I was expecting; higher density = more interactions. What I did not expect was the separation of color, newts seem to have lower population sizes and densities, while snakes had a higher population size and density. The strait line at 300 and .25 is from the simulations starting points. I found it weird that the data gets nosier as the population size/density gets to its highest point. Also it looks like the amount of newts and snakes killed by the other species decreases when the population density is over 0.75. Could this be due to one species having a low amount of individuals?
 
-The phenotype vs food is a mess. I am having a lot of trouble seeing a potential trend. Maybe the way I chose to color the points is making this more difficult.
+The phenotype vs food is a mess. I am having a lot of trouble seeing a potential trend. Maybe the way I chose to color the points is making this more difficult. There probably is no trend. It seems like there is no correlation between phenotype and ability to kill the the other species. It might be better to look at an individuals' fitness and its ability not to die, in order to determine if having a higher phenotype is beneficial.  
 
 
 ## Is it Coevolution
@@ -267,49 +267,74 @@ I ran a second experiment to see if the increase in phenotypes was due to coevol
 I predict that the mutation will increase and spread through out the population in some, but not all of the populations. But at what point is it drift? or is it selection? What fraction are we looking for?
 
 Starting parameters:
-sigma_i = 1, recomb=1e-8, sigma_in = 0.5, *sigma_M = 0.33*,  *K =1*,  SD = sigma_in,  SI = sigma_in,  surs = sigma_in,  SM = SI,  L = 4,  W = 35.0, G = 1e8, FECUN = 1/(L)),  RHO = FECUN/((1+FECUN) * K), initializeRecombinationRate(recomb)
+
+- sigma_i = 1, 
+- recomb=1e-8, 
+- sigma_in = 0.5,
+- **sigma_M = 0.33**, 
+- **K =1**, 
+- SD = sigma_in,  
+- SI = sigma_in,  
+- surs = sigma_in, 
+- SM = SI,  
+- L = 4,  
+- W = 35.0, 
+- G = 1e8, 
+- FECUN = 1/(L)),  
+- RHO = FECUN/((1+FECUN) * K), 
+- initializeRecombinationRate(recomb)
 
 Interaction Constants:
-	 *interaction_rate = 0.05*,  PE = 0.1,  w = 10,  c = 0.0, *some_value = 30 (half number of new individuals)*,  *sc_size = 10 (selection coefficient)*
+
+- **interaction_rate = 0.05**,  
+- PE = 0.1,  
+- w = 10,  
+- c = 0.0, 
+- **some_value = 30 (half number of new individuals)**, 
+- **sc_size = 10 (selection coefficient)**
 	
 I bolded things that I thought might have an impact on if the mutation would spread
 
+### Newts Get the Mutation
 
 ```{r, newt results table}
 
 # experiment giving newt the mutation
 Notes <- c("Newts", "interaction rate = 0.07", "sigma_M = 0.4", "sc_size = 0.5","sc_size = 15, some value = 60") 
 
-Yes <- c(8, 9, 11, 3, 16)/50
-No <- c(42, 41, 39, 47, 34)/50
+Yes <- c(8, 9, 11, 3, 16)/50 * 100
+No <- c(42, 41, 39, 47, 34)/50 * 100
 
 newt_results_df <- data.frame(Notes, Yes, No)
 knitr::kable(newt_results_df, "simple")
 ```
 
-Seems like having more individuals and a higher selection coefficient lead to the mutation spreading to all of the individuals in the population.
+Seems like having more individuals and a higher selection coefficient lead to the mutation spreading to all of the individuals in the population. For most of the simulations the spreading out or dying out happens very quickly (under 1500 generations)
+
+###Snakes Get the Mutation
 
 ```{r, snake results table}
 # experiment giving snake the mutation
 Notes <- c("Snakes", "interaction rate = 0.5", "sigma_M = 0.4", "sc_size = 0.5","sc_size = 15, some value = 60")
 
-Yes <- c(7, 10, 4, 0, 19)/50
-No <- c(43, 40, 46, 50, 31)/50
+Yes <- c(7, 10, 4, 0, 19)/50 * 100
+No <- c(43, 40, 46, 50, 31)/50 * 100
 snake_results_df <- data.frame(Notes, Yes, No)
 knitr::kable(snake_results_df, "simple")
 ```
 
-This is also the case when snakes get the mutation
+This is also the case when snakes get the mutation. Although it was peculiar when the selection coefficient was very small there were no cases when the artificial mutation spread throughout the population.
 
+###Both Newts and Snakes get the Mutation
 
 ```{r, both result table}
 Notes <-("sc_size = 15, some vaalue = 60" )
 
 
-Snake_Yes <- 15/50
-Newt_Yes <- 15/50
-Snake_No <- 35/50
-Newt_No <- 35/50
+Snake_Yes <- 15/50 * 100
+Newt_Yes <- 15/50 * 100
+Snake_No <- 35/50 * 100
+Newt_No <- 35/50 * 100
 
 both_results_df <- data.frame(Notes, Snake_Yes, Newt_Yes, Snake_No, Newt_No)
 knitr::kable(both_results_df, "simple")
@@ -317,4 +342,10 @@ knitr::kable(both_results_df, "simple")
 
 ```
 
-When both species get the mutation I saw each combination happen sometimes the mutation would spread in both the snakes and newts populations. Other times only the mutation woyld only spread in one population and there were time when the mutation dies out in both populations.
+When both species get the mutation I saw each combination happen sometimes the mutation would spread in both the snakes and newts populations. Other times only the mutation would only spread in one population and there were time when the mutation dies out in both populations.
+
+Concluding notes:
+
+The artificial mutation either stays in the population increasing rapidly or dies out in a few generations, suggesting that the mutation is spreading due to selection. The mutation does spread do to selection, but I think it can be quicker and I am not sure if it is due to the interaction between snakes and newts. I want to increase the rate of the interaction without creating areas where newts and snakes don't interact (holes). I also want to test the prediction that a higher phenotype might protect an individual from death. First, I will look at the correlation between phenotype and fitness (a measure of how likely an individual will survive) and see if they are positively or negatively correlated. However, there might be problems crease by spatial structure that might impact the correlation. So, the second thing I will do is crease and run a no space simulation to see the direct consequence the interaction had on individuals phenotypes. The only problem is determining how many newt and snakes will be interacting with each other?
+
+
