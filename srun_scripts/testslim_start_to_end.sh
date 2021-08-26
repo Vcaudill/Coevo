@@ -14,8 +14,8 @@ tag="test" # exrta info to identify what experiment I am workin on
 # Sample paramiter values
 snake_mu_rate=1E-10	
 newt_mu_rate=1E-10
-snake_mu_effect_sd=0.1
-newt_mu_effect_sd=0.1
+snake_mu_effect_sd=0.3
+newt_mu_effect_sd=0.3
 # the msprime file that slim uses (gennerates sgv)
 msprime_file="${datadir}/both_1000_su_${snake_mu_rate}_nu_${newt_mu_rate}_sue_${snake_mu_effect_sd}_nue_${newt_mu_effect_sd}_${tag}.init.trees"
 # help to name the slime file with the paramiters that I use

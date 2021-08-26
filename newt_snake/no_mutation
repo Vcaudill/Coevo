@@ -173,8 +173,8 @@ early() {
 	snake_competition = i2.totalOfNeighborStrengths(inds_s);// find number of snake neighbors for each snake
 	
 	// caculating the phenotype, how to caculate it when there is not mutation
-	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); //Should stay 0 untell I reset it
-	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //Should stay 0 untell I reset it
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); //Should stay 1 untell I reset it
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //Should stay 1 untell I reset it
 //print statements
 catn("Generation: " + sim.generation);
 catn("Individulas with M1 mutation: " + sum(inds_n.sumOfMutationsOfType(m1)>0));
