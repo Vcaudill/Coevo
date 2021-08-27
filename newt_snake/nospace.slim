@@ -8,9 +8,9 @@ initialize() {
 	
 	//Testing factors 	
 	//defineConstant("mu_rate", 1e-10); //just be the snake mu
-	defineConstant("snake_mu_rate", 1e-6); //snake mu will be more or less comman than newt	
-	defineConstant("newt_mu_rate", 1e-10); //newt mu will be more or less comman than snake
-	defineConstant("snake_mu_effect_sd", 1/2);
+	defineConstant("snake_mu_rate", 1e-8); //snake mu will be more or less comman than newt	
+	defineConstant("newt_mu_rate", 1e-8); //newt mu will be more or less comman than snake
+	defineConstant("snake_mu_effect_sd", 1/100);
 	defineConstant("newt_mu_effect_sd", 1/100);
 	//defineConstant("msprime_file", "MSprome_sim/both_su_1e-08_nu_1e-12_sue_0.25_nue_0.25.init.trees");
 	defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01
@@ -89,13 +89,13 @@ early() {
 	// right now 10 snakes will each interact with 10 newts. 10 snakes will be tested and up to 100 newts
 	// What does this do to the results of my simulation?
 	//snakeNeighbors = 	sample(p0.individuals, asInteger(0.80*p0.individualCount)); //a good percentage of the snakes will interact with newts
-	snakeNeighbors = 	sample(p0.individuals, asInteger(10)); // 10 snakes will interacte with 10 newts
+	snakeNeighbors = 	sample(p0.individuals, asInteger(45)); // 45 snakes will interacte with 10 newts
 	
 	for (ind_snake in snakeNeighbors){
 		// does a snake meet a newt? 
 		
 		//newt_meet_snake = sample(p1.individuals, asInteger(interaction_rate*p1.individualCount));
-		newt_meet_snake = sample(p1.individuals, asInteger(10)); // how many newts will be eaten by a snake (eatnewt=10)
+		newt_meet_snake = sample(p1.individuals, asInteger(1)); // how many newts will potentially be eaten by a snake (eatnewt=10)
 		
 		// then go one newt at a time and see the outcome of the interaction which is dependent on phenotypes (check to make sure newt is still alive)
 		for(ind_newt in newt_meet_snake){
