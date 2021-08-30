@@ -139,7 +139,7 @@ return(p)
 }
 
 
-var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE){
+var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE){
 
   data_frame_newt_temp_x <- Newt_file_x
   data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
@@ -167,17 +167,34 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
   data_frame_snake <- cbind(data_frame_snake_x, data_frame_snake_y)
   data_frame_snake <- data_frame_snake[-4]
   
- combo <- rbind(data_frame_newt, data_frame_snake)
- combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
- 
-p <- ggplot(combo_s) +
-  #xlim(0, 1000)+
-    ggtitle(title, subtitle = subt) +
-    xlab(x_label) + ylab(y_label)+
-    geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color=type), alpha=0.1)+
-    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
-    theme(plot.title = element_text(size=5)) +
-    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  
+ if(subtract_x==FALSE){
+   combo <- rbind(data_frame_newt, data_frame_snake)
+   combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
+   p <- ggplot(combo_s) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color=type), alpha=0.1)+
+      scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+ }
+ if(subtract_x==TRUE){
+    subtract_val <- data_frame_snake_x$value_x - data_frame_newt_x$value_x
+    total_sub_dataframe <- data.frame(subtract_val, data_frame_newt_y$value_y, data_frame_snake_y$value_y)
+    total_sub_dataframe <- total_sub_dataframe[sample(nrow(total_sub_dataframe), nrow(total_sub_dataframe)), ]
+    colnames(total_sub_dataframe) <- c("SnakeMisNewt_Pheno","Newts_Killed","Snakes_Killed")
+     p <- ggplot(total_sub_dataframe) +
+      #xlim(0, 1000)+
+       ggtitle(title, subtitle = subt) +
+       xlab(x_label) + ylab(y_label)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Newts_Killed), color="Newts_Killed"), alpha=0.1)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Snakes_Killed), color="Snakes_Killed"), alpha=0.1)+
+        scale_colour_manual(name = "Species", values = c("Newts_Killed" = "darkred", "Snakes_Killed" = "steelblue"))+
+        theme(plot.title = element_text(size=5)) +
+        theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+}
   if(logy==TRUE){
     p = p + scale_y_log10()
   }
@@ -259,6 +276,18 @@ After plotting these three figures I noticed that density and population size ar
 
 The phenotype vs food is a mess. I am having a lot of trouble seeing a potential trend. Maybe the way I chose to color the points is making this more difficult. There probably is no trend. It seems like there is no correlation between phenotype and ability to kill the the other species. It might be better to look at an individuals' fitness and its ability not to die, in order to determine if having a higher phenotype is beneficial.  
 
+## What About The Difference between Phenotypes??
+
+It is possible that there might be an interaction between the phenotypes of newts and snakes and the amount of newts and snakes killed by the opposite species. To see if there might be a rough interaction I will look at the difference between the mean snake and the mean newt phenotype (snakes-newts) and the amount of individuals killed by the other species per year they  have been alive. I predict that when the phenotypess are similar there will be an equal amount of newts and snakes killed. When the phenotypes are different I will predict that the species with the higher phenotype will be killed less. 
+
+```{r, pheno difference and amount killed}
+
+p4 <- var_by_var( Newt_mean, Snake_mean, mean_newts_eaten, mean_snakes_eaten, title="Phenotype Differences vs Individals Killed", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Mean Phenotype Difference (Snake - Newt)", y_label="Species Killed by the Other Species", subtract_x=TRUE) 
+
+p4
+```
+
+This is the opposite of what I thought would occur. So much so I am triple checking the code. This figure makes it seem like there are more snakes killed the higher the snake phenotype is. Or there are less newts killed the higher the phenotype for the snake. Maybe this is an indication that newts and snakes are competing so that there are area of high resistance and areas of high toxicity which can cancel each other out but still produce a high mean phenotype? This seems very weird to me! I would need to look at the difference between individuals phenotypes based on their locations and then see where the killed values are coming from. Very strange result. 
 
 ## Is it Coevolution
 
