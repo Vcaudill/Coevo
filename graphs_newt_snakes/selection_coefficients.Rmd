@@ -12,6 +12,8 @@ library(gridExtra)
 library(tidyverse)
 require(reshape2)
 library(plyr)
+library(gridGraphics)
+library(grid)
 ```
 
 ## My Goals
@@ -22,13 +24,183 @@ Beta calculation for the Newt: beta_n = cor(phenotypes_n, inds_n.fitnessScaling)
 Beta calculation for the Snake:	beta_s = cor(phenotypes_s, inds_s.fitnessScaling);
 **Must be calculated in early. fitnessScaling set to 0 if newt or snake is killed by the opposite species, but what about interspecific interactions (density dependence)**
 
+```{r, making data frames}
+
+making_data_frames <- function(files, spe_col) {
+i=1
+for (current_file in files){
+ # print(current_file)
+
+  if(i ==1){
+    file <- read.table(current_file, header = TRUE)
+  
+    file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+      # might want to change to all_of(spe_col)
+    file %>% 
+      select(all_of(spe_col), gen) %>%
+      #rownames_to_column() %>% 
+      gather(variable, value, -gen) %>% 
+      spread(gen, value) -> new_file
+      
+    new_file$variable[i] <- paste0(spe_col,"_trial_", i)
+    i = i + 1
+    next
+    }
+  file <- read.table(current_file, header = TRUE)
+  
+  file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+
+file %>% 
+  select(all_of(spe_col), gen) %>%
+  #rownames_to_column() %>% 
+  gather(variable, value, -gen) %>% 
+  spread(gen, value) -> temp_file
+
+temp_file$variable[1] <- paste0(spe_col,"_trial_", i)
+
+new_file<-rbind(new_file, temp_file)
+i = i + 1
+}
+return(new_file)
+}
+
+```
 
 
+```{r, making resueable figures}
 
+phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE, leg_off=FALSE){
+  data_frame_temp <- as.data.frame(t(file))
+  
+  colnames(data_frame_temp) <- data_frame_temp[1,]
+  names(data_frame_temp) <- colnames(data_frame_temp)
+  steps <- colnames(file[ , !(names(file) %in% "variable")])
+data_frame_temp <- data_frame_temp[-1, ] 
+data_frame_temp$steps <- as.numeric(unlist(steps))
+  
+  graph_file <- melt(data_frame_temp,  id.vars = 'steps', variable.name = 'series')
+  
+    p <- ggplot(graph_file, aes(steps, as.numeric(value))) + geom_line(aes(colour = series))+ 
+    ggtitle(title, subtitle = subt) +
+    scale_color_manual(values = rep(my_color, nrow(file)))+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() + theme(legend.position="none")
+    
+    if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype (Log)")
+    }
+     if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+    return(p)
+}
+
+var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE){
+
+  data_frame_newt_temp_x <- Newt_file_x
+  data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
+  
+  data_frame_snake_temp_x <- Snake_file_x
+  data_frame_snake_temp_x <- data_frame_snake_temp_x[ , !(names(data_frame_snake_temp_x) %in% "variable")]
+  
+  data_frame_newt_temp_y <- Newt_file_y
+  data_frame_newt_temp_y <- data_frame_newt_temp_y[ , !(names(data_frame_newt_temp_y) %in% "variable")]
+  
+  data_frame_snake_temp_y <- Snake_file_y
+  data_frame_snake_temp_y <- data_frame_snake_temp_y[ , !(names(data_frame_snake_temp_y) %in% "variable")]
+  
+  
+  
+  Number <- colnames(data_frame_newt_temp_x)
+  data_frame_newt_x <- gather(data_frame_newt_temp_x, Number, value_x)
+  data_frame_newt_x$type <- "Newt"
+  data_frame_newt_y <- gather(data_frame_newt_temp_y, Number, value_y)
+  data_frame_newt <- cbind(data_frame_newt_x, data_frame_newt_y)
+  data_frame_newt <- data_frame_newt[-4]
+  data_frame_snake_x <- gather(data_frame_snake_temp_x, Number, value_x)
+  data_frame_snake_x$type <- "Snake"
+  data_frame_snake_y <- gather(data_frame_snake_temp_y, Number, value_y)
+  data_frame_snake <- cbind(data_frame_snake_x, data_frame_snake_y)
+  data_frame_snake <- data_frame_snake[-4]
+  
+  
+ if(subtract_x==FALSE){
+   combo <- rbind(data_frame_newt, data_frame_snake)
+   combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
+   p <- ggplot(combo_s) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color=type), alpha=0.1)+
+      scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+ }
+ if(subtract_x==TRUE){
+    subtract_val <- data_frame_snake_x$value_x - data_frame_newt_x$value_x
+    total_sub_dataframe <- data.frame(subtract_val, data_frame_newt_y$value_y, data_frame_snake_y$value_y)
+    total_sub_dataframe <- total_sub_dataframe[sample(nrow(total_sub_dataframe), nrow(total_sub_dataframe)), ]
+    colnames(total_sub_dataframe) <- c("SnakeMisNewt_Pheno","Newts_Killed","Snakes_Killed")
+     p <- ggplot(total_sub_dataframe) +
+      #xlim(0, 1000)+
+       ggtitle(title, subtitle = subt) +
+       xlab(x_label) + ylab(y_label)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Newts_Killed), color="Newts_Killed"), alpha=0.1)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Snakes_Killed), color="Snakes_Killed"), alpha=0.1)+
+        scale_colour_manual(name = "Species", values = c("Newts_Killed" = "darkred", "Snakes_Killed" = "steelblue"))+
+        theme(plot.title = element_text(size=5)) +
+        theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+}
+  if(logy==TRUE){
+    p = p + scale_y_log10()
+  }
+  return(p)
+ 
+  
+}
+```
+
+```{r, beta info}
+
+
+```
 ## The interaction of Newts and Snakes
 
-I was wondering how often newts and snakes interact in a SLiMulation so I had SLiM print out four values, snake_found_newt (when a snake was potentially able to find  a newt), newt_found (a snake found a newt), snake_deaths (snakes that were killed by newts), and newt_deaths (newts that were eaten by snakes). I also added the population size for newts and snakes to see in the number of interactions depend on the population size - which is linked to density. It looks like one the population size stabilizes (around 100 generations) there are 30-60 interactions each generation. Today 8/30/2021 I will run 20 of the same simulation to see if I can get a consensus on how many times newts and snake interact in each generation. Once I get this value I can plug it into nospace.slim to compare the results of the same simulation to a simulation with a lack of space. This will hopefully help me understand how space effects the coevolution of newts and snakes   
+I was wondering how often newts and snakes interact in a SLiMulation so I had SLiM print out four values, snake_found_newt (when a snake was potentially able to find  a newt), newt_found (a snake found a newt), snake_deaths (snakes that were killed by newts), and newt_deaths (newts that were eaten by snakes). I also added the population size for newts and snakes to see in the number of interactions depend on the population size - which is linked to density. It looks like one the population size stabilizes (around 100 generations) there are 30-60 interactions each generation. Today 8/30/2021 I will run 20 of the same simulation to see if I can get a consensus on how many times newts and snake interact in each generation. Once I get this value I can plug it into nospace.slim to compare the results of the same simulation to a simulation with a lack of space. This will hopefully help me understand how space effects the coevolution of newts and snakes 
 
+```{r, the amount of interactions, fig.show='hide'}
+
+files <- list.files(path="~/Desktop/Coevo/data/interaction", pattern="txt", full.names=TRUE, recursive=FALSE)
+
+file <- read.table(files[1], header = TRUE)
+#gen    snake_found_newt    newt_found    snake_deaths    newt_deaths    snake_pop_size    newt_pop_size
+
+
+newt_found <- making_data_frames(files, all_of("newt_found"))
+snake_deaths <- making_data_frames(files, all_of("snake_deaths"))
+newt_deaths <- making_data_frames(files, all_of("newt_deaths"))
+snake_pop_size <- making_data_frames(files, all_of("snake_pop_size"))
+newt_pop_size <- making_data_frames(files, all_of("newt_pop_size"))
+
+
+hist(unlist(newt_found[ , 2:1001]), col="palevioletred", main="Number of Interactions", xlab="Interactions") 
+abline(v = mean(unlist(newt_found[ , 2:1001])), col = "red", lwd = 2)
+grid.echo()
+a <- grid.grab()
+
+b <- phenotype_trends(newt_found, title="Interaction Trends By Generations", subt="sigma = 0.1, mu = 1.0e-10", my_color="purple", is_log=FALSE)
+
+c <- var_by_var(newt_pop_size, snake_pop_size, newt_found, newt_found, title="Population Size vs Interaction", subt="sigma = 0.1, mu = 1.0e-10", y_label="Interaction", x_label="Population Size" ) 
+
+d <- var_by_var(newt_found, newt_found, newt_deaths, snake_deaths, title="Interaction vs Deaths", subt="sigma = 0.1, mu = 1.0e-10", y_label="Deaths", x_label="Number of Interactions" ) 
+
+grid.arrange(a , b, c, d, nrow=2)
+
+```
+
+```{r, interation plot display}
+grid.arrange(a , c, b, d, nrow=2)
+
+```
 
 ## No Space SLiM Results
 
