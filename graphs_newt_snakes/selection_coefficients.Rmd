@@ -94,7 +94,7 @@ data_frame_temp$steps <- as.numeric(unlist(steps))
     return(p)
 }
 
-var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE, by_gen=FALSE){
+var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE, by_gen=FALSE, just_two=FALSE){
 
   data_frame_newt_temp_x <- Newt_file_x
   data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
@@ -160,7 +160,21 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
       scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
       theme(plot.title = element_text(size=5)) +
       theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
-}
+  }
+  
+  
+  
+   if(just_two==TRUE){
+     just2 <- cbind(data_frame_newt_x, data_frame_snake_y)
+     just2 <- just2[-4]
+       p <- ggplot(just2) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y)), color = "darkgreen", alpha=0.1)+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  }
   if(logy==TRUE){
     p = p + scale_y_log10()
   }
@@ -187,7 +201,9 @@ Newt_age <- making_data_frames(files, all_of("Newt_age"))
 Snake_age <- making_data_frames(files, all_of("Snake_age"))
 Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
 Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
+```
 
+```{r, beta figures}
 var_by_var( beta_n, beta_s, beta_n, beta_s, title="Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
 
 var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE) 
@@ -201,7 +217,15 @@ var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_age, Snake_age, title="Diffe
 var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_pop_size, Snake_pop_size, title="Differnece in mean phenotype by PopSize", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="PopSize", subtract_x=TRUE) 
 
 
-var_by_var(  beta_n, beta_n, beta_s, beta_s, title="Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas") 
+var_by_var(beta_n, beta_s, beta_n, beta_s, title="Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
+
+var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
+
+
+hist(unlist(beta_n[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), main="Beta Values", xlab="Beta",ylim=c(0,2100)) 
+hist(unlist(beta_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), add = TRUE) 
+abline(v = mean(unlist(beta_n[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
 
 ```
 ## The interaction of Newts and Snakes
