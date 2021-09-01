@@ -18,7 +18,7 @@ library(grid)
 
 ## My Goals
 
-The goal of this experiment is to see if there is a link between the phenotype of a newt or snake and its ability to survive. This prediction stems from the idea that if a phenotype is higher in a newt or snake, the individual will survive an interaction with the opposite species. To look at this I will calculate the correlation between an individuals phenotype and an individuals SLiM fitnessScaling. There are some potential problems with this calculation, like space (some areas one phenotype might be beneficial, but it others not) and that the interaction is not very strong. 
+The goal of this experiment is to see if there is a link between the phenotype of a newt or snake and its ability to survive. This prediction stems from the idea that if a phenotype is higher in a newt or snake, the individual will survive an interaction with the opposite species. To look at this I will calculate the correlation between an individuals phenotype and an individuals SLiM fitnessScaling (I am calling it beta). There are some potential problems with this calculation, like space (some areas one phenotype might be beneficial, but it others not) and that the interaction is not very strong. 
 
 Beta calculation for the Newt: beta_n = cor(phenotypes_n, inds_n.fitnessScaling);
 Beta calculation for the Snake:	beta_s = cor(phenotypes_s, inds_s.fitnessScaling);
@@ -66,7 +66,6 @@ return(new_file)
 
 ```
 
-
 ```{r, making resueable figures}
 
 phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE, leg_off=FALSE){
@@ -83,11 +82,11 @@ data_frame_temp$steps <- as.numeric(unlist(steps))
     p <- ggplot(graph_file, aes(steps, as.numeric(value))) + geom_line(aes(colour = series))+ 
     ggtitle(title, subtitle = subt) +
     scale_color_manual(values = rep(my_color, nrow(file)))+
-    xlab("Generations") + ylab("Phenotype")+
+    xlab("Generations") + ylab("Interaction")+
     theme_bw() + theme(legend.position="none")
     
     if(is_log==TRUE){
-  p = p + scale_y_log10() + ylab("Phenotype (Log)")
+  p = p + scale_y_log10() + ylab("Interaction (Log)")
     }
      if(leg_off==TRUE){
  p = p+ theme(legend.position = "none")}
@@ -138,14 +137,14 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
     subtract_val <- data_frame_snake_x$value_x - data_frame_newt_x$value_x
     total_sub_dataframe <- data.frame(subtract_val, data_frame_newt_y$value_y, data_frame_snake_y$value_y)
     total_sub_dataframe <- total_sub_dataframe[sample(nrow(total_sub_dataframe), nrow(total_sub_dataframe)), ]
-    colnames(total_sub_dataframe) <- c("SnakeMisNewt_Pheno","Newts_Killed","Snakes_Killed")
+    colnames(total_sub_dataframe) <- c("SnakeMisNewt_Pheno","Newts","Snakes")
      p <- ggplot(total_sub_dataframe) +
       #xlim(0, 1000)+
        ggtitle(title, subtitle = subt) +
        xlab(x_label) + ylab(y_label)+
-       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Newts_Killed), color="Newts_Killed"), alpha=0.1)+
-       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Snakes_Killed), color="Snakes_Killed"), alpha=0.1)+
-        scale_colour_manual(name = "Species", values = c("Newts_Killed" = "darkred", "Snakes_Killed" = "steelblue"))+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Newts), color="Newts"), alpha=0.1)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Snakes), color="Snakes"), alpha=0.1)+
+        scale_colour_manual(name = "Species", values = c("Newts" = "darkred", "Snakes" = "steelblue"))+
         theme(plot.title = element_text(size=5)) +
         theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
  }
@@ -187,8 +186,7 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
 ```{r, beta info}
 # graph the betas
 files <- list.files(path="~/Desktop/beta_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
-file <- read.table(files[1], header = TRUE)
-file$Newt_pop_size
+#file <- read.table(files[1], header = TRUE)
 beta_n <- making_data_frames(files, all_of("beta_n"))
 beta_s <- making_data_frames(files, all_of("beta_s"))
 Newt_mean_Pheno <- making_data_frames(files, all_of("Newt_mean_Pheno"))
@@ -203,31 +201,68 @@ Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
 Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
 ```
 
-```{r, beta figures}
-var_by_var( beta_n, beta_s, beta_n, beta_s, title="Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
 
-var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE) 
+First, I  will look to see if there is an interaction between the newt and snake phenotypes and the amount of newts and snakes that are being killed (specifically killed by the other species). I predict that when snakes have a higher phenotype more newts will be killed and less snakes will be killed. When the phenotype of the newt is higher I  predict that more snakes will be killed. When the phenotypes of newts and snakes are similar I predict that both newts and snakes will be killed at the same rate. Previously, I had seen that there were less newts being killed when the snake phenotype was higher.
 
-var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, mean_newts_eaten, mean_snakes_eaten, title="Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Deaths/age", subtract_x=TRUE) 
+```{r, dif of pheno by deatage}
 
-var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, newt_deaths, snake_deaths, title="Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Deaths", subtract_x=TRUE) 
+var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, mean_newts_eaten, mean_snakes_eaten, title="Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Deaths/age", subtract_x=TRUE)
+```
 
-var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_age, Snake_age, title="Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
+I thought the results were strange (seems like less newts dying when snake phenotype is higher) so I looked into further into what might be happening. I recorded the number of newt and snake deaths (cause by the other species) every 20 generations and recorded the population sizes for each species.
 
-var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_pop_size, Snake_pop_size, title="Differnece in mean phenotype by PopSize", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="PopSize", subtract_x=TRUE) 
+```{r, indepth obv of phenotype and surviver}
+ps1 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, newt_deaths, snake_deaths, title="Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Deaths", subtract_x=TRUE) 
+
+ps2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_pop_size, Snake_pop_size, title="Differnece in mean phenotype by PopSize", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="PopSize", subtract_x=TRUE) 
 
 
-var_by_var(beta_n, beta_s, beta_n, beta_s, title="Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
+grid.arrange(ps1, ps2, nrow=1)
+```
 
-var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
+I found that there was an interaction between the difference in phenotype of newts and snakes and survivability of sorts. When the phenotype of the snake is higher less snakes were dying, but so where less newts. Less newts dying is probably due to the population size of newts being diminished when the phenotype of the snake is high. It's possible that the most resistant snakes ate all of the newts in that area and just had fewer newts to eat. The reverse also happens when newts have a higher phenotype. There are less snakes and newts dying, bit the population size of snakes is small. Red and blue xmas tree and X marks the spot.
 
+Next, I look into the betas and am not sure what I expect. I know the interaction between newts and snakes is small each generation, but there seems to be some interaction between phenotype and the ability for an individual to survive. 
+
+Lets look at the distribution
+
+```{r, beta distribution}
 
 hist(unlist(beta_n[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), main="Beta Values", xlab="Beta",ylim=c(0,2100)) 
 hist(unlist(beta_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), add = TRUE) 
 abline(v = mean(unlist(beta_n[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
 abline(v = mean(unlist(beta_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
+legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
 
 ```
+
+The beta values for newts and snakes seem to be similar. The means are also very close.
+
+Lets plot the beta values for the newt against the beta values for the snake.
+
+```{r, comp betas}
+var_by_var(beta_n, beta_s, beta_n, beta_s, title="Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
+
+```
+
+I present to you the green eyeball. It looks like there is no correlation between newt beta values and snake beta values. Prediction: this might be due to space, some areas might have correlation while other don't. **This is one value for the entire area** 
+
+Finally, the last few graphs are extra things to look at. 
+
+```{r, beta figures}
+g1 <- var_by_var( beta_n, beta_s, beta_n, beta_s, title="Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
+
+g2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
+
+g3 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_age, Snake_age, title="Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
+
+g4 <- var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
+
+
+grid.arrange(g1, g2, g3, g4, nrow=2)
+
+```
+
 ## The interaction of Newts and Snakes
 
 I was wondering how often newts and snakes interact in a SLiMulation so I had SLiM print out four values, snake_found_newt (when a snake was potentially able to find  a newt), newt_found (a snake found a newt), snake_deaths (snakes that were killed by newts), and newt_deaths (newts that were eaten by snakes). I also added the population size for newts and snakes to see in the number of interactions depend on the population size - which is linked to density. It looks like one the population size stabilizes (around 100 generations) there are 30-60 interactions each generation. Today 8/30/2021 I will run 20 of the same simulation to see if I can get a consensus on how many times newts and snake interact in each generation. Once I get this value I can plug it into nospace.slim to compare the results of the same simulation to a simulation with a lack of space. This will hopefully help me understand how space effects the coevolution of newts and snakes 
@@ -239,13 +274,11 @@ files <- list.files(path="~/Desktop/Coevo/data/interaction", pattern="txt", full
 file <- read.table(files[1], header = TRUE)
 #gen    snake_found_newt    newt_found    snake_deaths    newt_deaths    snake_pop_size    newt_pop_size
 
-
 newt_found <- making_data_frames(files, all_of("newt_found"))
 snake_deaths <- making_data_frames(files, all_of("snake_deaths"))
 newt_deaths <- making_data_frames(files, all_of("newt_deaths"))
 snake_pop_size <- making_data_frames(files, all_of("snake_pop_size"))
 newt_pop_size <- making_data_frames(files, all_of("newt_pop_size"))
-
 
 hist(unlist(newt_found[ , 2:1001]), col="palevioletred", main="Number of Interactions", xlab="Interactions") 
 abline(v = mean(unlist(newt_found[ , 2:1001])), col = "red", lwd = 2)
@@ -267,5 +300,10 @@ grid.arrange(a , c, b, d, nrow=2)
 
 ```
 
+It seems like newts and snakes interact between 20 and 60 times each generation. The mean is around 40. Snakes also seem to have a higher population size.  The number of interactions become steady around 150 generations. As the number of interactions increase the number of death increase and its even between both species
+
+
 ## No Space SLiM Results
+
+next one
 
