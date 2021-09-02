@@ -66,7 +66,7 @@ return(new_file)
 
 ```
 
-```{r, making resueable figures}
+```{r, making resueable figures, results='hide', message=FALSE, warning=FALSE}
 
 phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE, leg_off=FALSE){
   data_frame_temp <- as.data.frame(t(file))
@@ -93,7 +93,7 @@ data_frame_temp$steps <- as.numeric(unlist(steps))
     return(p)
 }
 
-var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE, by_gen=FALSE, just_two=FALSE){
+var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE, by_gen=FALSE, just_two=FALSE, colored=FALSE, color_label=NULL, highcol="darkseagreen"){
 
   data_frame_newt_temp_x <- Newt_file_x
   data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
@@ -173,14 +173,44 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
       geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y)), color = "darkgreen", alpha=0.1)+
       theme(plot.title = element_text(size=5)) +
       theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+   }
+  
+
+   if(colored==TRUE){
+     color3 <- cbind(data_frame_newt_x, data_frame_snake_y, data_frame_newt_y)
+     color3 <- color3[-c(1,3,4,6)]
+     suppressWarnings(suppressMessages(suppressPackageStartupMessages({require(scales)})))
+     amin <- 0.1
+     lowcol.hex <- as.hexmode(round(col2rgb(highcol) * amin + 255 * (1 - amin)))
+     lowcol <- paste0("#",   sep = "",
+                 paste(format(lowcol.hex, width = 2), collapse = ""))
+       p <- ggplot(color3) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color = value_y.1))+
+      theme(plot.title = element_text(size=5)) +
+      scale_colour_gradient(high = highcol, low = lowcol) + 
+      labs(colour = color_label) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
   }
   if(logy==TRUE){
     p = p + scale_y_log10()
   }
+  
+  
+  
   return(p)
  
   
 }
+
+
+
+
+
+
+
 ```
 
 ```{r, beta info}
@@ -221,6 +251,39 @@ grid.arrange(ps1, ps2, nrow=1)
 ```
 
 I found that there was an interaction between the difference in phenotype of newts and snakes and survivability of sorts. When the phenotype of the snake is higher less snakes were dying, but so where less newts. Less newts dying is probably due to the population size of newts being diminished when the phenotype of the snake is high. It's possible that the most resistant snakes ate all of the newts in that area and just had fewer newts to eat. The reverse also happens when newts have a higher phenotype. There are less snakes and newts dying, bit the population size of snakes is small. Red and blue xmas tree and X marks the spot.
+
+Sinse there seems to be an interaction between phenotype and population size, I will look at how the population size lines up with the mean phenotype of newts and snakes. I predict that there will be an arc of color ranging from light to dark depending on which species has a higher population size.
+
+```{r, popsize of newts and snakes with color of phenotype}
+vc1 <- var_by_var(Newt_pop_size, Newt_mean_Pheno, Newt_mean_Pheno, Snake_pop_size, title="Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred") 
+
+vc2 <- var_by_var(Newt_pop_size, Snake_mean_Pheno, Snake_mean_Pheno, Snake_pop_size, title="Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
+
+vc1 
+vc2
+# for(i in 1:107){
+# print(i)
+# Newt_mean_Pheno_1 <- making_data_frames(files[i], all_of("Newt_mean_Pheno"))
+# Snake_mean_Pheno_1 <- making_data_frames(files[i], all_of("Snake_mean_Pheno"))
+# Newt_pop_size_1 <- making_data_frames(files[i], all_of("Newt_pop_size"))
+# Snake_pop_size_1 <- making_data_frames(files[i], all_of("Snake_pop_size"))
+# 
+# naame_of_file= paste0("~/Desktop/figs/both_", i, ".png")
+# png(filename =naame_of_file)
+# vc_11 <- var_by_var(Newt_pop_size_1, Newt_mean_Pheno_1, Newt_mean_Pheno_1, Snake_pop_size_1, title="Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred")
+# #dev.off()
+# 
+# #naame_of_file_2= paste0("~/Desktop/figs/snakes_", i, ".png")
+# #png(filename = naame_of_file_2)
+# vc_12 <- var_by_var(Newt_pop_size_1, Snake_mean_Pheno_1, Snake_mean_Pheno_1, Snake_pop_size_1, title="Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
+# print(grid.arrange(vc_11, vc_12))
+# dev.off()
+#}
+```
+
+I made some nice whale graphs! When the newt population size is large and the snakes population size is small the newt phenotype is high. When the newt population size is small and the snake population size is large the newts have a lower phenotype. Something strange happens with the phenotype of the snake, it is higher when the newt population size is large and the snake population size is small. The snake phenotype is also high when the snake population size is large and the newt population size is small. My theory is that the few remaining snakes in an area of very toxic newts are very resistant, but why don't we see the opposite happening in newts? <- this also happens in the snake-newt papers weird.
+I would be wary of the whale graphs because these are a combined results of 107 simulations with a sample collected every 20 generations. It might be different in each separate simulation. 
+
 
 Next, I look into the betas and am not sure what I expect. I know the interaction between newts and snakes is small each generation, but there seems to be some interaction between phenotype and the ability for an individual to survive. 
 
@@ -302,6 +365,42 @@ grid.arrange(a , c, b, d, nrow=2)
 
 It seems like newts and snakes interact between 20 and 60 times each generation. The mean is around 40. Snakes also seem to have a higher population size.  The number of interactions become steady around 150 generations. As the number of interactions increase the number of death increase and its even between both species
 
+Now, I am just going to run some numbers to see what the interaction rate was in my 1on1 slim simulation and what is should be set to in my nospace slim. In my 1on1 slimulations I us an interaction rate of 0.05 and surprisingly when I reverse calculate it from the mean number of interactions and mean population size I get 0.05 so it seems like it is working which is good (population specific to snake pop size). 
+
+```{r, relationship of interaction and pop size}
+
+population_size = 700
+number_of_interaction = 40
+
+interaction_rate = number_of_interaction/population_size
+
+print(paste0("If the population size is ", population_size, " and the number of interactions is ", number_of_interaction, ", then the interation rate is ", interaction_rate, "."))
+
+population_size = 600
+number_of_interaction = 40
+interaction_rate = number_of_interaction/population_size
+
+print(paste0("If the population size is ", population_size, " and the number of interactions is ", number_of_interaction, ", then the interation rate is ", interaction_rate, "."))
+
+population_size = 800
+number_of_interaction = 40
+interaction_rate = number_of_interaction/population_size
+
+print(paste0("If the population size is ", population_size, " and the number of interactions is ", number_of_interaction, ", then the interation rate is ", interaction_rate, "."))
+
+interaction_rate = 0.05
+population_size = 700
+number_of_interaction = population_size*interaction_rate
+print(paste0("Now if I pick the interaction rate of ", interaction_rate, " and the number of individuals is ", population_size, ", the number of interactions should be ", number_of_interaction))
+
+
+var_by_var(newt_pop_size, newt_found, newt_found, snake_pop_size, title="Newt VS Snake Population Size Color = Number of Interaction", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Population Size", x_label="Newt Population Size", colored=TRUE, color_label="Interaction") 
+
+```
+
+This light green cloud shows that when the population size is larger there are more interactions. This picture reminds me of a rain cloud.  
+
+It seems like using the formula population_size*interaction_rate will get me the correct number of interactions every time so I should devise a way to have a normal distribution with a mean around 40. 
 
 ## No Space SLiM Results
 

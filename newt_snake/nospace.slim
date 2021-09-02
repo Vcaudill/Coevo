@@ -38,6 +38,7 @@ fitness(m1) { return 1.0; }
 fitness(m2) { return 1.0; }// when it is gone population size explodes
 
 reproduction(p1) {//newts
+//distribution
 	offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
 }
 
@@ -92,13 +93,21 @@ early() {
 	//////Interaction////////
 	// I would like some snakes to "run" into some newts then compair their phenotypes.
 	// on average how many newts do snakes interact with? somewhere around 40 each genoration
-	// right now 45 snakes will each interact with 45 newts. 1 to 1 ratio might not be correct
 	
-	snakeNeighbors = 	sample(p0.individuals, asInteger(45)); // 45 snakes will interacte with 1 newt each
+	snakeNeighbors = 	sample(p0.individuals, asInteger(round(p0.individualCount*rnorm(1,mean=interaction_rate,sd=0.01)))); // some snakes will interact with a newt depending on the interaction rate and the population size.
+// more dencely population will interact more
+	newt_meet_snake = sample(p1.individuals, asInteger(round(p1.individualCount*rnorm(1,mean=interaction_rate,sd=0.01)))); // how many newts will potentially be eaten by a snake 
+
+catn(length(snakeNeighbors) + "   " + p0.individualCount+ "    " + length(newt_meet_snake) + "    " + p1.individualCount);
+
+//My idea
+//select the amount of snakes and newts that will be a part of the interaction
+//pair them up if one has more double some of them up
+
 	
 	for (ind_snake in snakeNeighbors){
 		// does a snake meet a newt? 
-		newt_meet_snake = sample(p1.individuals, asInteger(1)); // how many newts will potentially be eaten by a snake (eatnewt=1)
+		
 		
 		// then go one newt at a time and see the outcome of the interaction which is dependent on phenotypes (check to make sure newt is still alive) 
 		for(ind_newt in newt_meet_snake){
