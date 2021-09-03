@@ -7,5 +7,6 @@ place<-"data/size/"
 split_df = make_dichotomy(file_info, place)
 #adding a line for git
 #second test for git
+# a third test for good measure
 file <- data.frame(split_df[1])
 dichotomy<-data.frame(split_df[2])
