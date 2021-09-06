@@ -14,3 +14,4 @@ msprime_explore/*
 *keep figures out of git
 */.Rproj.user/*
 .Rproj.user/*
+.Rproj.user

@@ -206,11 +206,6 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
 }
 
 
-
-
-
-
-
 ```
 
 ```{r, beta info}
