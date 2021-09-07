@@ -10,7 +10,6 @@ initialize() {
 	defineConstant("newt_mu_rate", 1e-8); //newt mu will be more or less comman than snake
 	defineConstant("snake_mu_effect_sd", 1/10);
 	defineConstant("newt_mu_effect_sd", 1/10);
-	//defineConstant("msprime_file", "MSprome_sim/both_su_1e-08_nu_1e-12_sue_0.25_nue_0.25.init.trees");
 	defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01
 	
 	total_mut_rate = newt_mu_rate + snake_mu_rate;
@@ -38,12 +37,15 @@ fitness(m1) { return 1.0; }
 fitness(m2) { return 1.0; }// when it is gone population size explodes
 
 reproduction(p1) {//newts
-//distribution
+	//distribution
+	// mabe something like the pollen
 	offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
+	offspring.setValue("snakes_killed",0);
 }
 
 reproduction(p0) {//snakes
 	offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
+	offspring.setValue("newts_killed",0);
 }
 
 
@@ -51,6 +53,13 @@ reproduction(p0) {//snakes
 	//		I will need to use the coalescent simulations for newts and snakes
 	//		Then give the "neutral" mutations a selection coefficent
 	sim.readFromPopulationFile(msprime_file);
+	for (ind in p1.individuals) {
+		ind.setValue("snakes_killed",0);
+	}
+	for (ind in p0.individuals) {
+		ind.setValue("newts_killed",0);
+	}
+	
 	// sometimes there is a problem with this line and I need to change my directory
 
 }
@@ -90,20 +99,26 @@ early() {
 	
 	//Snake and Newt 1on1 interaction
 	
+	//How many individual newts and snakes are interacting each year
+	snake_found_newt = 0;
+	newt_found = 0;
+	snake_deaths = 0;
+	newt_deaths = 0;
+	
 	//////Interaction////////
 	// I would like some snakes to "run" into some newts then compair their phenotypes.
 	// on average how many newts do snakes interact with? somewhere around 40 each genoration
 	
 	snakeNeighbors = 	sample(p0.individuals, asInteger(round(p0.individualCount*rnorm(1,mean=interaction_rate,sd=0.01)))); // some snakes will interact with a newt depending on the interaction rate and the population size.
-// more dencely population will interact more
+	// more dencely population will interact more
 	newt_meet_snake = sample(p1.individuals, asInteger(round(p1.individualCount*rnorm(1,mean=interaction_rate,sd=0.01)))); // how many newts will potentially be eaten by a snake 
-
-catn(length(snakeNeighbors) + "   " + p0.individualCount+ "    " + length(newt_meet_snake) + "    " + p1.individualCount);
-
-//My idea
-//select the amount of snakes and newts that will be a part of the interaction
-//pair them up if one has more double some of them up
-
+	
+	catn(length(snakeNeighbors) + "   " + p0.individualCount+ "    " + length(newt_meet_snake) + "    " + p1.individualCount);
+	
+	//My idea
+	//select the amount of snakes and newts that will be a part of the interaction
+	//pair them up if one has more double some of them up
+	
 	
 	for (ind_snake in snakeNeighbors){
 		// does a snake meet a newt? 
@@ -111,8 +126,10 @@ catn(length(snakeNeighbors) + "   " + p0.individualCount+ "    " + length(newt_m
 		
 		// then go one newt at a time and see the outcome of the interaction which is dependent on phenotypes (check to make sure newt is still alive) 
 		for(ind_newt in newt_meet_snake){
+			snake_found_newt = snake_found_newt + 1;
 			//check to see if newt is alive, newt is not eaten by more than one snake 
 			if(ind_newt.fitnessScaling > 0){
+				newt_found = newt_found + 1;
 				//Could the snake eat the newt?
 				compair_pheno = phenotypes_s[ind_snake.index] - phenotypes_n[ind_newt.index]; // compairing the snake phentype to the newt phenotype
 				
@@ -126,27 +143,39 @@ catn(length(snakeNeighbors) + "   " + p0.individualCount+ "    " + length(newt_m
 				if(survive==T){ //Snake Survives 
 					ind_snake.fitnessScaling = ind_snake.fitnessScaling + PE; //snake with eating newt bonus 
 					ind_newt.fitnessScaling = 0; //newt
+					ind_snake.setValue("newts_killed",(ind_snake.getValue("newts_killed")+1));
+					newt_deaths = newt_deaths + 1;
 				
 				}
 				if(survive==F){ //Newt Survives
 					ind_snake.fitnessScaling = 0; //snake 
+					ind_newt.setValue("snakes_killed",(ind_newt.getValue("snakes_killed")+1));
+					snake_deaths = snake_deaths +1;
 					break; //break if snake dies
 				}
 			}
 		}
 		
-		//What is this doing?
+		//
 		outcome_n = rep(1.0, p1.individualCount);
 		outcome_s = rep(1.0, p0.individualCount);
 	
 	}
+	//Global Varables to look at			
+	defineGlobal("snake_found_newt", snake_found_newt);
+	defineGlobal("newt_found", newt_found);
+	defineGlobal("snake_deaths", snake_deaths);
+	defineGlobal("newt_deaths", newt_deaths);
 }
 
 
 // The varabales that I want to collect from slim 
 
 1 early(){
-	
+	// header info
+	cat("gen" + "    " + "Newt_age" + "    " + "Snake_age");
+	catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Newt_sd_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Snake_sd_Pheno" + "    " + "Newt_pop_size" +
+		"    " +"Snake_pop_size"+"    "+ "mean_newts_eaten"+"    "+ "sd_newts_eaten"+"    "+ "mean_snakes_eaten"+"    "+ "sd_snakes_eaten" +"    "+ "beta_n" + "    " + "beta_s" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "time");
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
 	
@@ -154,51 +183,55 @@ catn(length(snakeNeighbors) + "   " + p0.individualCount+ "    " + length(newt_m
 	// caculating the phenotype, but using the exponet to only have postive phenotypes
 	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
-	
-	
-	// header info
-	//cat("gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density");
-	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" + "    " +"Snake_pop_size"+"    "+ "time");
-	catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno");
+	beta_n = cor(phenotypes_n, inds_n.fitnessScaling);
+	beta_s = cor(phenotypes_s, inds_s.fitnessScaling);
 	
 	if (sim.generation == 1) {
-		//	cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
-		//	cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
-		//catn("    " + clock());
-		catn("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s));
-	
-	
+		cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age));
+		cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + sd(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + sd(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
+		cat("    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)));
+		catn("    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock());
 	}
 
 }
 
-
+early(){ //caculating the selection coefficents
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	
+	// caculating the phenotype, but using the exponet to only have postive phenotypes
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
+	
+	beta_n = cor(phenotypes_n, inds_n.fitnessScaling);
+	beta_s = cor(phenotypes_s, inds_s.fitnessScaling);
+	defineGlobal("beta_n", beta_n);
+	defineGlobal("beta_s", beta_s);	
+	
+}
 
 2: late() {
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
+
 	
+	// caculating the phenotype, but using the exponet to only have postive phenotypes
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
-	// Recaculating the phenotype for printing
-	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10);
-	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10);
-	
-	
-	if ((sim.generation % 20) == 0) {
-		//	cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
-		//	cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
-		//catn("    " + clock());
-		catn("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s));
-	
-	
-	}
+//	if ((sim.generation % 20) == 0) {
+//		cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age));
+//		cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + sd(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + sd(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
+//		cat("    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)));
+//		catn("    " + beta_n + "    "+ beta_s +"    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock());
+//	}
 }
 
 
 
-100000 late() {
+1000 late() {
 	// outpath will need to be defined in the slim call so will the varables and ending time
-	//sim.treeSeqOutput(outpath+"mu_rate"+mu_rate+ "newt_mu_rate"+newt_mu_rate + "snake_mu_effect_sd"+ snake_mu_effect_sd +"newt_mu_effect_sd" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+simID + "_late_500000" + "_.trees");
+	sim.treeSeqOutput(outpath+"mu_rate_"+mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_late_1000" + "_.trees");
 	catn("Done!");
 	sim.simulationFinished();
 }
