@@ -402,7 +402,31 @@ This light green cloud shows that when the population size is larger there are m
 
 It seems like using the formula population_size*interaction_rate will get me the correct number of interactions every time so I should devise a way to have a normal distribution with a mean around 40. 
 
-## No Space SLiM Results
+## How many newts are near a snake???
 
-next one
+I had SLiM print out the amount of newts that were in the range of each newt for 1000 generations. The parameters/msprime file were  "newt_snake/data/both_1000_su_1e-10_nu_1e-10_sue_0.1_nue_0.1_try_this_peter.init.trees"
+
+```{r, how many newts in range}
+newts_in_snakes_range <- read.table("~/Desktop/how_many_newts_in_range.txt", header =FALSE)
+
+
+hist(newts_in_snakes_range$V1, c="darkorchid4", main="Number of Newts Near a Snake", xlab="Number of Newts")
+abline(v = mean(newts_in_snakes_range$V1), col = "black", lwd = 2)
+```
+
+This purple Loch Ness monster represents the number of newts that resign in a particulars snakes range. It seems the mean is around 4, so there are on average 4 newts in a snakes range. I got these values from this line of slim: i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000), which might be something that I can control (change in the future?).   
+
+## No Space SLiM 
+
+Trying to make a realistic interaction between newts and snakes without space as a factor.
+I am also trying to make reproduction more realistic. 
+
+### Peters thoughts on the factors that will make the interaction more realstic 
+
+Suppose that they all live in a rectangular valley measuring **W** x **L** meters square. Each snake moves around in a range of area **As**. Say there are **Ns** snakes and **Nn** newts.
+
+
+1. How many newts on average are there in the range of a given snake? **As** * **Nn**/**W*****L**
+2. What proportion of newts are within the range of a given snake? (**As** * **Nn**/**W*****L**)**Nn**
+3. Suppose that when Nn == Ns we'd like each snake to encounter one newt on average every y years. What proportion of the newts within the snake's range should each snake encounter? ((**As** * **Nn**/**W*****L**)**Nn**)/**y**
 

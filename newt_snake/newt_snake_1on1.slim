@@ -197,7 +197,8 @@ early() {
 		// does a snake meet a newt? 
 		
 		mPoint = c(ind_snake.x,ind_snake.y);
-		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);// could make count smaller (limit the number of newts nearby) 
+		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);// could make count smaller (limit the number of newts nearby)
+//catn(length(newtNeighbors)); // figuring out the amount of newt neghbors for each snake
 		// sample number based on a combination of how close they are using a uniform distibution 
 		if (length(newtNeighbors) > 0){ //need newt to be nearby to eat
 			snake_found_newt = snake_found_newt + 1;
@@ -342,8 +343,8 @@ early() {
 	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" + "    " +"Snake_pop_size"+"    "+ "time");
 	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno");
 
-catn("gen" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "snake pop size" + "    " + "newt pop size");
-	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
+//catn("gen" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "snake pop size" + "    " + "newt pop size");
+//	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
 
 
 }
@@ -382,7 +383,7 @@ early(){
 		//catn(sim.generation + "    " + beta_n + "    "+ beta_s);
 		
 	}
-	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
+//	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
 }
 
 

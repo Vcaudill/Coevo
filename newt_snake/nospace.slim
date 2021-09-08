@@ -10,14 +10,14 @@ initialize() {
 	defineConstant("newt_mu_rate", 1e-8); //newt mu will be more or less comman than snake
 	defineConstant("snake_mu_effect_sd", 1/10);
 	defineConstant("newt_mu_effect_sd", 1/10);
-	defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01
+	defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.01, nme 0.01
 	
 	total_mut_rate = newt_mu_rate + snake_mu_rate;
 	
 	
 	defineConstant("K", 700);  // carrying-capacity of snakes and newts
 	defineConstant("G", 1e8);  // genome length
-	defineConstant("interaction_rate", 0.05);  // how the interation 
+	defineConstant("interaction_rate", 0.05);  // how the offten there is an interation 
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
@@ -32,13 +32,12 @@ initialize() {
 
 }
 
-// to make the mutions truly neutral, what is this doing?
+// make the mutions truly neutral
 fitness(m1) { return 1.0; }
 fitness(m2) { return 1.0; }// when it is gone population size explodes
 
 reproduction(p1) {//newts
-	//distribution
-	// mabe something like the pollen
+	// makine more offspings based on a poison dis
 	for (k in seqLen(rpois(1, 4))) {
 		offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
 		offspring.setValue("snakes_killed",0);
@@ -46,6 +45,7 @@ reproduction(p1) {//newts
 }
 
 reproduction(p0) {//snakes
+// makine more offspings based on a poison dis
 	for (k in seqLen(rpois(1, 4))) {
 		offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
 		offspring.setValue("newts_killed",0);
@@ -56,15 +56,14 @@ reproduction(p0) {//snakes
 1 early() {
 	//		I will need to use the coalescent simulations for newts and snakes
 	//		Then give the "neutral" mutations a selection coefficent
-	sim.readFromPopulationFile(msprime_file);
+	sim.readFromPopulationFile(msprime_file); // set Coevo as directory
 	for (ind in p1.individuals) {
-		ind.setValue("snakes_killed",0);
+		ind.setValue("snakes_killed",0); //Set this value to count the amount of snakes a newt kills
 	}
 	for (ind in p0.individuals) {
-		ind.setValue("newts_killed",0);
+		ind.setValue("newts_killed",0);//Set this value to count the amount of newts a snake kills
 	}
 	
-	// sometimes there is a problem with this line and I need to change my directory
 
 }
 
@@ -81,14 +80,14 @@ early() {
 	
 	//Fitness scaling
 	//////QUESTION////////
-	// I would also like to relate this to the other species population size so that they dont go extinct 
+	// Is it possible that one of the species will go extinct? 
 	inds_n.fitnessScaling = K / p1.individualCount;
 	inds_s.fitnessScaling = K / p0.individualCount;
 	
 	// construct phenotypes and fitness effects from QTLs 
 	inds_n.z = phenotypes_n;
 	inds_s.z = phenotypes_s;
-	// Color the boxes by phenotype
+	// Color the boxes by phenotype (for display)
 	for (n_ind in inds_n){
 		hue = ((n_ind.z + 1) / (1 * 2)) * 0.66;
 		n_ind.color = rgb2color(hsv2rgb(c(hue, 1.0, 1.0)));
@@ -103,7 +102,7 @@ early() {
 	
 	//Snake and Newt 1on1 interaction
 	
-	//How many individual newts and snakes are interacting each year
+	//How many individual newts and snakes are interacting each year?
 	snake_found_newt = 0;
 	newt_found = 0;
 	snake_deaths = 0;
@@ -111,7 +110,14 @@ early() {
 	
 	//////Interaction////////
 	// I would like some snakes to "run" into some newts then compair their phenotypes.
-	// on average how many newts do snakes interact with? somewhere around 40 each generation
+	// on average how many newts do snakes interact with? somewhere around 40 each generation in 1on1 slim
+
+//Peters suggestions
+//Suppose that they all live in a rectangular valley measuring W x L meters square. Each snake moves around in a range of area As. Say there are Ns snakes and Nn newts.
+//1. how many newts on average are there in the range of a given snake?  As * Nn/W*L
+//2. what proportion of newts are within the range of a given snake?  (As * Nn/W*L)/Nn
+//3. suppose that when Nn == Ns we'd like each snake to encounter one newt on average every y years. What proportion of the newts within the snake's range should each snake encounter?((As * Nn/W*L)/Nn)/y
+
 	
 	snakeNeighbors = 	sample(p0.individuals, rpois(1,interaction_rate*p0.individualCount));// some snakes will interact with a newt depending on the interaction rate and the population size.
 	// more dencely population will interact more
