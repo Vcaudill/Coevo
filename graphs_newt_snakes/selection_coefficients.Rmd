@@ -389,6 +389,11 @@ number_of_interaction = population_size*interaction_rate
 print(paste0("Now if I pick the interaction rate of ", interaction_rate, " and the number of individuals is ", population_size, ", the number of interactions should be ", number_of_interaction))
 
 
+interaction_rate = 0.05
+population_size = 3369
+number_of_interaction = population_size*interaction_rate
+print(paste0("Now if I pick the interaction rate of ", interaction_rate, " and the number of individuals is ", population_size, ", the number of interactions should be ", number_of_interaction))
+
 var_by_var(newt_pop_size, newt_found, newt_found, snake_pop_size, title="Newt VS Snake Population Size Color = Number of Interaction", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Population Size", x_label="Newt Population Size", colored=TRUE, color_label="Interaction") 
 
 ```

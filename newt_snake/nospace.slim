@@ -39,13 +39,17 @@ fitness(m2) { return 1.0; }// when it is gone population size explodes
 reproduction(p1) {//newts
 	//distribution
 	// mabe something like the pollen
-	offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
-	offspring.setValue("snakes_killed",0);
+	for (k in seqLen(rpois(1, 4))) {
+		offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
+		offspring.setValue("snakes_killed",0);
+	}
 }
 
 reproduction(p0) {//snakes
-	offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
-	offspring.setValue("newts_killed",0);
+	for (k in seqLen(rpois(1, 4))) {
+		offspring = subpop.addCrossed(individual, subpop.sampleIndividuals(1));
+		offspring.setValue("newts_killed",0);
+	}
 }
 
 
@@ -107,11 +111,16 @@ early() {
 	
 	//////Interaction////////
 	// I would like some snakes to "run" into some newts then compair their phenotypes.
-	// on average how many newts do snakes interact with? somewhere around 40 each genoration
+	// on average how many newts do snakes interact with? somewhere around 40 each generation
 	
-	snakeNeighbors = 	sample(p0.individuals, asInteger(round(p0.individualCount*rnorm(1,mean=interaction_rate,sd=0.01)))); // some snakes will interact with a newt depending on the interaction rate and the population size.
+	snakeNeighbors = 	sample(p0.individuals, rpois(1,interaction_rate*p0.individualCount));// some snakes will interact with a newt depending on the interaction rate and the population size.
 	// more dencely population will interact more
-	newt_meet_snake = sample(p1.individuals, asInteger(round(p1.individualCount*rnorm(1,mean=interaction_rate,sd=0.01)))); // how many newts will potentially be eaten by a snake 
+	newt_meet_snake = sample(p1.individuals, rpois(1,interaction_rate*p1.individualCount)); // how many newts will potentially be eaten by a snake 
+	
+	//right now I have made two list (one of newts and one of snakes) that I want to interact
+	// I want to pair these newts and snakes together but the lists will be uneaven and I dont know how to pair uneven lists or even if this is the correct thing to do.
+	
+	// I could use the snake list, rotate through the snakes then use a value for the newts and choose a new newt every time. This would require some sort of counter that reset each generation 
 	
 	catn(length(snakeNeighbors) + "   " + p0.individualCount+ "    " + length(newt_meet_snake) + "    " + p1.individualCount);
 	
@@ -206,30 +215,30 @@ early(){ //caculating the selection coefficents
 	beta_n = cor(phenotypes_n, inds_n.fitnessScaling);
 	beta_s = cor(phenotypes_s, inds_s.fitnessScaling);
 	defineGlobal("beta_n", beta_n);
-	defineGlobal("beta_s", beta_s);	
-	
+	defineGlobal("beta_s", beta_s);
+
 }
 
 2: late() {
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
-
+	
 	
 	// caculating the phenotype, but using the exponet to only have postive phenotypes
 	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
-//	if ((sim.generation % 20) == 0) {
-//		cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age));
-//		cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + sd(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + sd(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
-//		cat("    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)));
-//		catn("    " + beta_n + "    "+ beta_s +"    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock());
-//	}
+	//	if ((sim.generation % 20) == 0) {
+	//		cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age));
+	//		cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + sd(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + sd(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
+	//		cat("    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)));
+	//		catn("    " + beta_n + "    "+ beta_s +"    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock());
+	//	}
 }
 
 
 
-1000 late() {
+10000 late() {
 	// outpath will need to be defined in the slim call so will the varables and ending time
 	sim.treeSeqOutput(outpath+"mu_rate_"+mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_late_1000" + "_.trees");
 	catn("Done!");
