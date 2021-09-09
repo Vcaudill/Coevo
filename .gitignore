@@ -3,6 +3,7 @@ i.Rproj.user
 .RData
 .Ruserdata
 *.Rproj
+.DS_Store
 #keep data file out of git
 */data/*
 data/*

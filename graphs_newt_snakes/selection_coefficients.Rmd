@@ -409,7 +409,6 @@ I had SLiM print out the amount of newts that were in the range of each newt for
 ```{r, how many newts in range}
 newts_in_snakes_range <- read.table("~/Desktop/how_many_newts_in_range.txt", header =FALSE)
 
-
 hist(newts_in_snakes_range$V1, c="darkorchid4", main="Number of Newts Near a Snake", xlab="Number of Newts")
 abline(v = mean(newts_in_snakes_range$V1), col = "black", lwd = 2)
 ```
@@ -430,3 +429,8 @@ Suppose that they all live in a rectangular valley measuring **W** x **L** meter
 2. What proportion of newts are within the range of a given snake? (**As** * **Nn**/**W*****L**)**Nn**
 3. Suppose that when Nn == Ns we'd like each snake to encounter one newt on average every y years. What proportion of the newts within the snake's range should each snake encounter? ((**As** * **Nn**/**W*****L**)**Nn**)/**y**
 
+
+```{r, first look at no space}
+nospace_results <- read.table("~/Desktop/test_values_1on1_nospace.txt", header =TRUE)
+
+```
