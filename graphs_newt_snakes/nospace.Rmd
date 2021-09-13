@@ -22,11 +22,16 @@ This is may no space experiment! I worked with Peter to make the 1on1 newt-snake
 
 Some things to not is that in the reproduction callback new individuals will be paced near their parents, but their parents are randomly chosen for anywhere in the simulation. Population size is determined by the amount of individuals in the whole area. To choose the amount of interactions between newts and snake we use numNeighbors = rbinom(1, p1.individualCount, (interaction_rate * 2 * PI * surs^2)/W^2). This will choose a value based on a binomial distribution with the newt population as the size (amount that could be drawn) and a probability of success based on the interaction rate, area a snake and the total area of the simulation.
 
-Extra notes: From a fist glance at the visual output there is a lack of color (color represents phenotype) 
+Extra notes: From a first glance at the visual output there is a lack of color groups (color represents phenotype) 
+
+### Space
+![Space](data/space_pic.png)
+### No Space
+![NoSpace](data/nospace_pic.png)
 
 ## My Goals
 
-The goal of this experiment is to see in there is a change in the newts and snakes phenotype that is not based on spatial interactions. Specifically, in this experiment there will be no spatial interaction (between newts and snakes). I will compare these results to all of my other simulations data!
+The goal of this experiment is to see in there is a change in the newts and snakes phenotype that is not based on spatial interactions. Specifically, in this experiment there will be no spatial interaction (between newts and snakes). I will compare these results to the results of all of my other simulations!
 
 ## The Specifics of the Simulations
 
@@ -213,17 +218,154 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
   
 }
 
+phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE, ylim_max=100){
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+  
+   if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+   }
+   Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_newt$type <- "Newt"
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  data_frame_snake$type <- "Snake"
+  
+ combo <- rbind(data_frame_newt, data_frame_snake)
+ 
+ small_combo <- aggregate(as.numeric(combo$value),by=list(Number=as.numeric(combo$Number),type=combo$type),data=combo,FUN=mean, na.action = TRUE)
+
+if(boxy==TRUE){
+  p <- ggplot(combo) +
+    ylim(0, ylim_max)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(value), color=type) )
+  }
+if(boxy==FALSE){
+  p <- ggplot(small_combo) +
+  #xlim(0, 1000)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_point(aes(x=factor(as.numeric(Number)), y=as.numeric(x), color=type) )
+}
+
+ if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+
+return(p)
+}
+
+
+phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE){
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file 
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+
+  if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+ }
+  
+  Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  dif <- as.numeric(data_frame_snake$value)-as.numeric(data_frame_newt$value)
+  
+  df_dif <- as.data.frame(dif)
+  df_dif$Number <- as.numeric(data_frame_newt$Number)
+  
+  if(boxy==TRUE){
+ p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(dif)), color="darkolivegreen" )
+ }
+ if(boxy==FALSE){
+   df_dif$trial <- rep(Newt_file$variable, ncol(Newt_file)-1)
+   p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_line(aes(x=as.numeric(Number), y=as.numeric(dif), color=trial ))+ 
+     theme(legend.position="none")+
+     scale_color_manual(values = rep("darkolivegreen", nrow(data_frame_newt_temp)))
+ }
+   if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+  return(p)
+}
+
+
+phenotype_change_graph_s <- function(files, title, is_log=FALSE, xlim_value){
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=1:144)) +
+  xlim(0, xlim_value)+
+  ggtitle(title) +
+  xlab("Simulation number") + ylab("Phenotype")+
+  theme_bw()
+
+
+if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype  (Log)")
+  
+}
+
+i=1
+for (current_file in files){
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
+  file <- file[complete.cases(file), ]
+ p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])+0.1), color= darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])+0.1), color=lighten("darkred"))  + 
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])+0.1), color=darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])+0.1), color=lighten("steelblue"))+
+  geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Newt_mean_Pheno[1])+0.1, yend=as.numeric(Newt_mean_Pheno[50])+0.1, colour="Newt"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))+
+   geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Snake_mean_Pheno[1])+0.1, yend=as.numeric(Snake_mean_Pheno[50])+0.1, colour="Snake"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))
+   
+ i = i+1
+}
+p <- p +
+ scale_colour_manual(name = "Species", values = c("Newt" = "darkred", "Snake"="steelblue"))
+return(p)
+}
+
 
 ```
 
-```{r, beta info}
-# graph the betas
+```{r, data info}
+# Files for No space results
 files <- list.files(path="~/Desktop/nospace/u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
 file <- read.table(files[51], header = TRUE)
 beta_n <- making_data_frames(files, all_of("beta_n"))
 beta_s <- making_data_frames(files, all_of("beta_s"))
 Newt_mean_Pheno <- making_data_frames(files, all_of("Newt_mean_Pheno"))
 Snake_mean_Pheno <- making_data_frames(files, all_of("Snake_mean_Pheno"))
+Newt_sd_Pheno <- making_data_frames(files, all_of("Newt_sd_Pheno"))
+Snake_sd_Pheno <- making_data_frames(files, all_of("Snake_sd_Pheno"))
 mean_newts_eaten <- making_data_frames(files, all_of("mean_newts_eaten"))
 mean_snakes_eaten <- making_data_frames(files, all_of("mean_snakes_eaten"))
 newt_deaths <- making_data_frames(files, all_of("newt_deaths"))
@@ -232,4 +374,166 @@ Newt_age <- making_data_frames(files, all_of("Newt_age"))
 Snake_age <- making_data_frames(files, all_of("Snake_age"))
 Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
 Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
+
+# Files for space results
+files_u5 <- list.files(path="~/Desktop/beta_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+
+beta_n_s <- making_data_frames(files_u5, all_of("beta_n"))
+beta_s_s <- making_data_frames(files_u5, all_of("beta_s"))
+Newt_mean_Pheno_s <- making_data_frames(files_u5, all_of("Newt_mean_Pheno"))
+Snake_mean_Pheno_s <- making_data_frames(files_u5, all_of("Snake_mean_Pheno"))
+Newt_sd_Pheno_s <- making_data_frames(files_u5, all_of("Newt_sd_Pheno"))
+Snake_sd_Pheno_s <- making_data_frames(files_u5, all_of("Snake_sd_Pheno"))
+mean_newts_eaten_s <- making_data_frames(files_u5, all_of("mean_newts_eaten"))
+mean_snakes_eaten_s <- making_data_frames(files_u5, all_of("mean_snakes_eaten"))
+newt_deaths_s <- making_data_frames(files_u5, all_of("newt_deaths"))
+snake_deaths_s <- making_data_frames(files_u5, all_of("snake_deaths"))
+Newt_age_s <- making_data_frames(files_u5, all_of("Newt_age"))
+Snake_age_s <- making_data_frames(files_u5, all_of("Snake_age"))
+Newt_pop_size_s <- making_data_frames(files_u5, all_of("Newt_pop_size"))
+Snake_pop_size_s <- making_data_frames(files_u5, all_of("Snake_pop_size"))
+
 ```
+
+## The distribution of Phenotypes
+
+see if there is a difference in the distribution of phenotypes between the space and no space simulations. Currently running 9-13-2021
+
+## How Restance and Toxin Levels Change Overtime
+
+Above, I looked at the distributions of newt and snake phenotypes for the 1st and 1000th generation. Next, I will look at how the phenotypes of newts and snakes change over 1000 generations. I will specifically focus on three types of graphs to show how the phenotypes of newts and snakes vary and change.
+
+The graphs I will be looking at are listed and described below: 
+
+* phenotype change (finding sigma and mu): looks at the mean phenotype at the 1st generation and draws an arrow to the mean phenotype at the last generation one pair of lines for each simulation.
+* phenotype variation (from what is a normal sim): looks at all of the mean phenotypes of newts and snakes for the 1000 generations and creates box plots to show how the simulations differ for each other. This is also repeated for the standard deviation.
+* differences (from what is a normal sim): This figure creates box plots of how the difference between snake and newt phenotypes change over time.
+
+I will first show the results for space simulations followed by no space predictions and results.
+
+### Phenotype Change
+
+I predict that that the phenotypes of newts and snakes will change over 1000 generations. I think that both phenotypes will increase. The phenotype starting points should be the same between the space and no space simulation, but I am unsure on how they will differ. 
+
+```{r, phenotype change}
+
+
+w1 <- phenotype_change_graph_s(files_u5, title="Change in Phenotype Space", is_log=TRUE, xlim_value=104)
+
+w1
+
+w2 <- phenotype_change_graph_s(files, title="Change in Phenotype NoSpace", is_log=TRUE, xlim_value=104)
+
+w2
+```
+
+
+After graphing the change in phenotypes for spatial and non-spatial simulations, it seems like the phenotypes of the non-spatial simulations got larger. If there are no spatial groups, any newt can run into any snake and only the one with the greater phenotype will survive. There wont be areas where a low phenotype could exist (unless that newt/snake was never chosen for an interaction). Maybe this creases an increased mean phenotype. Would no space lower the variation of a particular species phenotype? I wonder what would happen if I ran the spatial simulation with a larger area.  
+### Phenotype Variation
+
+I predict that as the number of generations increase there should be an increase in variation of the mean phenotypes at that particular generation. I also predict that standard deviation between the simulation will also vary more as the number of generations increases. Now, if I compare the difference between space and no space simulations I think that no space simulation might have less variation in the standard deviation of the simulation. I predict this because there might a bunch of newts and snakes with similar phenotypes (within their species at the 1000th generation). But, the no space simulations could also have more variation in the mean phenotypes, solely based off of which newts and snakes are selected to interact. 
+
+```{r, comparative figures this params}
+
+sp_s<-phenotype_boxplot(Newt_mean_Pheno_s, Snake_mean_Pheno_s, title="Space: Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=30)
+
+sdp_s<-phenotype_boxplot(Newt_sd_Pheno_s, Snake_sd_Pheno_s, title="Space: Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=30)
+
+grid.arrange(sp_s, sdp_s, nrow=1)
+
+sp<-phenotype_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=30)
+
+sdp<-phenotype_boxplot(Newt_sd_Pheno, Snake_sd_Pheno, title="NoSpace: Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=30)
+
+grid.arrange(sp, sdp, nrow=1)
+```
+
+
+There were more points in the no space simulations that were above my y-limit max value of 30.
+There are a lot more points above the boxplot in the no space simulations. Are the phenotypes running away?
+
+When looking at the differences between the space and no space simulation, the no space simulations had more variation between individual simulations in both the the mean average phenotype and the average standard deviation. Although, the mean line of the non-spatial sd boxplots seemed to be lower than the mean lines of the spatial sd boxplots. I wonder if the increase in variation between the no-space simulations is due to the random selection of newts and snake that interact. Maybe there is something about space that keeps the simulations more similar to each other??? A graph showing the distribution of means and sds might be helpful.
+
+### Phenotype Differences
+
+I had predicted that the no space population would be more well mixed, meaning that there would be more newts and snakes with similar phenotypes (within the same species). But this prediction did not seem to be necessarily true. I wonder if the no space simulation will have an effect on the difference between the snake and newt phenotypes. I expect that there will be an increase in the variation of difference (some more positive values while others have a more negative values)as the number of generations increases. I suspect that in the no space simulation the mean phenotypes will either be more closely matched, because newts and snakes of similar phenotypes were interacting, or vastly different, because newts and snakes of different phenotypes were interacting. There also might be more variation between individual simulation in the no space simulation set.
+
+```{r, the differences}
+bp_s<- phenotype_dif_boxplot(Newt_mean_Pheno_s, Snake_mean_Pheno_s, title="Space: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=TRUE, section=TRUE, section_num=10)
+
+bp2_s <- phenotype_dif_boxplot(Newt_mean_Pheno_s, Snake_mean_Pheno_s, title="Space: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=FALSE, section=FALSE, section_num=0)
+
+grid.arrange(bp_s, bp2_s, nrow=1)
+
+bp <- phenotype_dif_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=TRUE, section=TRUE, section_num=10)
+
+bp2 <- phenotype_dif_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=FALSE, section=FALSE, section_num=0)
+
+grid.arrange(bp, bp2, nrow=1)
+```
+
+Well, just like in the mean phenotype graphs, the values in the mean phenotype differences graphs are much larger in the no space simulations. Although, the mean phenotype difference remains near zero in both the spatial and non-spatial simulations. As time increases the differences between phenotypes get larger at a faster rate in the no space simulations. What could be happening to create such a large difference between spatial and non-spatial newt and snake phenotypes?
+
+## Graphs from Selection coef
+
+* the spaceship, x, whales, and betas 
+
+```{r, sel coef graphs}
+
+ps1_s <- var_by_var( Newt_mean_Pheno_s, Snake_mean_Pheno_s, mean_newts_eaten_s, mean_snakes_eaten_s, title="Space: Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="Deaths/age", subtract_x=TRUE)
+
+ps2_s <- var_by_var( Newt_mean_Pheno_s, Snake_mean_Pheno_s, Newt_pop_size_s, Snake_pop_size_s, title="Space: Differnece in mean phenotype by PopSize", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="PopSize", subtract_x=TRUE) 
+
+
+grid.arrange(ps1_s, ps2_s, nrow=1)
+
+ps1 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, mean_newts_eaten, mean_snakes_eaten, title="NoSpace: Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="Deaths/age", subtract_x=TRUE)
+
+ps2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_pop_size, Snake_pop_size, title="NoSpace: Differnece in mean phenotype by PopSize", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="PopSize", subtract_x=TRUE) 
+
+
+grid.arrange(ps1, ps2, nrow=1)
+```
+```{r, popsize of newts and snakes with color of phenotype}
+vc1 <- var_by_var(Newt_pop_size, Newt_mean_Pheno, Newt_mean_Pheno, Snake_pop_size, title="Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred") 
+
+vc2 <- var_by_var(Newt_pop_size, Snake_mean_Pheno, Snake_mean_Pheno, Snake_pop_size, title="Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
+
+vc1 
+vc2
+```
+
+```{r, beta distribution}
+
+hist(unlist(beta_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+
+abline(v = mean(unlist(beta_n[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
+legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+
+```
+
+```{r, comp betas}
+var_by_var(beta_n, beta_s, beta_n, beta_s, title="Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
+
+```
+
+```{r, beta figures}
+g1 <- var_by_var( beta_n, beta_s, beta_n, beta_s, title="Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
+
+g2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
+
+g3 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_age, Snake_age, title="Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
+
+g4 <- var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
+
+
+grid.arrange(g1, g2, g3, g4, nrow=2)
+
+```
+
+
+
+
+
