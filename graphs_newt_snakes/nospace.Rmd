@@ -550,21 +550,45 @@ legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(1
 
 ```
 
-The beta values between no space and the space simulations don't seem to change that much. I noticed that the beta values range in no space were smaller from -0.1 to 0.1ish compared to the spatial simulation -0.2 to 0.2.
+The beta values between no space and the space simulations don't seem to change that much. I noticed that the beta values range in no space were smaller from -0.1 to 0.1ish compared to the spatial simulation -0.2 to 0.2. I am not sure why
+
+
+Now I plot the newt betas by the snake betas to see if there is a relationship between them. In the spacial simulation the the points were clusters around 0 with an oval surrounding that. Since the beta distribution was similar between the space and no space simulations I think the same thing will happen.
 
 ```{r, comp betas}
-var_by_var(beta_n, beta_s, beta_n, beta_s, title="Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
+var_by_var(beta_n_s, beta_s_s, beta_n_s, beta_s_s, title="Space: Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
+
+var_by_var(beta_n, beta_s, beta_n, beta_s, title="NoSpace: Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
 
 ```
 
+The clustering looks very similar between the no space and space simulations. It is possible that the no space is shifted a little bit to the right of 0, but I am not sure. I wonder what would happen if I increase the interaction rate?
+
+### Extra Figures
+
+These figures are to check to see if everything is working like how I would expect it to. I thought it would be fun to compare these results between the two different simulations to see if anything look different.
+
 ```{r, beta figures}
-g1 <- var_by_var( beta_n, beta_s, beta_n, beta_s, title="Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
 
-g2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
+g1_s <- var_by_var( beta_n_s, beta_s_s, beta_n_s, beta_s_s, title="Space: Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
 
-g3 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_age, Snake_age, title="Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
+g2_s <- var_by_var( Newt_mean_Pheno_s, Snake_mean_Pheno_s, beta_n_s, beta_s_s, title="Space: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
 
-g4 <- var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
+g3_s <- var_by_var( Newt_mean_Pheno_s, Snake_mean_Pheno_s, Newt_age_s, Snake_age_s, title="Space: Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
+
+g4_s <- var_by_var(Newt_mean_Pheno_s, beta_s_s, beta_n_s, Snake_mean_Pheno_s, title="Space: Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
+
+
+grid.arrange(g1_s, g2_s, g3_s, g4_s, nrow=2)
+
+
+g1 <- var_by_var( beta_n, beta_s, beta_n, beta_s, title="NoSpace: Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
+
+g2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="NoSpace: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
+
+g3 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_age, Snake_age, title="NoSpace: Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
+
+g4 <- var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="NoSpace: Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
 
 
 grid.arrange(g1, g2, g3, g4, nrow=2)
