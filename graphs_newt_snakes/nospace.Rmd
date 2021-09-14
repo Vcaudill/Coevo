@@ -397,7 +397,7 @@ Snake_pop_size_s <- making_data_frames(files_u5, all_of("Snake_pop_size"))
 
 ## The distribution of Phenotypes
 
-see if there is a difference in the distribution of phenotypes between the space and no space simulations. Currently running 9-13-2021
+see if there is a difference in the distribution of phenotypes between the space and no space simulations. Currently running 9-13-2021 then talapas was updating 9-14-2021
 
 ## How Restance and Toxin Levels Change Overtime
 
@@ -474,9 +474,13 @@ grid.arrange(bp, bp2, nrow=1)
 
 Well, just like in the mean phenotype graphs, the values in the mean phenotype differences graphs are much larger in the no space simulations. Although, the mean phenotype difference remains near zero in both the spatial and non-spatial simulations. As time increases the differences between phenotypes get larger at a faster rate in the no space simulations. What could be happening to create such a large difference between spatial and non-spatial newt and snake phenotypes?
 
-## Graphs from Selection coef
+## The Interaction
 
-* the spaceship, x, whales, and betas 
+### Differnece in mean phenotype by Deaths/Age or Pouplation Size  (from Selection coef)
+
+Previously, I saw a strange interaction between the difference between snakes and newts phenotype and the amount of deaths/age. I saw that the higher a snakes phenotype there were less newts being eaten. The same was true that when a newts phenotype was higher there were less snakes being eaten. We speculated that this phenomenon was occurring due to less snakes or newts in simulations with higher phenotypes in the opposite species. When I re-graphed these results by replacing death/age with population size we were able to see that the population with a higher phenotype had more individuals and the other species population was lower.
+
+Originally, I had predicted that when the mean snakes phenotype was higher than the newts phenotype then there would be less snakes dying. But if the snakes have the higher phenotype, they were reducing the newts population size, totaling in less newts available to kill. The graph was really messy, so I wonder if spatial structure was influencing these results and if so how. So then I repeated these same figures with the data from no space simulations without really thinking there would be a significant difference.
 
 ```{r, sel coef graphs}
 
@@ -494,18 +498,50 @@ ps2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_pop_size, Snake_pop_s
 
 grid.arrange(ps1, ps2, nrow=1)
 ```
-```{r, popsize of newts and snakes with color of phenotype}
-vc1 <- var_by_var(Newt_pop_size, Newt_mean_Pheno, Newt_mean_Pheno, Snake_pop_size, title="Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred") 
 
-vc2 <- var_by_var(Newt_pop_size, Snake_mean_Pheno, Snake_mean_Pheno, Snake_pop_size, title="Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
+
+Well, the no space simulation results look very different from the spatial simulations. It looks more like my original prediction where if snakes have a higher phenotype there would be less of them being killed and more newts being killed (in the death/age graph). A similar pattern between the space and no space emerged where as the phenotype of one population goes up the population size of that species also goes up, while the other species population size decreases. Although, the no space difference in mean phenotypes and population size did look very curved. I noticed that the population sizes in the no space simulations were larger than the population sizes in the space simulations, could this have an effect on the results?
+
+### Population size of Newts by Snakes with phenotype as color
+
+In the selection coefficients rmarkdown I made these beautiful whale plots that again showed (for the most part) that when a species phenotype was high then their population size is higher than the other species. Its really weird that these looked uniform across many simulations. Almost like some sort of conditions need to be met for a phenotype and population size to reach a particular value. In the spatial simulation there were cases where the snakes had a high phenotype and a low population size. There was also a fin where the newt and snake populations were not a steady-state yet. 
+
+From the previous graphs I expected a similar trend in the no space simulations (higher the population size the higher the phenotype of a species).
+
+```{r, popsize of newts and snakes with color of phenotype}
+
+vc1_s <- var_by_var(Newt_pop_size_s, Newt_mean_Pheno_s, Newt_mean_Pheno_s, Snake_pop_size_s, title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred") 
+
+vc2_s <- var_by_var(Newt_pop_size_s, Snake_mean_Pheno_s, Snake_mean_Pheno_s, Snake_pop_size_s, title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
+
+vc1_s 
+vc2_s
+
+
+vc1 <- var_by_var(Newt_pop_size, Newt_mean_Pheno, Newt_mean_Pheno, Snake_pop_size, title="NoSpace: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred") 
+
+vc2 <- var_by_var(Newt_pop_size, Snake_mean_Pheno, Snake_mean_Pheno, Snake_pop_size, title="NoSpace: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
 
 vc1 
 vc2
 ```
 
+After graphing both the spatial and no space results there were a few differences that I noticed. First, the no space simulations don't have the in-between population size (the fin in the spatial graph). This might be due to the population sizes growing to their stead-state sizes within the first 20 generations. Second, I noticed that the population size of newts and snakes seems more linear in the no space simulations. This reflects the sigmoid shape of the above interaction graphs. Third, I noticed a difference in population size (they were larger in the no space simulations) and the phenotypes (also larger in the no space simulations). Does space prevent the phenotypes from get exponentially large? Beacuse the no space phenotypes got so much larger its kind of hard to compare the colors. Forth, there is a similar phenotype trend between the spatial and no space simulations. However, there is one no space simulation where the phenotype got really large when both populations sizes were middle sized. The color change seemed more uniform in the no space simulation results. Maybe the pattern is lighter in the middle and darker at the edges with the darkest edge at the point of the highest population size. (Might be worth it to do the arrow graphs for each of the individual simulations.) Final note the spatial results look cooler than the no space results.
+
+### Beta Distributions 
+
+The interaction rate in both the space and no space simulations was 0.05. This value seems very low? Beta is the kind of like a selection coefficient, it will tell how strange section is. In the spatial simulations the beta values for nets and snakes were close to 0. This value indicates that selection is very weak or non-existent. I think that the beta values are low because the interaction rate which is my selective force is low and the non selective force (density dependence) is stronger. In the no space simulation there is still density dependent selection and a low interaction rate, so I don't expect the beta value to change that much.
+
 ```{r, beta distribution}
 
-hist(unlist(beta_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_s_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="Space: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n_s[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+
+abline(v = mean(unlist(beta_n_s[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
+legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+
+hist(unlist(beta_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace: Beta Values", xlab="Beta", breaks=15) 
 hist(unlist(beta_n[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
 
 abline(v = mean(unlist(beta_n[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
@@ -513,6 +549,8 @@ abline(v = mean(unlist(beta_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd
 legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
 
 ```
+
+The beta values between no space and the space simulations don't seem to change that much. I noticed that the beta values range in no space were smaller from -0.1 to 0.1ish compared to the spatial simulation -0.2 to 0.2.
 
 ```{r, comp betas}
 var_by_var(beta_n, beta_s, beta_n, beta_s, title="Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
