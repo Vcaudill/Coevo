@@ -16,7 +16,7 @@ library(gridGraphics)
 library(grid)
 ```
 
-## No Space?
+## What is No Space?
 
 This is may no space experiment! I worked with Peter to make the 1on1 newt-snake simulation into a simulation that is not dependent on space. We changed a few things that were dependent on space like reproduction and the interaction, but everything else remained mostly the same.
 
@@ -26,8 +26,12 @@ Extra notes: From a first glance at the visual output there is a lack of color g
 
 ### Space
 ![Space](data/space_pic.png)
+
+
+
 ### No Space
 ![NoSpace](data/nospace_pic.png)
+
 
 ## My Goals
 
@@ -397,7 +401,14 @@ Snake_pop_size_s <- making_data_frames(files_u5, all_of("Snake_pop_size"))
 
 ## The distribution of Phenotypes
 
-see if there is a difference in the distribution of phenotypes between the space and no space simulations. Currently running 9-13-2021 then talapas was updating 9-14-2021
+I will check to see if there is a difference in the distribution of phenotypes between the space and no space simulations. Currently running 9-13-2021 then talapas was updating 9-14-2021. I got to look at the phenotype distribution of the no space simulation on 9-20-21 and they look very similar to the phenotype distributions of the spatial simulations. Like in the spatial simulations the no space simulation the mean phenotype of the species did not cross. If one species had a phenotype advantage then they kept it or both the newt and snake phenotypes got very close. Here is an example:
+
+### Space
+![Space Dis](data/space_dist.png)
+
+
+### No Space
+![No Space Dis](data/nospace_dist.png)
 
 ## How Restance and Toxin Levels Change Overtime
 
@@ -596,6 +607,8 @@ grid.arrange(g1, g2, g3, g4, nrow=2)
 ```
 
 
+The beta values for both the space and no space simulation seems to be centered around 0 at the beginning of the simulation. In the no space simulation the beta range seems to be going up (I wonder what would happen if I let it run for longer). Age seems to be similar between both simulations, although space has more older individuals. When I look at the graphs of the difference in phenotype and the beta values the shape of the blobs are different. In the space simulation the blob is kind of eye shape indicating a random relationship between the difference of snake and newt phenotype and beta values. In the no space simulation there might be some type of relationship between the beta values and the difference between newt and snake phenotype. If there is a difference (hard to tell because blue points are on top), when the snakes have a higher phenotype they also have a higher beta value. When snakes have a lower phenotype the beta value is smaller (the pattern might also apply to the newts). The phenotypes in no space got larger than the phenotype in the spatial simulations. Both of these look like sea grass. 
 
+Some questions that I had after looking at the differences between the spatial and no space simulations are: why are there more individuals in the no space simulation and would more individuals change my results? What makes the phenotypes in no space get large so quickly?
 
 
