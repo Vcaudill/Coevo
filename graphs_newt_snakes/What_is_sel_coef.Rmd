@@ -1,0 +1,14 @@
+---
+title: "What is a Selection Coefficient?"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Figure out if there is selection in my simulation
+
+The goal of this markdown is to read and think about selection coefficients. What really is a selection coefficient? How can it be measured? What is considered strong and/or weak? How do I pull it out of my simulation (can there be different selection coefficients for different types of selection)? What kind of math is behind it? How might it change in different simulations, like would it get stronger with more interaction? Does it change in different generations?
+
+Currently, I measure selection with the variable beta. Beta is the correlation between phenotype and an individuals fitnessScaling. However, in my simulation there are two possible selective forces 1) the interaction between newts and snakes and 2) the density dependent selection. Now in no space simulation there is still both types of selection, but the density dependent selection is more like a K value.
