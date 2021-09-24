@@ -111,7 +111,7 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
 }
 
 
-files <- list.files(path="~/Desktop/beta_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+files <- list.files(path="~/Desktop/nospace/u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
 i=1
 for(i in 1:107){
 print(i)
@@ -120,7 +120,7 @@ Snake_mean_Pheno_1 <- making_data_frames(files[i], all_of("Snake_mean_Pheno"))
 Newt_pop_size_1 <- making_data_frames(files[i], all_of("Newt_pop_size"))
 Snake_pop_size_1 <- making_data_frames(files[i], all_of("Snake_pop_size"))
 
-naame_of_file= paste0("~/Desktop/figs/both_", i, ".png")
+naame_of_file= paste0("~/Desktop/figs/nospace_", i, ".png")
 png(filename =naame_of_file)
 vc_11 <- var_by_var(Newt_pop_size_1, Newt_mean_Pheno_1, Newt_mean_Pheno_1, Snake_pop_size_1, title="Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", color_label="Newt Phenotype" , highcol="darkred")
 #dev.off()
