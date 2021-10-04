@@ -49,8 +49,9 @@ making_data_frames <- function(files, spe_col) {
   return(new_file)
 }
 
-var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE, by_gen=FALSE, just_two=FALSE, colored=FALSE, color_label=NULL, highcol="darkseagreen"){
+var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, section=FALSE, section_num = 0, logy=FALSE, subtract_x=FALSE, by_gen=FALSE, just_two=FALSE, colored=FALSE, color_label=NULL, highcol="darkseagreen"){
   
+  if(section==FALSE){
   data_frame_newt_temp_x <- Newt_file_x
   data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
   
@@ -62,7 +63,24 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
   
   data_frame_snake_temp_y <- Snake_file_y
   data_frame_snake_temp_y <- data_frame_snake_temp_y[ , !(names(data_frame_snake_temp_y) %in% "variable")]
-  
+  }
+  if(section==TRUE){
+    
+    selcol = seq(1,ncol(Newt_file_x), section_num)
+    
+    data_frame_newt_temp_x <- Newt_file_x %>% select(all_of(selcol))
+    data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
+    
+    data_frame_snake_temp_x <- Snake_file_x %>% select(all_of(selcol))
+    data_frame_snake_temp_x <- data_frame_snake_temp_x[ , !(names(data_frame_snake_temp_x) %in% "variable")]
+    
+    data_frame_newt_temp_y <- Newt_file_y %>% select(all_of(selcol))
+    data_frame_newt_temp_y <- data_frame_newt_temp_y[ , !(names(data_frame_newt_temp_y) %in% "variable")]
+    
+    data_frame_snake_temp_y <- Snake_file_y %>% select(all_of(selcol))
+    data_frame_snake_temp_y <- data_frame_snake_temp_y[ , !(names(data_frame_snake_temp_y) %in% "variable")]
+    
+  }
   
   Number <- colnames(data_frame_newt_temp_x)
   data_frame_newt_x <- gather(data_frame_newt_temp_x, Number, value_x)
@@ -75,6 +93,8 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
   data_frame_snake_y <- gather(data_frame_snake_temp_y, Number, value_y)
   data_frame_snake <- cbind(data_frame_snake_x, data_frame_snake_y)
   data_frame_snake <- data_frame_snake[-4]
+  
+  
   
   
   if(subtract_x==FALSE){
@@ -189,6 +209,25 @@ Snake_age <- making_data_frames(files, all_of("Snake_age"))
 Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
 Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
 
+# Files for No space gen_10000 results
+files_gen_10000 <- list.files(path="~/Desktop/nospace/gen_10000", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+file_gen_10000 <- read.table(files_gen_10000[51], header = TRUE)
+beta_n_gen_10000 <- making_data_frames(files_gen_10000, all_of("beta_n"))
+beta_s_gen_10000 <- making_data_frames(files_gen_10000, all_of("beta_s"))
+Newt_mean_Pheno_gen_10000 <- making_data_frames(files_gen_10000, all_of("Newt_mean_Pheno"))
+Snake_mean_Pheno_gen_10000 <- making_data_frames(files_gen_10000, all_of("Snake_mean_Pheno"))
+Newt_sd_Pheno_gen_10000 <- making_data_frames(files_gen_10000, all_of("Newt_sd_Pheno"))
+Snake_sd_Pheno_gen_10000 <- making_data_frames(files_gen_10000, all_of("Snake_sd_Pheno"))
+mean_newts_eaten_gen_10000 <- making_data_frames(files_gen_10000, all_of("mean_newts_eaten"))
+mean_snakes_eaten_gen_10000 <- making_data_frames(files_gen_10000, all_of("mean_snakes_eaten"))
+newt_deaths_gen_10000 <- making_data_frames(files_gen_10000, all_of("newt_deaths"))
+snake_deaths_gen_10000 <- making_data_frames(files_gen_10000, all_of("snake_deaths"))
+Newt_age_gen_10000 <- making_data_frames(files_gen_10000, all_of("Newt_age"))
+Snake_age_gen_10000 <- making_data_frames(files_gen_10000, all_of("Snake_age"))
+Newt_pop_size_gen_10000 <- making_data_frames(files_gen_10000, all_of("Newt_pop_size"))
+Snake_pop_size_gen_10000 <- making_data_frames(files_gen_10000, all_of("Snake_pop_size"))
+
+
 # Files for space results
 files_u5 <- list.files(path="~/Desktop/beta_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
 
@@ -224,14 +263,23 @@ hist(unlist(beta_n[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names 
 abline(v = mean(unlist(beta_n[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
 abline(v = mean(unlist(beta_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
 legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+#_gen_10000
+hist(unlist(beta_s_gen_10000[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace gen 10,000: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n_gen_10000[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
 
+abline(v = mean(unlist(beta_n_gen_10000[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s_gen_10000[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
+legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
 
 #Tornado plot
-
+#no space
 var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="NoSpace: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
 
 var_by_var( making_data_frames(files[1], all_of("Newt_mean_Pheno")), making_data_frames(files[1], all_of("Snake_mean_Pheno")) , making_data_frames(files[1], all_of("beta_n")), making_data_frames(files[1], all_of("beta_s")), title="NoSpace: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
+# no space _gen_10000
+var_by_var( Newt_mean_Pheno_gen_10000, Snake_mean_Pheno_gen_10000, beta_n_gen_10000, beta_s_gen_10000, title="NoSpace _gen_10000: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
 
+var_by_var( making_data_frames(files_gen_10000[1], all_of("Newt_mean_Pheno")), making_data_frames(files_gen_10000[1], all_of("Snake_mean_Pheno")) , making_data_frames(files_gen_10000[1], all_of("beta_n")), making_data_frames(files_gen_10000[1], all_of("beta_s")), title="NoSpace _gen_10000: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", section=TRUE, section_num =50, x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
 
 
 title="GEN 1000 NoSpace: Differnece in mean phenotype by Betas"
@@ -241,6 +289,20 @@ y_label="Betas"
 dataframe <- data.frame(x=Snake_mean_Pheno$`1000`- Newt_mean_Pheno$`1000`, snake=beta_s$`1000`, newt=beta_n$`1000`)
 
 p1 <- ggplot(dataframe) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(x), y=as.numeric(newt), color="Newts"))+
+  geom_point(aes(x=as.numeric(x), y=as.numeric(snake), color="Snakes"))+
+  scale_colour_manual(name = "Species", values = c("Newts" = "darkred", "Snakes" = "steelblue"))+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+title="GEN 100000 NoSpace: Differnece in mean phenotype by Betas"
+
+dataframe <- data.frame(x=Snake_mean_Pheno_gen_10000$`1000`- Newt_mean_Pheno_gen_10000$`1000`, snake=beta_s_gen_10000$`1000`, newt=beta_n_gen_10000$`1000`)
+
+p3 <- ggplot(dataframe) +
   #xlim(0, 1000)+
   ggtitle(title, subtitle = subt) +
   xlab(x_label) + ylab(y_label)+
@@ -267,7 +329,7 @@ p2 <- ggplot(dataframe) +
 name_of_file= paste0("~/Desktop/figs/dif_in_pheno_by_beta_lastgen_1000", ".png")
 png(filename =name_of_file)
 
-print(grid.arrange(p1, p2))
+print(grid.arrange(p1, p3, p2))
 dev.off()
 
 
@@ -289,5 +351,26 @@ for(i in 1:length(files)){
   print(vc_11)
   dev.off()
 }
+
+files <- list.files(path="~/Desktop/nospace/gen_10000", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+i=1
+for(i in 1:length(files)){
+  print(i)
+  
+  
+  naame_of_file= paste0("~/Desktop/figs/nospace_10000_beta_", i, ".png")
+  png(filename =naame_of_file)
+  vc_11 <- var_by_var( making_data_frames(files[i], all_of("Newt_mean_Pheno")), 
+                       making_data_frames(files[i], all_of("Snake_mean_Pheno")), 
+                       making_data_frames(files[i], all_of("beta_n")), 
+                       making_data_frames(files[i], all_of("beta_s")), 
+                       title="NoSpace gen_10000: Differnece in mean phenotype by Betas", 
+                       subt="sigma = 0.2, mu = 1.5625e-10", 
+                       section=TRUE, section_num =50,
+                       x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
+  print(vc_11)
+  dev.off()
+}
+
 
 

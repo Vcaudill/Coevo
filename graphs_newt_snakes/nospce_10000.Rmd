@@ -1,0 +1,572 @@
+---
+title: "nospace_10000"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+```
+
+## What is No Space gen_10000?
+
+This is my no space experiment out to 10,000! 
+
+## My Goals
+
+
+
+## The Specifics of the Simulations
+
+To make these simulations similar to the previous simulation experiments I use the same msprime files to start each of the SLiM simulations. I also keep the parameters the same. 
+
+```{r, making data frames}
+
+making_data_frames <- function(files, spe_col) {
+i=1
+for (current_file in files){
+ #print(current_file)
+
+  if(i ==1){
+    file <- read.table(current_file, header = TRUE)
+  
+    file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+      # might want to change to all_of(spe_col)
+    file %>% 
+      select(all_of(spe_col), gen) %>%
+      #rownames_to_column() %>% 
+      gather(variable, value, -gen) %>% 
+      spread(gen, value) -> new_file
+      
+    new_file$variable[i] <- paste0(spe_col,"_trial_", i)
+    i = i + 1
+    next
+    }
+  file <- read.table(current_file, header = TRUE)
+  
+  file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+
+file %>% 
+  select(all_of(spe_col), gen) %>%
+  #rownames_to_column() %>% 
+  gather(variable, value, -gen) %>% 
+  spread(gen, value) -> temp_file
+
+temp_file$variable[1] <- paste0(spe_col,"_trial_", i)
+
+new_file<-rbind(new_file, temp_file)
+i = i + 1
+}
+return(new_file)
+}
+
+```
+
+```{r, making resueable figures, results='hide', message=FALSE, warning=FALSE}
+
+phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE, leg_off=FALSE){
+  data_frame_temp <- as.data.frame(t(file))
+  
+  colnames(data_frame_temp) <- data_frame_temp[1,]
+  names(data_frame_temp) <- colnames(data_frame_temp)
+  steps <- colnames(file[ , !(names(file) %in% "variable")])
+data_frame_temp <- data_frame_temp[-1, ] 
+data_frame_temp$steps <- as.numeric(unlist(steps))
+  
+  graph_file <- melt(data_frame_temp,  id.vars = 'steps', variable.name = 'series')
+  
+    p <- ggplot(graph_file, aes(steps, as.numeric(value))) + geom_line(aes(colour = series))+ 
+    ggtitle(title, subtitle = subt) +
+    scale_color_manual(values = rep(my_color, nrow(file)))+
+    xlab("Generations") + ylab("Interaction")+
+    theme_bw() + theme(legend.position="none")
+    
+    if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Interaction (Log)")
+    }
+     if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+    return(p)
+}
+
+var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, logx=FALSE, subtract_x=FALSE, by_gen=FALSE, just_two=FALSE, colored=FALSE, color_label=NULL, highcol="darkseagreen"){
+
+  data_frame_newt_temp_x <- Newt_file_x
+  data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
+  
+  data_frame_snake_temp_x <- Snake_file_x
+  data_frame_snake_temp_x <- data_frame_snake_temp_x[ , !(names(data_frame_snake_temp_x) %in% "variable")]
+  
+  data_frame_newt_temp_y <- Newt_file_y
+  data_frame_newt_temp_y <- data_frame_newt_temp_y[ , !(names(data_frame_newt_temp_y) %in% "variable")]
+  
+  data_frame_snake_temp_y <- Snake_file_y
+  data_frame_snake_temp_y <- data_frame_snake_temp_y[ , !(names(data_frame_snake_temp_y) %in% "variable")]
+  
+  
+  Number <- colnames(data_frame_newt_temp_x)
+  data_frame_newt_x <- gather(data_frame_newt_temp_x, Number, value_x)
+  data_frame_newt_x$type <- "Newt"
+  data_frame_newt_y <- gather(data_frame_newt_temp_y, Number, value_y)
+  data_frame_newt <- cbind(data_frame_newt_x, data_frame_newt_y)
+  data_frame_newt <- data_frame_newt[-4]
+  data_frame_snake_x <- gather(data_frame_snake_temp_x, Number, value_x)
+  data_frame_snake_x$type <- "Snake"
+  data_frame_snake_y <- gather(data_frame_snake_temp_y, Number, value_y)
+  data_frame_snake <- cbind(data_frame_snake_x, data_frame_snake_y)
+  data_frame_snake <- data_frame_snake[-4]
+  
+  
+ if(subtract_x==FALSE){
+   combo <- rbind(data_frame_newt, data_frame_snake)
+   combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
+   p <- ggplot(combo_s) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color=type), alpha=0.1)+
+      scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+ }
+ if(subtract_x==TRUE){
+    subtract_val <- data_frame_snake_x$value_x - data_frame_newt_x$value_x
+    total_sub_dataframe <- data.frame(subtract_val, data_frame_newt_y$value_y, data_frame_snake_y$value_y)
+    total_sub_dataframe <- total_sub_dataframe[sample(nrow(total_sub_dataframe), nrow(total_sub_dataframe)), ]
+    colnames(total_sub_dataframe) <- c("SnakeMisNewt_Pheno","Newts","Snakes")
+     p <- ggplot(total_sub_dataframe) +
+      #xlim(0, 1000)+
+       ggtitle(title, subtitle = subt) +
+       xlab(x_label) + ylab(y_label)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Newts), color="Newts"), alpha=0.1)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Snakes), color="Snakes"), alpha=0.1)+
+        scale_colour_manual(name = "Species", values = c("Newts" = "darkred", "Snakes" = "steelblue"))+
+        theme(plot.title = element_text(size=5)) +
+        theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+ }
+  if(by_gen==TRUE){
+    combo <- rbind(data_frame_newt, data_frame_snake)
+    combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
+       p <- ggplot(combo_s) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(Number), y=as.numeric(value_y), color=type), alpha=0.1)+
+      scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  }
+  
+  
+  
+   if(just_two==TRUE){
+     just2 <- cbind(data_frame_newt_x, data_frame_snake_y)
+     just2 <- just2[-4]
+       p <- ggplot(just2) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y)), color = "darkgreen", alpha=0.1)+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+   }
+  
+
+   if(colored==TRUE){
+     color3 <- cbind(data_frame_newt_x, data_frame_snake_y, data_frame_newt_y)
+     color3 <- color3[-c(1,3,4,6)]
+     suppressWarnings(suppressMessages(suppressPackageStartupMessages({require(scales)})))
+     amin <- 0.1
+     lowcol.hex <- as.hexmode(round(col2rgb(highcol) * amin + 255 * (1 - amin)))
+     lowcol <- paste0("#",   sep = "",
+                 paste(format(lowcol.hex, width = 2), collapse = ""))
+       p <- ggplot(color3) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color = value_y.1))+
+      theme(plot.title = element_text(size=5)) +
+      scale_colour_gradient(high = highcol, low = lowcol) + 
+      labs(colour = color_label) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  }
+  if(logy==TRUE){
+    p = p + scale_y_log10()
+  }
+   if(logx==TRUE){
+    p = p + scale_x_log10()
+  }
+  
+  
+  return(p)
+ 
+  
+}
+
+phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE, ylim_max=100){
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+  
+   if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+   }
+   Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_newt$type <- "Newt"
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  data_frame_snake$type <- "Snake"
+  
+ combo <- rbind(data_frame_newt, data_frame_snake)
+ 
+ small_combo <- aggregate(as.numeric(combo$value),by=list(Number=as.numeric(combo$Number),type=combo$type),data=combo,FUN=mean, na.action = TRUE)
+
+if(boxy==TRUE){
+  p <- ggplot(combo) +
+    ylim(0, ylim_max)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(value), color=type) )
+  }
+if(boxy==FALSE){
+  p <- ggplot(small_combo) +
+  #xlim(0, 1000)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_point(aes(x=factor(as.numeric(Number)), y=as.numeric(x), color=type) )
+}
+
+ if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+
+return(p)
+}
+
+
+phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE){
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file 
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+
+  if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+ }
+  
+  Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  dif <- as.numeric(data_frame_snake$value)-as.numeric(data_frame_newt$value)
+  
+  df_dif <- as.data.frame(dif)
+  df_dif$Number <- as.numeric(data_frame_newt$Number)
+  
+  if(boxy==TRUE){
+ p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(dif)), color="darkolivegreen" )
+ }
+ if(boxy==FALSE){
+   df_dif$trial <- rep(Newt_file$variable, ncol(Newt_file)-1)
+   p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_line(aes(x=as.numeric(Number), y=as.numeric(dif), color=trial ))+ 
+     theme(legend.position="none")+
+     scale_color_manual(values = rep("darkolivegreen", nrow(data_frame_newt_temp)))
+ }
+   if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+  return(p)
+}
+
+
+phenotype_change_graph_s <- function(files, title, is_log=FALSE, xlim_value){
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=1:144)) +
+  xlim(0, xlim_value)+
+  ggtitle(title) +
+  xlab("Simulation number") + ylab("Phenotype")+
+  theme_bw()
+
+
+if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype  (Log)")
+  
+}
+
+i=1
+for (current_file in files){
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
+  file <- file[complete.cases(file), ]
+ p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])+0.1), color= darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])+0.1), color=lighten("darkred"))  + 
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])+0.1), color=darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])+0.1), color=lighten("steelblue"))+
+  geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Newt_mean_Pheno[1])+0.1, yend=as.numeric(Newt_mean_Pheno[50])+0.1, colour="Newt"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))+
+   geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Snake_mean_Pheno[1])+0.1, yend=as.numeric(Snake_mean_Pheno[50])+0.1, colour="Snake"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))
+   
+ i = i+1
+}
+p <- p +
+ scale_colour_manual(name = "Species", values = c("Newt" = "darkred", "Snake"="steelblue"))
+return(p)
+}
+
+
+```
+
+```{r, data info}
+# Files for No space gen_10000 results
+files <- list.files(path="~/Desktop/nospace/gen_10000", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+file <- read.table(files[51], header = TRUE)
+beta_n <- making_data_frames(files, all_of("beta_n"))
+beta_s <- making_data_frames(files, all_of("beta_s"))
+Newt_mean_Pheno <- making_data_frames(files, all_of("Newt_mean_Pheno"))
+Snake_mean_Pheno <- making_data_frames(files, all_of("Snake_mean_Pheno"))
+Newt_sd_Pheno <- making_data_frames(files, all_of("Newt_sd_Pheno"))
+Snake_sd_Pheno <- making_data_frames(files, all_of("Snake_sd_Pheno"))
+mean_newts_eaten <- making_data_frames(files, all_of("mean_newts_eaten"))
+mean_snakes_eaten <- making_data_frames(files, all_of("mean_snakes_eaten"))
+newt_deaths <- making_data_frames(files, all_of("newt_deaths"))
+snake_deaths <- making_data_frames(files, all_of("snake_deaths"))
+Newt_age <- making_data_frames(files, all_of("Newt_age"))
+Snake_age <- making_data_frames(files, all_of("Snake_age"))
+Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
+Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
+
+# Files for space results
+files_u5 <- list.files(path="~/Desktop/beta_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+
+beta_n_s <- making_data_frames(files_u5, all_of("beta_n"))
+beta_s_s <- making_data_frames(files_u5, all_of("beta_s"))
+Newt_mean_Pheno_s <- making_data_frames(files_u5, all_of("Newt_mean_Pheno"))
+Snake_mean_Pheno_s <- making_data_frames(files_u5, all_of("Snake_mean_Pheno"))
+Newt_sd_Pheno_s <- making_data_frames(files_u5, all_of("Newt_sd_Pheno"))
+Snake_sd_Pheno_s <- making_data_frames(files_u5, all_of("Snake_sd_Pheno"))
+mean_newts_eaten_s <- making_data_frames(files_u5, all_of("mean_newts_eaten"))
+mean_snakes_eaten_s <- making_data_frames(files_u5, all_of("mean_snakes_eaten"))
+newt_deaths_s <- making_data_frames(files_u5, all_of("newt_deaths"))
+snake_deaths_s <- making_data_frames(files_u5, all_of("snake_deaths"))
+Newt_age_s <- making_data_frames(files_u5, all_of("Newt_age"))
+Snake_age_s <- making_data_frames(files_u5, all_of("Snake_age"))
+Newt_pop_size_s <- making_data_frames(files_u5, all_of("Newt_pop_size"))
+Snake_pop_size_s <- making_data_frames(files_u5, all_of("Snake_pop_size"))
+
+```
+
+## The distribution of Phenotypes
+
+
+## How Restance and Toxin Levels Change Overtime
+
+
+
+### Phenotype Change
+
+
+
+```{r, phenotype change}
+
+
+w1 <- phenotype_change_graph_s(files_u5, title="Change in Phenotype Space", is_log=TRUE, xlim_value=104)
+
+w2 <- phenotype_change_graph_s(files, title="Change in Phenotype NoSpace", is_log=TRUE, xlim_value=104)
+
+w1
+w2
+```
+
+
+
+### Phenotype Variation
+
+
+
+```{r, comparative figures this params}
+
+sp_s<-phenotype_boxplot(Newt_mean_Pheno_s, Snake_mean_Pheno_s, title="Space: Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=30)
+
+sdp_s<-phenotype_boxplot(Newt_sd_Pheno_s, Snake_sd_Pheno_s, title="Space: Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=30)
+
+grid.arrange(sp_s, sdp_s, nrow=1)
+
+sp<-phenotype_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=50, ylim_max=30)
+
+sdp<-phenotype_boxplot(Newt_sd_Pheno, Snake_sd_Pheno, title="NoSpace: Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=50, ylim_max=30)
+
+grid.arrange(sp, sdp, nrow=1)
+```
+
+
+
+### Phenotype Differences
+
+
+
+```{r, the differences}
+bp_s<- phenotype_dif_boxplot(Newt_mean_Pheno_s, Snake_mean_Pheno_s, title="Space: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=TRUE, section=TRUE, section_num=10)
+
+bp2_s <- phenotype_dif_boxplot(Newt_mean_Pheno_s, Snake_mean_Pheno_s, title="Space: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=FALSE, section=FALSE, section_num=0)
+
+grid.arrange(bp_s, bp2_s, nrow=1)
+
+bp <- phenotype_dif_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=TRUE, section=TRUE, section_num=50)
+
+bp2 <- phenotype_dif_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=FALSE, section=FALSE, section_num=0)
+
+grid.arrange(bp, bp2, nrow=1)
+```
+
+
+
+## The Interaction
+
+### Differnece in mean phenotype by Deaths/Age or Pouplation Size  (from Selection coef)
+
+
+
+```{r, sel coef graphs}
+
+ps1_s <- var_by_var( Newt_mean_Pheno_s, Snake_mean_Pheno_s, mean_newts_eaten_s, mean_snakes_eaten_s, title="Space: Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="Deaths/age", subtract_x=TRUE)
+
+ps2_s <- var_by_var( Newt_mean_Pheno_s, Snake_mean_Pheno_s, Newt_pop_size_s, Snake_pop_size_s, title="Space: Differnece in mean phenotype by PopSize", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="PopSize", subtract_x=TRUE) 
+
+
+grid.arrange(ps1_s, ps2_s, nrow=1)
+
+ps1 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, mean_newts_eaten, mean_snakes_eaten, title="NoSpace: Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="Deaths/age", subtract_x=TRUE)
+
+ps2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_pop_size, Snake_pop_size, title="NoSpace: Differnece in mean phenotype by PopSize", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="PopSize", subtract_x=TRUE) 
+
+
+grid.arrange(ps1, ps2, nrow=1)
+
+
+```
+
+
+
+
+### Population size of Newts by Snakes with phenotype as color
+
+
+
+```{r, popsize of newts and snakes with color of phenotype}
+
+vc1_s <- var_by_var(Newt_pop_size_s, Newt_mean_Pheno_s, Newt_mean_Pheno_s, Snake_pop_size_s, title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred") 
+
+vc2_s <- var_by_var(Newt_pop_size_s, Snake_mean_Pheno_s, Snake_mean_Pheno_s, Snake_pop_size_s, title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
+
+vc1_s 
+vc2_s
+
+
+vc1 <- var_by_var(Newt_pop_size, Newt_mean_Pheno, Newt_mean_Pheno, Snake_pop_size, title="NoSpace: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred") 
+
+vc2 <- var_by_var(Newt_pop_size, Snake_mean_Pheno, Snake_mean_Pheno, Snake_pop_size, title="NoSpace: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
+
+vc1 
+vc2
+```
+
+
+### Beta Distributions 
+
+
+
+```{r, beta distribution}
+
+hist(unlist(beta_s_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="Space: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n_s[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+
+abline(v = mean(unlist(beta_n_s[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
+legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+
+hist(unlist(beta_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+
+abline(v = mean(unlist(beta_n[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
+legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+
+```
+
+
+
+```{r, comp betas}
+var_by_var(beta_n_s, beta_s_s, beta_n_s, beta_s_s, title="Space: Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
+
+var_by_var(beta_n, beta_s, beta_n, beta_s, title="NoSpace: Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
+
+```
+
+
+
+### Extra Figures
+
+
+
+```{r, beta figures}
+
+g1_s <- var_by_var( beta_n_s, beta_s_s, beta_n_s, beta_s_s, title="Space: Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
+
+g2_s <- var_by_var( Newt_mean_Pheno_s, Snake_mean_Pheno_s, beta_n_s, beta_s_s, title="Space: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
+
+g3_s <- var_by_var( Newt_mean_Pheno_s, Snake_mean_Pheno_s, Newt_age_s, Snake_age_s, title="Space: Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
+
+g4_s <- var_by_var(Newt_mean_Pheno_s, beta_s_s, beta_n_s, Snake_mean_Pheno_s, title="Space: Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
+
+
+grid.arrange(g1_s, g2_s, g3_s, g4_s, nrow=2)
+
+
+g1 <- var_by_var( beta_n, beta_s, beta_n, beta_s, title="NoSpace: Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
+
+g2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="NoSpace: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
+
+g3 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_age, Snake_age, title="NoSpace: Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
+
+g4 <- var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="NoSpace: Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
+
+
+grid.arrange(g1, g2, g3, g4, nrow=2)
+
+```
+
+
+
