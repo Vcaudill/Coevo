@@ -331,13 +331,14 @@ for (current_file in files){
   file <- read.table(current_file, header = TRUE)
   file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
   file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
+  last_data_point <- nrow(file)
   file <- file[complete.cases(file), ]
  p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])+0.1), color= darken("darkred")) +
-   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])+0.1), color=lighten("darkred"))  + 
+   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[last_data_point])+0.1), color=lighten("darkred"))  + 
   geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])+0.1), color=darken("steelblue")) +
-  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])+0.1), color=lighten("steelblue"))+
-  geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Newt_mean_Pheno[1])+0.1, yend=as.numeric(Newt_mean_Pheno[50])+0.1, colour="Newt"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))+
-   geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Snake_mean_Pheno[1])+0.1, yend=as.numeric(Snake_mean_Pheno[50])+0.1, colour="Snake"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[last_data_point])+0.1), color=lighten("steelblue"))+
+  geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Newt_mean_Pheno[1])+0.1, yend=as.numeric(Newt_mean_Pheno[last_data_point])+0.1, colour="Newt"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))+
+   geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Snake_mean_Pheno[1])+0.1, yend=as.numeric(Snake_mean_Pheno[last_data_point])+0.1, colour="Snake"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))
    
  i = i+1
 }

@@ -249,14 +249,14 @@ Snake_pop_size_s <- making_data_frames(files_u5, all_of("Snake_pop_size"))
 
 
 #beta distribution
-
+#space
 hist(unlist(beta_s_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="Space: Beta Values", xlab="Beta", breaks=15) 
 hist(unlist(beta_n_s[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
 
 abline(v = mean(unlist(beta_n_s[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
 abline(v = mean(unlist(beta_s_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
 legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
-
+#nospace
 hist(unlist(beta_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace: Beta Values", xlab="Beta", breaks=15) 
 hist(unlist(beta_n[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
 
@@ -264,11 +264,11 @@ abline(v = mean(unlist(beta_n[ , 2:52])), col = rgb(255,192,203, max = 255), lwd
 abline(v = mean(unlist(beta_s[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
 legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
 #_gen_10000
-hist(unlist(beta_s_gen_10000[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace gen 10,000: Beta Values", xlab="Beta", breaks=15) 
-hist(unlist(beta_n_gen_10000[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+hist(unlist(beta_s_gen_10000[ , 2:502]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace gen 10,000: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n_gen_10000[ , 2:502]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
 
-abline(v = mean(unlist(beta_n_gen_10000[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
-abline(v = mean(unlist(beta_s_gen_10000[ , 2:52])), col = rgb(173,216,230, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_n_gen_10000[ , 2:502])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s_gen_10000[ , 2:502])), col = rgb(173,216,230, max = 255), lwd = 2)
 legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
 
 #Tornado plot
@@ -300,7 +300,7 @@ p1 <- ggplot(dataframe) +
 
 title="GEN 100000 NoSpace: Differnece in mean phenotype by Betas"
 
-dataframe <- data.frame(x=Snake_mean_Pheno_gen_10000$`1000`- Newt_mean_Pheno_gen_10000$`1000`, snake=beta_s_gen_10000$`1000`, newt=beta_n_gen_10000$`1000`)
+dataframe <- data.frame(x=Snake_mean_Pheno_gen_10000$`10000`- Newt_mean_Pheno_gen_10000$`10000`, snake=beta_s_gen_10000$`10000`, newt=beta_n_gen_10000$`10000`)
 
 p3 <- ggplot(dataframe) +
   #xlim(0, 1000)+
@@ -332,7 +332,57 @@ png(filename =name_of_file)
 print(grid.arrange(p1, p3, p2))
 dev.off()
 
+## beta at the beginning vs the end
+name_of_file= paste0("~/Desktop/figs/beta_start_vs_end_3set", ".png")
+png(filename =name_of_file)
+par(mfrow=c(3,2))
+#space
+hist(unlist(beta_s_s[ , 2]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="Space, Gen1 : Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n_s[ , 2]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
 
+abline(v = mean(unlist(beta_n_s[ , 2])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s_s[ , 2])), col = rgb(173,216,230, max = 255), lwd = 2)
+#legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+hist(unlist(beta_s_s[ , 52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="Space, Gen1000: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n_s[ , 52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+
+abline(v = mean(unlist(beta_n_s[ , 52])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s_s[ , 52])), col = rgb(173,216,230, max = 255), lwd = 2)
+#legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+#nospace
+hist(unlist(beta_s[ , 2]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace, Gen1: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n[ , 2]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+
+abline(v = mean(unlist(beta_n[ , 2])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s[ , 2])), col = rgb(173,216,230, max = 255), lwd = 2)
+#legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+
+hist(unlist(beta_s[ , 52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace Gen1000: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n[ , 52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+
+abline(v = mean(unlist(beta_n[ , 52])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s[ , 52])), col = rgb(173,216,230, max = 255), lwd = 2)
+#legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+
+
+
+#_gen_10000
+hist(unlist(beta_s_gen_10000[ , 2]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace, Gen1: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n_gen_10000[ , 2]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+
+abline(v = mean(unlist(beta_n_gen_10000[ , 2])), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s_gen_10000[ , 2])), col = rgb(173,216,230, max = 255), lwd = 2)
+#legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+
+hist(unlist(beta_s_gen_10000[ , 502]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace, Gen10,000: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_n_gen_10000[ , 502]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
+
+abline(v = mean(unlist(beta_n_gen_10000[ , 502]), na.rm = TRUE), col = rgb(255,192,203, max = 255), lwd = 2)
+abline(v = mean(unlist(beta_s_gen_10000[ , 502])), col = rgb(173,216,230, max = 255), lwd = 2)
+#legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(173,216,230, max = 255)))
+
+dev.off()
+## individual simulation files 
 files <- list.files(path="~/Desktop/nospace/u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
 i=1
 for(i in 1:length(files)){
