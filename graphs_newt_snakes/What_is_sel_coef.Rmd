@@ -21,3 +21,12 @@ What I would like to do:
 -watch newt beta <- I think it might stay around 0
 -print beta every generation 
 -compare space to no space
+
+(pairs)
+sigma_u2=( 0.1 0.2 0.3)
+mu_rate_u2=( 1e-10 2.5e-11 1.11e-11)
+sigma_u5=( 0.1 0.2 0.3)
+mu_rate_u5=( 6.25e-10 1.56e-10 6.94e-11)
+
+I made 6 msprime files where one species phenotype is under 2 and one is under 5. I kept the under 2 params the same and moved the under 5 to each of the three pairs.
+

@@ -10,16 +10,17 @@ from sys import argv
 #print("hello")
 
 sequence_length = 100000000
+mytag="no_tag"
 '''
-datadir = "newt_snake/data"
-snake_mu_rate = 1e-10
+datadir = "/Users/victoria/Desktop/Coevo/newt_snake/data"
+snake_mu_rate = 6.94e-11
 newt_mu_rate = 1e-10  # does this need to be 50 times more than the snake?
-snake_mu_effect_sd = 0.01
+snake_mu_effect_sd = 0.03
 newt_mu_effect_sd = 0.01
 name_of_file = "both_newt_snake_annotated.init.trees"
-
+mytag="beta_exp"
 '''
-mytag="no_tag"
+
 snake_mu_rate = float(sys.argv[1])
 newt_mu_rate = float(sys.argv[2])  # does this need to be 50 times more than the snake?
 snake_mu_effect_sd = float(sys.argv[3])
@@ -27,7 +28,7 @@ newt_mu_effect_sd = float(sys.argv[4])
 datadir = sys.argv[5]
 mytag = sys.argv[6]
 
-name_of_file = "both_1000_su_" + str(snake_mu_rate) + "_nu_" + str(newt_mu_rate) + \
+name_of_file = "snake_adv3_su_" + str(snake_mu_rate) + "_nu_" + str(newt_mu_rate) + \
     "_sue_" + str(snake_mu_effect_sd) + "_nue_" + str(newt_mu_effect_sd) + "_" + mytag + ".init.trees"
 print(name_of_file)
 
