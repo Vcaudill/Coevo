@@ -20,6 +20,14 @@ library(grid)
 
 This is my no space experiment out to 10,000! 
 
+No space to 10,000 generations works, but space simulation does not one of the populations seems to die out before it reaches the end of the simulation. I wonder how to stop this from happening? maybe a function that makes it harder for them to find each other when the population is low. Under 2 seems to have run to completion. Now I am trying an under 2 msprime and a under 5 mutation rate (success). Maybe the file i was using was bad trying under 5 10000 gens again (does not work, still dies out). 
+ 
+ Are the newts and snake coevolving? - it's difficult to tell. I can see patterns forming (certain phenotypes are clustering), but the mean phenotype doesn't move. But the distributions (at least for under 5) look different. 
+ 
+ When I run the simulation for longer the phenotype of newts and snakes get large around 3000 -population size might be a consequence of a large phenotype. (looking at the distributions soon)
+ 
+ paste0("End Space: Generation", end_gen)
+ 
 ## My Goals
 
 
