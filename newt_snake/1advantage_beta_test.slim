@@ -9,15 +9,14 @@ initialize() {
 	
 	//Testing factors 	
 	//defineConstant("mu_rate", 1e-8); //just be the snake mu
-	defineConstant("snake_mu_rate", 1e-8); //snake mu/newt mu it will me more or less comman than nake	
-	defineConstant("newt_mu_rate", 0); //newt mu/ snake mu it will me more or less comman than nake
-	defineConstant("snake_mu_effect_sd", 0.3);
-	defineConstant("newt_mu_effect_sd", 0);
-	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01	
-	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");
-	defineConstant("msprime_file", "newt_snake/data/newt_adv_su_1e-10_nu_6.25e-10_sue_0.01_nue_0.01_beta_exp.init.trees");
-	//defineConstant("msprime_file", "MSprome_sim/both_su_1e-08_nu_1e-12_sue_0.25_nue_0.25.init.trees");
-	//defineConstant("msprime_file", "newt_snake/data/both_newt_snake_annotated.init.trees");//sme 0.05, nme 0.01
+	defineConstant("snake_mu_rate", 0); //snake mu/newt mu it will me more or less comman than nake	
+	defineConstant("newt_mu_rate", 1e-8); //newt mu/ snake mu it will me more or less comman than nake
+	defineConstant("snake_mu_effect_sd", 0);
+	defineConstant("newt_mu_effect_sd", 0.1);
+	// Newt adv
+	//defineConstant("msprime_file", "newt_snake/data/newt_adv_su_1e-10_nu_6.25e-10_sue_0.01_nue_0.01_beta_exp.init.trees");
+	//defineConstant("msprime_file", "newt_snake/data/newt_adv2_su_1e-10_nu_1.56e-10_sue_0.01_nue_0.02_beta_exp.init.trees");
+	defineConstant("msprime_file", "newt_snake/data/newt_adv3_su_1e-10_nu_6.94e-11_sue_0.01_nue_0.03_beta_exp.init.trees");
 	
 	//Peters sugestions 7/14/2021
 	total_mut_rate = newt_mu_rate + snake_mu_rate;
@@ -31,12 +30,12 @@ initialize() {
 	defineConstant("SI", sigma_in);  // sigma_I, the spatial interaction distance
 	defineConstant("surs", sigma_in);  // surs, the surviver distance
 	defineConstant("SM", SI);  // sigma_M, the mate choice distance
-	defineConstant("L", 4);    // mean lifetime at stationarity (what id the life times are different for each species?)
+	defineConstant("L", 2);    // mean lifetime at stationarity (what id the life times are different for each species?)
 	defineConstant("W", 35.0);  // width and height of the simulated area
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.05);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.15);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
@@ -346,14 +345,8 @@ inds_n = p1.individuals;
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
 	// header info
-	//cat("gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density");
-	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" + "    " +"Snake_pop_size"+"    "+ "time");
-	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno");
+catn("gen" + "    " + "mean_newt_pheno" + "    "+ "mean_snake_pheno" + "    " + "newt_beta" + "    "+ "snake_beta" + "    " + "min_newt_pheno"+ "    " + "max_newt_pheno"+ "    " + "min_snake_pheno"+ "    " + "max_snake_pheno");
 
-catn("gen" + "    " + "mean_newt_pheno" + "    "+ "mean_snake_pheno");
-catn(sim.generation + "    "  + mean(phenotypes_n) + "    " + mean(phenotypes_s));
-//+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "snake pop size" + "    " + "newt pop size");
-//	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
 
 
 }
@@ -369,10 +362,10 @@ early(){
 	beta_s = cor(phenotypes_s, inds_s.fitnessScaling);
 	defineGlobal("beta_n", beta_n);
 	defineGlobal("beta_s", beta_s);
-	//catn(sim.generation + "    " + beta_n + "    "+ beta_s);
+	//catn(sim.generation + "    "  + mean(phenotypes_n) + "    " + mean(phenotypes_s) +"    "+beta_n + "   " + beta_s+ "    "  + min(phenotypes_n) + "    " + max(phenotypes_n)+ "    "  + min(phenotypes_s) + "    " + max(phenotypes_s));
 }
 
-2: late() {
+1: late() {
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
 	
@@ -381,24 +374,14 @@ early(){
 	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
 	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
-	if ((sim.generation % 20) == 0) {
-			catn(sim.generation + "    "  + mean(phenotypes_n) + "    " + mean(phenotypes_s));
-// + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
-		//	cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
-		//catn("    " + clock());
-		//catn("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + sd(phenotypes_n) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + sd(phenotypes_s));
-		//		catn(sim.generation + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)));
-		
-		//catn(mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)));
-		//catn(sim.generation + "    " + beta_n + "    "+ beta_s);
-		
-	}
-//	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
+	if ((sim.generation % 1) == 0) {
+	catn(sim.generation + "    "  + mean(phenotypes_n) + "    " + mean(phenotypes_s) +"    "+beta_n + "   " + beta_s+ "    "  + min(phenotypes_n) + "    " + max(phenotypes_n)+ "    "  + min(phenotypes_s) + "    " + max(phenotypes_s));
+}
 }
 
 
 
-1000 late() {
+5000 late() {
 	// outpath will need to be defined in the slim call so will the varables and ending time
 	//sim.treeSeqOutput(outpath+"mu_rate"+mu_rate+ "newt_mu_rate"+newt_mu_rate + "snake_mu_effect_sd"+ snake_mu_effect_sd +"newt_mu_effect_sd" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+simID + "_late_500000" + "_.trees");
 	catn("Done!");

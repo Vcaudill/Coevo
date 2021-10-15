@@ -378,7 +378,7 @@ Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
 Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
 
 # Files for space results
-files_u5 <- list.files(path="~/Desktop/beta_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+files_u5 <- list.files(path="~/Desktop/run_longer/gen_3000/u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
 
 beta_n_s <- making_data_frames(files_u5, all_of("beta_n"))
 beta_s_s <- making_data_frames(files_u5, all_of("beta_s"))
