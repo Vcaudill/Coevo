@@ -9,14 +9,14 @@ initialize() {
 	
 	//Testing factors 	
 	//defineConstant("mu_rate", 1e-8); //just be the snake mu
-	defineConstant("snake_mu_rate", 0); //snake mu/newt mu it will me more or less comman than nake	
-	defineConstant("newt_mu_rate", 1e-8); //newt mu/ snake mu it will me more or less comman than nake
-	defineConstant("snake_mu_effect_sd", 0);
-	defineConstant("newt_mu_effect_sd", 0.1);
+	defineConstant("snake_mu_rate", 1e-8); //snake mu/newt mu it will me more or less comman than nake	
+	defineConstant("newt_mu_rate", 0); //newt mu/ snake mu it will me more or less comman than nake
+	defineConstant("snake_mu_effect_sd", 0.25);
+	defineConstant("newt_mu_effect_sd", 0);
 	// Newt adv
 	//defineConstant("msprime_file", "newt_snake/data/newt_adv_su_1e-10_nu_6.25e-10_sue_0.01_nue_0.01_beta_exp.init.trees");
 	//defineConstant("msprime_file", "newt_snake/data/newt_adv2_su_1e-10_nu_1.56e-10_sue_0.01_nue_0.02_beta_exp.init.trees");
-	defineConstant("msprime_file", "newt_snake/data/newt_adv3_su_1e-10_nu_6.94e-11_sue_0.01_nue_0.03_beta_exp.init.trees");
+	defineConstant("msprime_file", "newt_snake/data/newt_adv7_su_6.25e-10_nu_6.25e-10_sue_0.02_nue_0.2_beta_exp.init.trees");
 	
 	//Peters sugestions 7/14/2021
 	total_mut_rate = newt_mu_rate + snake_mu_rate;
@@ -35,7 +35,7 @@ initialize() {
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.15);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.05);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
