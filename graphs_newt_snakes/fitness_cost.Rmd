@@ -1,0 +1,19 @@
+---
+title: "Fitness Cost"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Fitness Cost
+
+In my newts and snakes simulation the phenotypes of both of the populations keeps increasing forever. In the spatial simulations this increase eventually leads to the death of one of the species and the collapses of the SLiM (something I currently calculate needs to have individuals) simulation. To have my simulation run essentially forever I wanted to add in a cost to having a high phenotype. 
+
+A cost would push the phenotypes back towards 0, but would also make it harder to observe selection. I ran one simulation with the cost (math version will be presented later) once and the phenotypes just keep decreasing. The simulation ran for a long time (5000 generations) and the population did not explode or decrease. Is it possible for the phenotypes to be completely pushed back to 0. Do we still see spots were coevolution is happening? Should I change the slope of the cost curve?
+
+
+## Msprime simulations
+
+Peter and I talked about why I couldn't get the phenotypes to start out higher and I want to make some figures about it.
