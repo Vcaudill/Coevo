@@ -24,6 +24,20 @@ abline(v=3, col="red")
 abline(h=9, col="red") # represents half of the individuals fitness
 ```
 
+I chose a phenotype of 3 to be half as good. This might be a tad too strong. To calculate cost I need to look at the fitness scaling (between 0 and 1) and make my chosen phenotype meet the line at half of the total fitness (0.5). 
+
+Fitness scaling = e^-cost 
+
+If a phenotype of 3 is half the total fitness the cost wold be log 2
+
+c(p) = (a/b)^2
+c(3) = (a/b)^2
+log(2) = (a/b)^2
+b = 3/log(2) = 10
+
+SO cost = (phenotype/10)^2
+
+**Special Note** Phenotype is arbitrary (scale for the snakes resistance) 
 
 A cost would push the phenotypes back towards 0, but would also make it harder to observe selection. I ran one simulation with the cost once and the phenotypes just keep decreasing (math version will be presented later). The simulation ran for a long time (5000 generations) and the population did not explode or decrease. Is it possible for the phenotypes to be completely pushed back to 0. Do we still see spots were coevolution is happening? Should I change the slope of the cost curve?
 
