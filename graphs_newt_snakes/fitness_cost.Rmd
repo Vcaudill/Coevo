@@ -9,11 +9,23 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Fitness Cost
 
-In my newts and snakes simulation the phenotypes of both of the populations keeps increasing forever. In the spatial simulations this increase eventually leads to the death of one of the species and the collapses of the SLiM (something I currently calculate needs to have individuals) simulation. To have my simulation run essentially forever I wanted to add in a cost to having a high phenotype. 
+In my newts and snakes simulation the phenotypes of both of the populations keeps increasing forever. In the spatial simulations this increase eventually leads to the death of one of the species and the collapses of the SLiM simulation (something I currently calculate needs to have individuals). To have my simulation run essentially forever I wanted to add in a cost to having a high phenotype. 
 
-A cost would push the phenotypes back towards 0, but would also make it harder to observe selection. I ran one simulation with the cost (math version will be presented later) once and the phenotypes just keep decreasing. The simulation ran for a long time (5000 generations) and the population did not explode or decrease. Is it possible for the phenotypes to be completely pushed back to 0. Do we still see spots were coevolution is happening? Should I change the slope of the cost curve?
+Too come up with a cost curve I thought about the biology behind the existence of a fitness cost in the context of newts and snakes. In snakes for every mutation that allows for them to be resistant to the toxin they partially break their mobility. So snakes become slower when they are more resistant and can be preyed upon by other predators. Newts are a bit more complicated. It is unknown if there is a fitness cost for being more toxic. Maybe producing toxin makes them slower, maybe it takes more energy to produce so there is less energy for offspring.
+
+Here is an example of what I think a fitness cost might look like (values are not realistic). As the phenotype gets larger the phenotype has a higher cost. So to keep a high cost phenotype there needs to be strong selection.
+
+```{r, fitness cost}
 
 
-## Msprime simulations
+phenotype <- c(0:5)
+plot(phenotype, phenotype^2, type = "l", main="Fitness Cost", xlab="Phenotype", ylab="Cost")
+abline(v=3, col="red")
+abline(h=9, col="red") # represents half of the individuals fitness
+```
 
-Peter and I talked about why I couldn't get the phenotypes to start out higher and I want to make some figures about it.
+
+A cost would push the phenotypes back towards 0, but would also make it harder to observe selection. I ran one simulation with the cost once and the phenotypes just keep decreasing (math version will be presented later). The simulation ran for a long time (5000 generations) and the population did not explode or decrease. Is it possible for the phenotypes to be completely pushed back to 0. Do we still see spots were coevolution is happening? Should I change the slope of the cost curve?
+
+
+

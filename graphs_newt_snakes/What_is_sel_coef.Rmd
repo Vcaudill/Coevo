@@ -30,3 +30,28 @@ mu_rate_u5=( 6.25e-10 1.56e-10 6.94e-11)
 
 I made 6 msprime files where one species phenotype is under 2 and one is under 5. I kept the under 2 params the same and moved the under 5 to each of the three pairs.
 
+
+## Testing for Selection
+
+This Is how I would like one of the phenotypes to look if there was an advantage. I was trying to use Msprime to get this type of distribution, but it wasn't working.
+
+```{r, distributions}
+snakes <- rnorm(10000, 5, 0.5)
+newts <- rnorm(10000, 2, 0.5)
+hist(snakes, col="steelblue", xlim = c(1, 6), main = "Phenotypes Distribution", xlab = "Phenotype (red=Newt, blue=Snake)")
+hist(newts, col="darkred", add = TRUE)
+
+```
+
+## Msprime simulations
+
+Msprime runs the simulation back in time to a coalescent point. Then it assigns mutations with SD()=theta. These mutations have an effect on a phenotype (resistance/toxicity) that are normally distributed around 0. Then the distribution under goes a log transformation, which centers it around 1. When I change the mu and sigma parameters I really change the normal distribution curve. I want to give either the newt or snake a phenotype advantage, the msprime simulation is not the place to do it (as its 11/08/2021 form). I can instead use the slim simulation to give newts or snakes a higher fitness by adding to their phenotype.
+
+![Space](data/msprime_notes.jpg)
+
+I wonder what happens to the phenotype distributions when I change mutation rate and mutation effect sizes (Maybe try different ones out and look at it through slim?).
+
+## Quant Gen book 
+
+Heritability and genetic correlation page 54
+
