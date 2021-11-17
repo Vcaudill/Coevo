@@ -198,7 +198,7 @@ early() {
 		
 		mPoint = c(ind_snake.x,ind_snake.y);
 		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);// could make count smaller (limit the number of newts nearby)
-//catn(length(newtNeighbors)); // figuring out the amount of newt neghbors for each snake
+		//catn(length(newtNeighbors)); // figuring out the amount of newt neghbors for each snake
 		// sample number based on a combination of how close they are using a uniform distibution 
 		if (length(newtNeighbors) > 0){ //need newt to be nearby to eat
 			snake_found_newt = snake_found_newt + 1;
@@ -270,6 +270,12 @@ early() {
 
 //Snake a Newt display 
 1: late() {
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	
+	// caculating the phenotype, but using the exponet to only have postive phenotypes
+	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
+	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	for (pop in sim.subpopulations) {
 		max_z = max(pop.individuals.z);
 		for (ind in pop.individuals) {
@@ -321,6 +327,16 @@ early() {
 	
 	snake_newt = snake_means - newt_means;
 	newt_snake = newt_means - snake_means;
+	bounds = p0.spatialBounds;
+	//cor(phenotypes_n, inds_n.fitnessScaling)
+	// I want to find the cor between the phenotype and the fitness scaling for each subsection
+	// Problems cor cant work on with matrices - so I might need to make a loop
+	// in summarizeIndividuals how does operation and gather work?
+	// Can I just gather the different individuals in the sections and then do cor?
+	
+	density = summarizeIndividuals(p0.individuals, c(10, 10), bounds,
+		operation="1;", gather="sum", empty=0, perUnitArea=T);
+	density = density / max(density);
 	
 	
 	// maybe it should be transposed?
@@ -329,8 +345,11 @@ early() {
 		valueRange=range(p1.individuals.z), colors=c("#FFFFFF", "#FF0000"));//"#000000", "#FFFFFF"
 	p0.defineSpatialMap('snakes', 'xy', snake_means, interpolate=F,
 		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
-	p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
-		valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
+	//p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
+	//valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
+	
+	p2.defineSpatialMap("density", "xy", density, F, range(density), c("black", "orange", "red")); // showing the densitiy of snakes
+	
 	p3.defineSpatialMap('newts-snakes', 'xy', newt_snake , interpolate=F,
 		valueRange=range(newt_snake), colors=c("#FFFFFF", "#FF0000"));//more red more toxic
 }
@@ -342,9 +361,9 @@ early() {
 	//cat("gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density");
 	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Newt_pop_size" + "    " +"Snake_pop_size"+"    "+ "time");
 	//catn("    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno");
-
-//catn("gen" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "snake pop size" + "    " + "newt pop size");
-//	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
+	
+	//catn("gen" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "snake pop size" + "    " + "newt pop size");
+	//	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
 
 
 }
@@ -381,9 +400,9 @@ early(){
 		
 		catn(mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)));
 		//catn(sim.generation + "    " + beta_n + "    "+ beta_s);
-		
+	
 	}
-//	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
+	//	catn(sim.generation + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + p0.individualCount + "    " + p1.individualCount);
 }
 
 

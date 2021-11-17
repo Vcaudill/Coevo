@@ -22,7 +22,8 @@ In my newts and snakes simulation the phenotypes of both of the populations keep
 
 Too come up with a cost curve I thought about the biology behind the existence of a fitness cost in the context of newts and snakes. In snakes for every mutation that allows for them to be resistant to the toxin they partially break their mobility. So snakes become slower when they are more resistant and can be preyed upon by other predators. Newts are a bit more complicated. It is unknown if there is a fitness cost for being more toxic. Maybe producing toxin makes them slower, maybe it takes more energy to produce so there is less energy for offspring.
 
-Here is an example of what I think a fitness cost might look like (values are not realistic). As the phenotype gets larger the phenotype has a higher cost. So to keep a high cost phenotype there needs to be strong selection.
+Here is an example of what I think a fitness cost might look like (values are not realistic). As the phenotype gets larger the phenotype has a higher cost. So to keep a high cost phenotype there needs to be strong selection. The graph below is my initial idea on how fitness cost in my system should work.
+
 
 ```{r, fitness cost}
 
@@ -33,7 +34,7 @@ abline(v=3, col="red")
 abline(h=9, col="red") # represents half of the individuals fitness
 ```
 
-I chose a phenotype of 3 to be half as good. This might be a tad too strong. To calculate cost I need to look at the fitness scaling (between 0 and 1) and make my chosen phenotype meet the line at half of the total fitness (0.5). 
+I chose a phenotype of 3 to be half as good (this might be a tad too strong). I chose the value 3 because of the phenotypes of newts and snakes seen in the Brodies map. To calculate cost I need to look at the fitness scaling (between 0 and 1) and make my chosen phenotype meet the line at half of the total fitness (0.5). 
 
 Fitness scaling = e^-cost 
 
@@ -48,7 +49,12 @@ SO cost = (phenotype/10)^2
 
 **Special Note** Phenotype is arbitrary (scale for the snakes resistance) 
 
-A cost would push the phenotypes back towards 0, but would also make it harder to observe selection. I ran one simulation with the cost once and the phenotypes just keep decreasing (math version will be presented later). The simulation ran for a long time (5000 generations) and the population did not explode or decrease. Is it possible for the phenotypes to be completely pushed back to 0. Do we still see spots were coevolution is happening? Should I change the slope of the cost curve?
+A cost would push the phenotypes back towards 0, but would also make it harder to observe selection. I ran one simulation with the cost once and the phenotypes just keep decreasing (math version will be presented later). The simulation ran for a long time (5000 generations) and the population size did not explode or decrease. Is it possible for the phenotypes to be completely pushed back to 0? Are non-zero phenotypes a sign of poitive selection (especially if they started above 0)? Do we still see spots were coevolution is happening? Should I change the slope of the cost curve?
+
+
+## Dataframe and Graphs
+
+I use the same method for building my dataframes and figures as I did in the nospace R markdown. My general theme is to make my figures and data frames reusable from simulation to simulation and from one variable to the next. It might be helpful to write some more information about each of the functions that I use.  
 
 ```{r, making data frames}
 
@@ -95,6 +101,9 @@ return(new_file)
 ```{r, making resueable figures, results='hide', message=FALSE, warning=FALSE}
 
 phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE, leg_off=FALSE){
+  # Looks at the mean phenotype of all of the simulations and graphs them as lines together
+  # good for seeing what all of the simulations are doing
+  # it can log the y axis and turn off the legend
   data_frame_temp <- as.data.frame(t(file))
   
   colnames(data_frame_temp) <- data_frame_temp[1,]
@@ -108,11 +117,11 @@ data_frame_temp$steps <- as.numeric(unlist(steps))
     p <- ggplot(graph_file, aes(steps, as.numeric(value))) + geom_line(aes(colour = series))+ 
     ggtitle(title, subtitle = subt) +
     scale_color_manual(values = rep(my_color, nrow(file)))+
-    xlab("Generations") + ylab("Interaction")+
+    xlab("Generations") + ylab("Phenotype")+
     theme_bw() + theme(legend.position="none")
     
     if(is_log==TRUE){
-  p = p + scale_y_log10() + ylab("Interaction (Log)")
+  p = p + scale_y_log10() + ylab("Phenotype (Log)")
     }
      if(leg_off==TRUE){
  p = p+ theme(legend.position = "none")}
@@ -121,6 +130,14 @@ data_frame_temp$steps <- as.numeric(unlist(steps))
 
 var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE, by_gen=FALSE, just_two=FALSE, colored=FALSE, color_label=NULL, highcol="darkseagreen"){
 
+  # very powerful and confusing graph. It can plot a max of 4 variables at a time!
+  # I use it to compare newts and snakes to each other
+  # I can log the y axis
+  # I can look at things by generation (uses just the newt x and snake x)
+  # I can compare newt to snake (uses the newt x and snake y)
+  # I can subtract (snake - newt) (subtracts the x value and plots the y value)
+  # Color can plot var by var and pick a 3rd var to color the points (use thenewt x, snake y and newt file y for the color)
+  
   data_frame_newt_temp_x <- Newt_file_x
   data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
   
@@ -232,6 +249,7 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
 }
 
 phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE, ylim_max=100){
+  #this function can graph phenotype of all of the simulations (as a mean or boxplot) by generations (I can specify the amount of generations to show)
   data_frame_newt_temp <- Newt_file
   data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
   
@@ -284,6 +302,8 @@ return(p)
 
 
 phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE){
+  #this function can graph to difference between phenotypes of all of the simulations (as lines or boxplot) by generations
+  #(I can specify the amount of generations to show)
   data_frame_newt_temp <- Newt_file
   data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
   
@@ -332,6 +352,9 @@ phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE
 
 
 phenotype_change_graph_s <- function(files, title, is_log=FALSE, xlim_value){
+  # this shows me how the phenotype change in one single for each simulation
+  # it takes all of the files and reads all of them in to take the first and last point
+  # highly inefficient
 file1 <- read.table(files[1], header = TRUE)
 p <- ggplot(file1, aes(x=1:144)) +
   xlim(0, xlim_value)+
@@ -369,6 +392,10 @@ return(p)
 
 ```
 
+## Simulations
+
+I ran a spatial antagonistic co-evolution simulation with a fitness cost. Both newts and snakes had the same mutation rate, mutation effect sizes and fitness costs. Here, fitness cost remained the same between all of the simulations, but the mutation rate and mutation effect size differed. I ran about 100 simulations to get a general idea of what might be happening in the simulations. I wanted to focus on what was happening to the phenotype of newts and snakes, while also observing other factors that I looked at in previous rmarkdowns (beta, phenotype differences, population sizes, ect).
+
 ```{r, data info}
 # Files for No space results
 files <- list.files(path="~/Desktop/cost_sim/gen_5000/u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
@@ -389,13 +416,21 @@ Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
 Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
 ```
 
+## Exploring the Change in Phenotypes
 
 ```{r, phenotype change}
 
-
 phenotype_change_graph_s(files, title="Change in Phenotype Space", is_log=TRUE, xlim_value=104)
-
 ```
+
+```{r, looking at all sims phenotypes}
+a1<-phenotype_trends(Newt_mean_Pheno, "Newt Phenotype Simulation Trend", "sigma = 0.2, mu = 1.5625e-10", "darkred", is_log=FALSE, leg_off=FALSE)
+a2<-phenotype_trends(Snake_mean_Pheno, "Snake Phenotype Simulation Trend", "sigma = 0.2, mu = 1.5625e-10", "steelblue", is_log=FALSE, leg_off=FALSE)
+
+grid.arrange(a1, a2, nrow=1)
+```
+
+
 ```{r, comparative figures this params}
 
 sp<-phenotype_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=5)
