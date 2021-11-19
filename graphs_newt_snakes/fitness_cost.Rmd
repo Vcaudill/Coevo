@@ -418,10 +418,14 @@ Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
 
 ## Exploring the Change in Phenotypes
 
+Here, I am looking at how the phenotypes of newts and snakes change from what they began at and what the ended at for all of the simulations that I ran. In all of the simulation the mean phenotype of the newts and snakes started out higher and after 5,000 generations it dropped. The phenotypes did not become 0. I kind of want them to hang out around 3. I wonder what would happen to the newt and snake phenotype if I kept the simulation running?
+
 ```{r, phenotype change}
 
 phenotype_change_graph_s(files, title="Change in Phenotype Space", is_log=TRUE, xlim_value=104)
 ```
+
+I also graphed the newt and snake phenotype by generation for all of simulations. The typical trend that I saw was that the newt/snake phenotype would drop quickly then level out (it might be lowering slowly, but thats difficulat to tell).
 
 ```{r, looking at all sims phenotypes}
 a1<-phenotype_trends(Newt_mean_Pheno, "Newt Phenotype Simulation Trend", "sigma = 0.2, mu = 1.5625e-10", "darkred", is_log=FALSE, leg_off=FALSE)
@@ -430,52 +434,68 @@ a2<-phenotype_trends(Snake_mean_Pheno, "Snake Phenotype Simulation Trend", "sigm
 grid.arrange(a1, a2, nrow=1)
 ```
 
+When looking at the variation between the simulations for the mean phenotypes and the standard deviation I saw that the simulations seemed to match each other. There was little variation between the simulations. Is it possible for the interaction of selection and cost to make the newt and snake phenotypes more similar between simulations? Can the selection coef. be determined from these results?  
 
 ```{r, comparative figures this params}
 
-sp<-phenotype_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=5)
+sp<-phenotype_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="Space: Variation in the Mean Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=5)
 
-sdp<-phenotype_boxplot(Newt_sd_Pheno, Snake_sd_Pheno, title="NoSpace: Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=5)
+sdp<-phenotype_boxplot(Newt_sd_Pheno, Snake_sd_Pheno, title="Space: Variation in the Sd of Phenotype For Newts and Snakes by Generation", subt="sigma = 0.2, mu = 1.5625e-10", boxy=TRUE, section=TRUE, section_num=10, ylim_max=5)
 
 grid.arrange(sp, sdp, nrow=1)
 ```
 
+## The Difference Betwwen Snake and Newt Mean Phenotype
+
+As I have seen in most of my newt and snake simulations the difference between snake and newt mean phenotype was small. With the addition of a phenotype cost I see less simulations where either the newt or snake has a higher phenotype. Here, there are two simulations that show this happening. Does adding a cost keep one of the species from escaping the interaction?
 
 ```{r, the differences}
 
-bp <- phenotype_dif_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=TRUE, section=TRUE, section_num=10)
+bp <- phenotype_dif_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="Space: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=TRUE, section=TRUE, section_num=10)
 
-bp2 <- phenotype_dif_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="NoSpace: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=FALSE, section=FALSE, section_num=0)
+bp2 <- phenotype_dif_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="Space: Differences", subt="sigma = 0.2, mu = 1.5625e-10",boxy=FALSE, section=FALSE, section_num=0)
 
 grid.arrange(bp, bp2, nrow=1)
 ```
 
+## Interaction Between Polulation Factors and Phenotype
+
+In this section I look at the interaction between population factors such as population size and the amount of newts and snakes killed and the phenotype of the newts and snakes. I will also try to compare these results to my simulations without cost.
+
+When I plotted the difference between mean phenotype and deaths/age I saw a square blob. There are too many points that were plotted on-top of each other to see a trend. A possible trend is that when the snake mean phenotype is higher more newts are dying. When the newt phenotype is higher there might be more snakes dying. This result is not what I saw in my other spatial simulation, it is more like what I saw in my nospace simulations. Why would this be occuring? I also saw a really weird interaction between population size and phenotype. When the snake phenotype was higher there were more newts and when the newt phenotype was higher there were more snakes. This is the exact opposite from what I had been seeing in the spatial and nospace simulations. Why would adding a cost to phenotypes be causing these patterns? Maybe, if the snake phenotype was higher then there would be more snakes, except that if the phenotype was higher there would be a cost lowering the amount of snakes. Maybe this does make sense. If newts or snakes had a high phenotype then there fitness would be lower which could lower the population size. 
+
 ```{r, sel coef graphs}
 
-ps1 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, mean_newts_eaten, mean_snakes_eaten, title="NoSpace: Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="Deaths/age", subtract_x=TRUE)
+ps1 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, mean_newts_eaten, mean_snakes_eaten, title="Space: Differnece in mean phenotype by Deaths", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="Deaths/age", subtract_x=TRUE)
 
-ps2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_pop_size, Snake_pop_size, title="NoSpace: Differnece in mean phenotype by PopSize", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="PopSize", subtract_x=TRUE) 
+ps2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_pop_size, Snake_pop_size, title="Space: Differnece in mean phenotype by PopSize", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Mean Pheno", y_label="PopSize", subtract_x=TRUE) 
 
 
 grid.arrange(ps1, ps2, nrow=1)
 ```
 
+I also made my favorite whale plots! Except here I see the higher phenotype for a particular species when their population size is lower. I wonder if this is because of the interaction between newts and snakes and the cost of the phenotype. For example, maybe there are a lot of newts and they are interaction with snakes the only snakes to survive this interaction are snakes with a higher phenotype. The snakes have a higher phenotype are less fit so they reproduce less. I also saw a lot more in-between points where both the populations of newts and snakes were not large. The patter looks more like a hump and less like a curve.
 
 ```{r, popsize of newts and snakes with color of phenotype}
 
-vc1 <- var_by_var(Newt_pop_size, Newt_mean_Pheno, Newt_mean_Pheno, Snake_pop_size, title="NoSpace: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred") 
+vc1 <- var_by_var(Newt_pop_size, Newt_mean_Pheno, Newt_mean_Pheno, Snake_pop_size, title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred") 
 
-vc2 <- var_by_var(Newt_pop_size, Snake_mean_Pheno, Snake_mean_Pheno, Snake_pop_size, title="NoSpace: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
+vc2 <- var_by_var(Newt_pop_size, Snake_mean_Pheno, Snake_mean_Pheno, Snake_pop_size, title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue") 
 
 vc1 
 vc2
 ```
 
+## Beta Value and Other Comparisons 
+
+I am currently working on a better way to measure the correlation between phenotype and fitness (beta). However, this is the old way that I have been measuring beta (which is for the whole population). The problem with this way of measuring beta is that ther migh be some area with a higher beat and areas with a lower beta which should cause the beta for the would population to be close to 0.
+
+So, when I plotted my beta values I was nor surprised to seem them clustered around 0. Beta does look to be slightly more negative. Could this be due to cost or is it just random chance? 
 
 ```{r, beta distribution}
 
 
-hist(unlist(beta_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="NoSpace: Beta Values", xlab="Beta", breaks=15) 
+hist(unlist(beta_s[ , 2:52]), col=rgb(173,216,230,max = 255, alpha = 80, names = "lt.blue"), main="Space: Beta Values", xlab="Beta", breaks=15) 
 hist(unlist(beta_n[ , 2:52]), col=rgb(255,192,203, max = 255, alpha = 80, names = "lt.pink"), add = TRUE, breaks=15) #ylim=c(0,2100)
 
 abline(v = mean(unlist(beta_n[ , 2:52])), col = rgb(255,192,203, max = 255), lwd = 2)
@@ -484,26 +504,27 @@ legend("topright", c("Newt", "Snake"), fill=c(rgb(255,192,203, max = 255), rgb(1
 
 ```
 
-
+The green eyeball of newt beta by snake beta values is centered around zero with a quite a few additional points neagtive for both the newts and the snakes.
 
 
 ```{r, comp betas}
 
-var_by_var(beta_n, beta_s, beta_n, beta_s, title="NoSpace: Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
+var_by_var(beta_n, beta_s, beta_n, beta_s, title="Space: Newt Betas by Snake Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt betas", y_label="Snake Betas", just_two = TRUE) 
 
 ```
 
+In the last set of figures I was surprised to see that beta values were very negative at the beginning of my simulation. This reflects on how quickly the newt and snake phenotype dropped in the beginning of the simulations. In the other three figures I did not notice any specfic patter or trend. It looks like a blob when looking at the difference between snake and newt phenotype vs age or beta. It also looks like a blob in the figure which plots newt mean phenotype by snake mean phenotype. 
 
 ```{r, beta figures}
 
 
-g1 <- var_by_var( beta_n, beta_s, beta_n, beta_s, title="NoSpace: Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
+g1 <- var_by_var( beta_n, beta_s, beta_n, beta_s, title="Space: Betas By Generation", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Generation", y_label="Betas", by_gen=TRUE) 
 
-g2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="NoSpace: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
+g2 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, beta_n, beta_s, title="Space: Differnece in mean phenotype by Betas", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Betas", subtract_x=TRUE)
 
-g3 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_age, Snake_age, title="NoSpace: Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
+g3 <- var_by_var( Newt_mean_Pheno, Snake_mean_Pheno, Newt_age, Snake_age, title="Space: Differnece in mean phenotype by Age", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Dif in Pheno", y_label="Age", subtract_x=TRUE) 
 
-g4 <- var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="NoSpace: Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
+g4 <- var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="Space: Newt Pheno by Snake Pheno", subt="sigma = 0.2, mu = 1.5625e-10", x_label="Newt Mean Phenotype", y_label="Snake Mean Phenotype", just_two = TRUE) 
 
 
 grid.arrange(g1, g2, g3, g4, nrow=2)
