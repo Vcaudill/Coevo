@@ -335,7 +335,7 @@ early() {
 	// Can I just gather the different individuals in the sections and then do cor?
 	
 	density = summarizeIndividuals(p0.individuals, c(10, 10), bounds,
-		operation="1;", gather="sum", empty=0, perUnitArea=T);
+		operation="individual.fitnessScaling;", gather="mean", empty=0, perUnitArea=T);
 	density = density / max(density);
 	
 	

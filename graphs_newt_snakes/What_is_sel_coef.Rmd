@@ -11,6 +11,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The goal of this markdown is to read and think about selection coefficients. What really is a selection coefficient? How can it be measured? What is considered strong and/or weak? How do I pull it out of my simulation (can there be different selection coefficients for different types of selection)? What kind of math is behind it? How might it change in different simulations, like would it get stronger with more interaction? Does it change in different generations?
 
+To go about solving this problem I am reading part of the quantitative genetics book by Caballero. My goal is to find the response to selection. Typically the response to selection can be found by measuring how much the phenotype has changed, but there is also drift in my simulation (which theoretically can be moving the pehotypes around). So I specifically ask how **much** is selection moving things around? This is really a two part problem, first I need to find the correlation between fitness and phenotype (beta) for small sections, but then what does this correlation mean and how is it related to selection (possibly sel. coef. = cor/h^2)? To accomplish this I will work on it in two parts. Fist, I will try to calculate beta over small sections. Second, I will try to make a no-space simulation with a fixed phenotype for snakes or newts allow one to evolve and use theory to predict how much the mean phenotype should shift (easier said than done...).
+
+
 Currently, I measure selection with the variable beta. Beta is the correlation between phenotype and an individuals fitnessScaling. However, in my simulation there are two possible selective forces 1) the interaction between newts and snakes and 2) the density dependent selection. Now in no space simulation there is still both types of selection, but the density dependent selection is more like a K value.
 
 What I would like to do:
@@ -21,14 +24,13 @@ What I would like to do:
 -watch newt beta <- I think it might stay around 0
 -print beta every generation 
 -compare space to no space
+-manually make one phenotype higher by adding a value 
 
 (pairs)
 sigma_u2=( 0.1 0.2 0.3)
 mu_rate_u2=( 1e-10 2.5e-11 1.11e-11)
 sigma_u5=( 0.1 0.2 0.3)
 mu_rate_u5=( 6.25e-10 1.56e-10 6.94e-11)
-
-I made 6 msprime files where one species phenotype is under 2 and one is under 5. I kept the under 2 params the same and moved the under 5 to each of the three pairs.
 
 
 ## Testing for Selection
