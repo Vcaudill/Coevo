@@ -81,6 +81,7 @@ reproduction(p1) {//newts
 				offspring = subpop.addCrossed(individual, mate);
 				offspring.setSpatialPosition(p1.pointReflected(pos));
 				offspring.setValue("snakes_killed",0);
+				offspring.setValue("pheno",exp(offspring.sumOfMutationsOfType(m1)/10));
 			}
 		}
 	}
@@ -98,6 +99,7 @@ reproduction(p0) {//snakes
 				offspring = subpop.addCrossed(individual, mate);
 				offspring.setSpatialPosition(p0.pointReflected(pos));
 				offspring.setValue("newts_killed",0);
+				offspring.setValue("pheno",exp(offspring.sumOfMutationsOfType(m2)/10));
 			}
 		}
 	}
@@ -118,13 +120,15 @@ reproduction(p0) {//snakes
 	p0.setSpatialBounds(c(0, 0, W, W)); //snake
 	//	// would it be better to add them on the same plot
 	//	// random initial positions
-	for (ind in p1.individuals) {
+	for (ind in p1.individuals) { //newt
 		ind.setSpatialPosition(p1.pointUniform());
 		ind.setValue("snakes_killed",0);
+		ind.setValue("pheno",exp(ind.sumOfMutationsOfType(m1)/10));
 	}
-	for (ind in p0.individuals) {
+	for (ind in p0.individuals) { //snake
 		ind.setSpatialPosition(p0.pointUniform());
 		ind.setValue("newts_killed",0);
+		ind.setValue("pheno",exp(ind.sumOfMutationsOfType(m2)/10));
 	
 	}
 	sim.addSubpop("p2", 1);
@@ -269,7 +273,7 @@ early() {
 }
 
 //Snake a Newt display 
-1: late() {
+2: late() {
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
 	
@@ -334,9 +338,56 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	density = summarizeIndividuals(p0.individuals, c(10, 10), bounds,
-		operation="individual.fitnessScaling;", gather="mean", empty=0, perUnitArea=T);
-	density = density / max(density);
+	grid_res = c(15, 15);
+	//density = summarizeIndividuals(p0.individuals, c(10, 10), bounds, operation="individual.getValue('pheno');", gather="sum", empty=0, perUnitArea=T);
+	//density = density / max(density);
+	//snake
+	snake_sum_fitness = summarizeIndividuals(
+		p0.individuals, grid_res, p0.spatialBounds,
+		operation="individual.fitnessScaling;", gather="sum", empty=0);
+	snake_sum_pheno = summarizeIndividuals(
+		p0.individuals, grid_res, p0.spatialBounds,
+		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
+	snake_sum_prod = summarizeIndividuals(
+		p0.individuals, grid_res, p0.spatialBounds,
+		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
+	snake_counts = summarizeIndividuals(
+		p0.individuals, grid_res, p0.spatialBounds,
+		operation="1;", gather="sum", empty=0);
+	snake_cov = ( snake_sum_prod - snake_sum_pheno * snake_sum_fitness / snake_counts) / (snake_counts - 1); // TODO: deal with dividing by zero
+	
+	zeros = which(snake_cov == "NAN");
+	for(i in zeros){
+	snake_cov[i] = 2.0;
+	}
+//newt
+		newt_sum_fitness = summarizeIndividuals(
+		p1.individuals, grid_res, p1.spatialBounds,
+		operation="individual.fitnessScaling;", gather="sum", empty=0);
+	newt_sum_pheno = summarizeIndividuals(
+		p1.individuals, grid_res, p1.spatialBounds,
+		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
+	newt_sum_prod = summarizeIndividuals(
+		p1.individuals, grid_res, p1.spatialBounds,
+		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
+	newt_counts = summarizeIndividuals(
+		p1.individuals, grid_res, p1.spatialBounds,
+		operation="1;", gather="sum", empty=0);
+	newt_cov = ( newt_sum_prod - newt_sum_pheno * newt_sum_fitness / newt_counts) / (newt_counts - 1); // TODO: deal with dividing by zero
+	
+	zeros = which(newt_cov == "NAN");
+	for(i in zeros){
+	newt_cov[i] = 2.0;
+	}
+	
+	
+	// compute covariance between fitness and phenotype
+//2: late() { // TODO: late or early?
+//	// TODO: this is for p1, do also for p2
+//	// cov(x, y) == ( sum( x * y ) - sum(x) * sum(y) / n ) / (n - 1)
+//	grid_res = c(2, 2); // TODO: make this bigger (this is for debugging)
+//}
+	
 	
 	
 	// maybe it should be transposed?
@@ -348,11 +399,10 @@ early() {
 	//p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
 	//valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
 	
-	p2.defineSpatialMap("density", "xy", density, F, range(density), c("black", "orange", "red")); // showing the densitiy of snakes
+	p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, range(snake_cov), c("orange", "red", "black")); // showing the cov of snakes
 	
-	p3.defineSpatialMap('newts-snakes', 'xy', newt_snake , interpolate=F,
-		valueRange=range(newt_snake), colors=c("#FFFFFF", "#FF0000"));//more red more toxic
-}
+	p3.defineSpatialMap("newt_cov", "xy", newt_cov, F, range(newt_cov), c("orange", "red", "black")); // showing the cov of newts
+	}
 
 // The varabales that I want to collect from slim 
 
@@ -398,7 +448,7 @@ early(){
 		//catn("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + sd(phenotypes_n) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + sd(phenotypes_s));
 		//		catn(sim.generation + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)));
 		
-		catn(mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)));
+		//catn(mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)));
 		//catn(sim.generation + "    " + beta_n + "    "+ beta_s);
 	
 	}
