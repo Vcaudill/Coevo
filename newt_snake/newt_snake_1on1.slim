@@ -338,48 +338,59 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(15, 15);
+	grid_res = c(4, 4);
+	
+	//snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="mean(individuals.getValue('pheno'));");
+	
+	snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="cov(individuals.getValue('pheno'), individuals.fitnessScaling);");
+
+	
+	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="cov(p1.individuals.getValue('pheno'), p1.individuals.fitnessScaling);");
+	
+	catn(snake_cov);
 	//density = summarizeIndividuals(p0.individuals, c(10, 10), bounds, operation="individual.getValue('pheno');", gather="sum", empty=0, perUnitArea=T);
 	//density = density / max(density);
 	//snake
-	snake_sum_fitness = summarizeIndividuals(
-		p0.individuals, grid_res, p0.spatialBounds,
-		operation="individual.fitnessScaling;", gather="sum", empty=0);
-	snake_sum_pheno = summarizeIndividuals(
-		p0.individuals, grid_res, p0.spatialBounds,
-		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
-	snake_sum_prod = summarizeIndividuals(
-		p0.individuals, grid_res, p0.spatialBounds,
-		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
-	snake_counts = summarizeIndividuals(
-		p0.individuals, grid_res, p0.spatialBounds,
-		operation="1;", gather="sum", empty=0);
-	snake_cov = ( snake_sum_prod - snake_sum_pheno * snake_sum_fitness / snake_counts) / (snake_counts - 1); // TODO: deal with dividing by zero
-	
-	zeros = which(snake_cov == "NAN");
-	for(i in zeros){
-	snake_cov[i] = 2.0;
-	}
+//	snake_sum_fitness = summarizeIndividuals(
+//		p0.individuals, grid_res, p0.spatialBounds,
+//		operation="individual.fitnessScaling;", gather="sum", empty=0);
+//	snake_sum_pheno = summarizeIndividuals(
+//		p0.individuals, grid_res, p0.spatialBounds,
+//		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
+//	snake_sum_prod = summarizeIndividuals(
+//		p0.individuals, grid_res, p0.spatialBounds,
+//		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
+//	snake_counts = summarizeIndividuals(
+//		p0.individuals, grid_res, p0.spatialBounds,
+//		operation="1;", gather="sum", empty=0);
+//	snake_cov = ( snake_sum_prod - snake_sum_pheno * snake_sum_fitness / snake_counts) / (snake_counts - 1); // TODO: deal with dividing by zero
+//	
+//	zeros = which(snake_cov == "NAN");
+//	for(i in zeros){
+//	snake_cov[i] = 2.0;
+//	}
+
 //newt
-		newt_sum_fitness = summarizeIndividuals(
-		p1.individuals, grid_res, p1.spatialBounds,
-		operation="individual.fitnessScaling;", gather="sum", empty=0);
-	newt_sum_pheno = summarizeIndividuals(
-		p1.individuals, grid_res, p1.spatialBounds,
-		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
-	newt_sum_prod = summarizeIndividuals(
-		p1.individuals, grid_res, p1.spatialBounds,
-		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
-	newt_counts = summarizeIndividuals(
-		p1.individuals, grid_res, p1.spatialBounds,
-		operation="1;", gather="sum", empty=0);
-	newt_cov = ( newt_sum_prod - newt_sum_pheno * newt_sum_fitness / newt_counts) / (newt_counts - 1); // TODO: deal with dividing by zero
-	
-	zeros = which(newt_cov == "NAN");
-	for(i in zeros){
-	newt_cov[i] = 2.0;
-	}
-	
+
+//		newt_sum_fitness = summarizeIndividuals(
+//		p1.individuals, grid_res, p1.spatialBounds,
+//		operation="individual.fitnessScaling;", gather="sum", empty=0);
+//	newt_sum_pheno = summarizeIndividuals(
+//		p1.individuals, grid_res, p1.spatialBounds,
+//		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
+//	newt_sum_prod = summarizeIndividuals(
+//		p1.individuals, grid_res, p1.spatialBounds,
+//		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
+//	newt_counts = summarizeIndividuals(
+//		p1.individuals, grid_res, p1.spatialBounds,
+//		operation="1;", gather="sum", empty=0);
+//	newt_cov = ( newt_sum_prod - newt_sum_pheno * newt_sum_fitness / newt_counts) / (newt_counts - 1); // TODO: deal with dividing by zero
+//	
+//	zeros = which(newt_cov == "NAN");
+//	for(i in zeros){
+//	newt_cov[i] = 2.0;
+//	}
+//	
 	
 	// compute covariance between fitness and phenotype
 //2: late() { // TODO: late or early?
