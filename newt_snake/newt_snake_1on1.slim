@@ -15,7 +15,7 @@ initialize() {
 	defineConstant("newt_mu_effect_sd", 0.1);
 	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01	
 	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");
-	defineConstant("msprime_file", "newt_snake/data/both_1000_su_1e-10_nu_1e-10_sue_0.1_nue_0.1_try_this_peter.init.trees");
+	defineConstant("msprime_file", "newt_snake/data/test_1000_su_1e-10_nu_1e-10_sue_0.1_nue_0.1_.init.trees");
 	//defineConstant("msprime_file", "MSprome_sim/both_su_1e-08_nu_1e-12_sue_0.25_nue_0.25.init.trees");
 	//defineConstant("msprime_file", "newt_snake/data/both_newt_snake_annotated.init.trees");//sme 0.05, nme 0.01
 	
@@ -338,7 +338,7 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(4, 4);
+	grid_res = c(2, 2);
 	
 	//snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="mean(individuals.getValue('pheno'));");
 	
