@@ -338,66 +338,76 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(2, 2);
+	grid_res = c(5, 5);
 	
 	//snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="mean(individuals.getValue('pheno'));");
+	// cov in the early and not late part of slim (ind die between early and late)
 	
-	snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="cov(individuals.getValue('pheno'), individuals.fitnessScaling);");
-
+	snake_num=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="length(individuals);", empty=0.0);
 	
-	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="cov(p1.individuals.getValue('pheno'), p1.individuals.fitnessScaling);");
+	catn(snake_num);
+	catn("  ");
+	snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="cat('snake'); cat(cov(individuals.getValue('pheno'), individuals.fitnessScaling)); cov(individuals.getValue('pheno'), individuals.fitnessScaling);", empty=0.0);
 	
-	catn(snake_cov);
+	newt_num=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="length(individuals);", empty=0.0);
+	catn("  ");
+	catn("  ");
+	catn(newt_num);
+	catn("  ");
+	
+	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="cat('newt'); cat(cov(individuals.getValue('pheno'), individuals.fitnessScaling)); cov(individuals.getValue('pheno'), individuals.fitnessScaling);", empty=0.0);
+	catn("  ");
+	//catn(snake_cov);
 	//density = summarizeIndividuals(p0.individuals, c(10, 10), bounds, operation="individual.getValue('pheno');", gather="sum", empty=0, perUnitArea=T);
 	//density = density / max(density);
 	//snake
-//	snake_sum_fitness = summarizeIndividuals(
-//		p0.individuals, grid_res, p0.spatialBounds,
-//		operation="individual.fitnessScaling;", gather="sum", empty=0);
-//	snake_sum_pheno = summarizeIndividuals(
-//		p0.individuals, grid_res, p0.spatialBounds,
-//		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
-//	snake_sum_prod = summarizeIndividuals(
-//		p0.individuals, grid_res, p0.spatialBounds,
-//		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
-//	snake_counts = summarizeIndividuals(
-//		p0.individuals, grid_res, p0.spatialBounds,
-//		operation="1;", gather="sum", empty=0);
-//	snake_cov = ( snake_sum_prod - snake_sum_pheno * snake_sum_fitness / snake_counts) / (snake_counts - 1); // TODO: deal with dividing by zero
-//	
-//	zeros = which(snake_cov == "NAN");
-//	for(i in zeros){
-//	snake_cov[i] = 2.0;
-//	}
-
-//newt
-
-//		newt_sum_fitness = summarizeIndividuals(
-//		p1.individuals, grid_res, p1.spatialBounds,
-//		operation="individual.fitnessScaling;", gather="sum", empty=0);
-//	newt_sum_pheno = summarizeIndividuals(
-//		p1.individuals, grid_res, p1.spatialBounds,
-//		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
-//	newt_sum_prod = summarizeIndividuals(
-//		p1.individuals, grid_res, p1.spatialBounds,
-//		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
-//	newt_counts = summarizeIndividuals(
-//		p1.individuals, grid_res, p1.spatialBounds,
-//		operation="1;", gather="sum", empty=0);
-//	newt_cov = ( newt_sum_prod - newt_sum_pheno * newt_sum_fitness / newt_counts) / (newt_counts - 1); // TODO: deal with dividing by zero
-//	
-//	zeros = which(newt_cov == "NAN");
-//	for(i in zeros){
-//	newt_cov[i] = 2.0;
-//	}
-//	
+	//	snake_sum_fitness = summarizeIndividuals(
+	//		p0.individuals, grid_res, p0.spatialBounds,
+	//		operation="individual.fitnessScaling;", gather="sum", empty=0);
+	//	snake_sum_pheno = summarizeIndividuals(
+	//		p0.individuals, grid_res, p0.spatialBounds,
+	//		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
+	//	snake_sum_prod = summarizeIndividuals(
+	//		p0.individuals, grid_res, p0.spatialBounds,
+	//		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
+	//	snake_counts = summarizeIndividuals(
+	//		p0.individuals, grid_res, p0.spatialBounds,
+	//		operation="1;", gather="sum", empty=0);
+	//	snake_cov = ( snake_sum_prod - snake_sum_pheno * snake_sum_fitness / snake_counts) / (snake_counts - 1); // TODO: deal with dividing by zero
+	//	
+	//	zeros = which(snake_cov == "NAN");
+	//	for(i in zeros){
+	//	snake_cov[i] = 2.0;
+	//	}
+	
+	//newt
+	
+	//		newt_sum_fitness = summarizeIndividuals(
+	//		p1.individuals, grid_res, p1.spatialBounds,
+	//		operation="individual.fitnessScaling;", gather="sum", empty=0);
+	//	newt_sum_pheno = summarizeIndividuals(
+	//		p1.individuals, grid_res, p1.spatialBounds,
+	//		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
+	//	newt_sum_prod = summarizeIndividuals(
+	//		p1.individuals, grid_res, p1.spatialBounds,
+	//		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
+	//	newt_counts = summarizeIndividuals(
+	//		p1.individuals, grid_res, p1.spatialBounds,
+	//		operation="1;", gather="sum", empty=0);
+	//	newt_cov = ( newt_sum_prod - newt_sum_pheno * newt_sum_fitness / newt_counts) / (newt_counts - 1); // TODO: deal with dividing by zero
+	//	
+	//	zeros = which(newt_cov == "NAN");
+	//	for(i in zeros){
+	//	newt_cov[i] = 2.0;
+	//	}
+	//	
 	
 	// compute covariance between fitness and phenotype
-//2: late() { // TODO: late or early?
-//	// TODO: this is for p1, do also for p2
-//	// cov(x, y) == ( sum( x * y ) - sum(x) * sum(y) / n ) / (n - 1)
-//	grid_res = c(2, 2); // TODO: make this bigger (this is for debugging)
-//}
+	//2: late() { // TODO: late or early?
+	//	// TODO: this is for p1, do also for p2
+	//	// cov(x, y) == ( sum( x * y ) - sum(x) * sum(y) / n ) / (n - 1)
+	//	grid_res = c(2, 2); // TODO: make this bigger (this is for debugging)
+	//}
 	
 	
 	
@@ -413,7 +423,7 @@ early() {
 	p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, range(snake_cov), c("orange", "red", "black")); // showing the cov of snakes
 	
 	p3.defineSpatialMap("newt_cov", "xy", newt_cov, F, range(newt_cov), c("orange", "red", "black")); // showing the cov of newts
-	}
+}
 
 // The varabales that I want to collect from slim 
 
