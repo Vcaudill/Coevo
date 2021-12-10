@@ -12,18 +12,10 @@ initialize() {
 	defineConstant("snake_mu_rate", 1e-10); //snake mu/newt mu it will me more or less comman than nake	
 	defineConstant("newt_mu_rate", 1e-10); //newt mu/ snake mu it will me more or less comman than nake
 	defineConstant("snake_mu_effect_sd", 0.1);
-	defineConstant("newt_mu_effect_sd", 0.1);
-	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01	
-	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");
+	defineConstant("newt_mu_effect_sd", 0.5);
 	defineConstant("msprime_file", "newt_snake/data/test_1000_su_1e-10_nu_1e-10_sue_0.1_nue_0.1_.init.trees");
-	//defineConstant("msprime_file", "MSprome_sim/both_su_1e-08_nu_1e-12_sue_0.25_nue_0.25.init.trees");
-	//defineConstant("msprime_file", "newt_snake/data/both_newt_snake_annotated.init.trees");//sme 0.05, nme 0.01
 	
-	//Peters sugestions 7/14/2021
 	total_mut_rate = newt_mu_rate + snake_mu_rate;
-	//initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate, snake_mut_rate));
-	//initializeMutationRate(total_mut_rate);
-	
 	
 	defineConstant("sigma_M", 0.33); // the meeting interaction term
 	defineConstant("K", 1);  // carrying-capacity per unit square (roughly)
@@ -41,11 +33,8 @@ initialize() {
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
 	defineConstant("simID", getSeed());
-	//total_mut_rate = newt_mu_rate + mu_rate;
-	//defineConstant(total_mut_rate, newt_mut_rate + mu_rate);
+	
 	//setSeed(1641885067682); looking at no space with the same seed!
-	
-	
 	
 	initializeMutationType("m1", 0.5, "n", 0, newt_mu_effect_sd);
 	initializeMutationType("m2", 0.5, "n", 0, snake_mu_effect_sd);
@@ -167,12 +156,12 @@ early() {
 	snake_competition = i2.totalOfNeighborStrengths(inds_s);// find number of snake neighbors for each snake
 	
 	// caculating the phenotype, but using the exponet to only have postive phenotypes
-	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
-	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
+	//phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
+	//phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
 	// construct phenotypes and fitness effects from QTLs 
-	inds_n.z = phenotypes_n;
-	inds_s.z = phenotypes_s;
+	inds_n.z = inds_n.getValue('pheno');//phenotypes_n
+	inds_s.z = inds_s.getValue('pheno'); //phenotypes_s
 	
 	
 	inds_n.fitnessScaling = pmin(0.95, 1/(1 + RHO * newt_competition));
@@ -220,7 +209,8 @@ early() {
 				if(ind_newt.fitnessScaling > 0){
 					newt_found = newt_found + 1;
 					//Could the snake eat the newt?
-					compair_pheno = phenotypes_s[ind_snake.index] - phenotypes_n[ind_newt.index]; // compairing the snake phentype to the newt phenotype
+					
+					compair_pheno = inds_s.getValue('pheno')[ind_snake.index] - inds_n.getValue('pheno')[ind_newt.index]; // compairing the snake phentype to the newt phenotype (orginal had phen_n stuff)
 					
 					//Did the snake eat the newt?
 					//potential outcomes are death for newt or snake, how do we make the survival curve? 
@@ -273,13 +263,10 @@ early() {
 }
 
 //Snake a Newt display 
-2: late() {
+2: early() {
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
 	
-	// caculating the phenotype, but using the exponet to only have postive phenotypes
-	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
-	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	for (pop in sim.subpopulations) {
 		max_z = max(pop.individuals.z);
 		for (ind in pop.individuals) {
@@ -338,79 +325,20 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(5, 5);
+	grid_res = c(10, 10);
 	
-	//snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="mean(individuals.getValue('pheno'));");
+	
 	// cov in the early and not late part of slim (ind die between early and late)
+	// for this I make any space with 0 or 1 individulas into a cov of 2.0.   
 	
-	snake_num=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="length(individuals);", empty=0.0);
-	
-	catn(snake_num);
-	catn("  ");
-	snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="cat('snake'); cat(cov(individuals.getValue('pheno'), individuals.fitnessScaling)); cov(individuals.getValue('pheno'), individuals.fitnessScaling);", empty=0.0);
-	
-	newt_num=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="length(individuals);", empty=0.0);
-	catn("  ");
-	catn("  ");
-	catn(newt_num);
-	catn("  ");
-	
-	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="cat('newt'); cat(cov(individuals.getValue('pheno'), individuals.fitnessScaling)); cov(individuals.getValue('pheno'), individuals.fitnessScaling);", empty=0.0);
-	catn("  ");
+	snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*2.0; ", empty=2.0);
+	//snake_num=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="length(individuals);", empty=0.0);
+	//catn(snake_num);
 	//catn(snake_cov);
-	//density = summarizeIndividuals(p0.individuals, c(10, 10), bounds, operation="individual.getValue('pheno');", gather="sum", empty=0, perUnitArea=T);
-	//density = density / max(density);
-	//snake
-	//	snake_sum_fitness = summarizeIndividuals(
-	//		p0.individuals, grid_res, p0.spatialBounds,
-	//		operation="individual.fitnessScaling;", gather="sum", empty=0);
-	//	snake_sum_pheno = summarizeIndividuals(
-	//		p0.individuals, grid_res, p0.spatialBounds,
-	//		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
-	//	snake_sum_prod = summarizeIndividuals(
-	//		p0.individuals, grid_res, p0.spatialBounds,
-	//		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
-	//	snake_counts = summarizeIndividuals(
-	//		p0.individuals, grid_res, p0.spatialBounds,
-	//		operation="1;", gather="sum", empty=0);
-	//	snake_cov = ( snake_sum_prod - snake_sum_pheno * snake_sum_fitness / snake_counts) / (snake_counts - 1); // TODO: deal with dividing by zero
-	//	
-	//	zeros = which(snake_cov == "NAN");
-	//	for(i in zeros){
-	//	snake_cov[i] = 2.0;
-	//	}
 	
 	//newt
-	
-	//		newt_sum_fitness = summarizeIndividuals(
-	//		p1.individuals, grid_res, p1.spatialBounds,
-	//		operation="individual.fitnessScaling;", gather="sum", empty=0);
-	//	newt_sum_pheno = summarizeIndividuals(
-	//		p1.individuals, grid_res, p1.spatialBounds,
-	//		operation="individual.getValue('pheno');", gather="sum", empty=0); // TODO: store phenotype in tagF and only compute it once, at birth
-	//	newt_sum_prod = summarizeIndividuals(
-	//		p1.individuals, grid_res, p1.spatialBounds,
-	//		operation="individual.fitnessScaling * individual.getValue('pheno');", gather="sum", empty=0);
-	//	newt_counts = summarizeIndividuals(
-	//		p1.individuals, grid_res, p1.spatialBounds,
-	//		operation="1;", gather="sum", empty=0);
-	//	newt_cov = ( newt_sum_prod - newt_sum_pheno * newt_sum_fitness / newt_counts) / (newt_counts - 1); // TODO: deal with dividing by zero
-	//	
-	//	zeros = which(newt_cov == "NAN");
-	//	for(i in zeros){
-	//	newt_cov[i] = 2.0;
-	//	}
-	//	
-	
-	// compute covariance between fitness and phenotype
-	//2: late() { // TODO: late or early?
-	//	// TODO: this is for p1, do also for p2
-	//	// cov(x, y) == ( sum( x * y ) - sum(x) * sum(y) / n ) / (n - 1)
-	//	grid_res = c(2, 2); // TODO: make this bigger (this is for debugging)
-	//}
-	
-	
-	
+	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*2.0;", empty=2.0);
+	//catn(newt_cov);
 	// maybe it should be transposed?
 	// standorize the colors 
 	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
@@ -420,9 +348,9 @@ early() {
 	//p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
 	//valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
 	
-	p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, range(snake_cov), c("orange", "red", "black")); // showing the cov of snakes
+	p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, range(snake_cov), colors=c("white", "blue", "black")); // showing the cov of snakes
 	
-	p3.defineSpatialMap("newt_cov", "xy", newt_cov, F, range(newt_cov), c("orange", "red", "black")); // showing the cov of newts
+	p3.defineSpatialMap("newt_cov", "xy", newt_cov, F, range(newt_cov), c("white", "red", "black")); // showing the cov of newts
 }
 
 // The varabales that I want to collect from slim 
@@ -443,11 +371,10 @@ early(){
 	inds_s = p0.individuals;
 	
 	// caculating the phenotype, but using the exponet to only have postive phenotypes
-	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
-	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
 	
-	beta_n = cor(phenotypes_n, inds_n.fitnessScaling);
-	beta_s = cor(phenotypes_s, inds_s.fitnessScaling);
+	
+	beta_n = cor(inds_n.getValue('pheno'), inds_n.fitnessScaling);
+	beta_s = cor(inds_s.getValue('pheno'), inds_s.fitnessScaling);
 	defineGlobal("beta_n", beta_n);
 	defineGlobal("beta_s", beta_s);
 	//catn(sim.generation + "    " + beta_n + "    "+ beta_s);
@@ -458,15 +385,10 @@ early(){
 	inds_s = p0.individuals;
 	
 	
-	// caculating the phenotype, but using the exponet to only have postive phenotypes
-	phenotypes_n = exp(inds_n.sumOfMutationsOfType(m1)/10); // amount of posion/resistance, each mutation increase/decreases p/r mutiplicalitivly
-	phenotypes_s = exp(inds_s.sumOfMutationsOfType(m2)/10); //might get too big
-	
 	if ((sim.generation % 20) == 0) {
 		//	cat(sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2);
-		//	cat("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
+		//	cat("    " + min(inds_n.getValue('pheno')) + "    " + max(inds_n.getValue('pheno')) + "    " + mean(inds_n.getValue('pheno')) + "    " + min(inds_s.getValue('pheno')) + "    " + max(inds_s.getValue('pheno')) + "    " + mean(inds_s.getValue('pheno')) + "    " + size(p1.individuals)+"    "+ size(p0.individuals));
 		//catn("    " + clock());
-		//catn("    " + min(phenotypes_n) + "    " + max(phenotypes_n) + "    " + mean(phenotypes_n) + "    " + min(phenotypes_s) + "    " + sd(phenotypes_n) + "    " + max(phenotypes_s) + "    " + mean(phenotypes_s) + "    " + sd(phenotypes_s));
 		//		catn(sim.generation + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)));
 		
 		//catn(mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)));
