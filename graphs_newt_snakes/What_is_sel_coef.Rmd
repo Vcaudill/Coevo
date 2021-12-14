@@ -54,5 +54,5 @@ I wonder what happens to the phenotype distributions when I change mutation rate
 
 ## Quant Gen book 
 
-Heritability and genetic correlation page 54
+Heritability and genetic correlation page 54 might be more info in ch 9
 

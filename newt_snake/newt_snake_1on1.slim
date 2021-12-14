@@ -325,20 +325,20 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(10, 10);
+	grid_res = c(8, 8);
 	
 	
 	// cov in the early and not late part of slim (ind die between early and late)
 	// for this I make any space with 0 or 1 individulas into a cov of 2.0.   
 	
-	snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*2.0; ", empty=2.0);
+	snake_cov=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*0.0; ", empty=0.0);
 	//snake_num=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="length(individuals);", empty=0.0);
 	//catn(snake_num);
 	//catn(snake_cov);
 	
 	//newt
-	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*2.0;", empty=2.0);
-	//catn(newt_cov);
+	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*0.0;", empty=0.0);
+	catn(newt_cov);
 	// maybe it should be transposed?
 	// standorize the colors 
 	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
@@ -348,9 +348,9 @@ early() {
 	//p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
 	//valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
 	
-	p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, range(snake_cov), colors=c("white", "blue", "black")); // showing the cov of snakes
+	p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, c(-0.1,0.1), colors=c("red", "white", "blue")); // showing the cov of snakes the range can make the colors lighter and darker depending on the cor values
 	
-	p3.defineSpatialMap("newt_cov", "xy", newt_cov, F, range(newt_cov), c("white", "red", "black")); // showing the cov of newts
+	p3.defineSpatialMap("newt_cov", "xy", newt_cov, F, c(-0.1,0.1), c("red", "white", "blue")); // showing the cov of newts
 }
 
 // The varabales that I want to collect from slim 
