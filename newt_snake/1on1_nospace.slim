@@ -6,10 +6,10 @@ initialize() {
 	sigma_i = 1; // area for individulas to mate with might condider one for each species (2)
 	recomb=1e-8;
 	sigma_in = 0.5; // i want more of a decrease in fitness when there are too many neighbors!
-	
+	defineConstant("setpheno", 3.0); //setting all the snakes phenotype to a value
 	//Testing factors 	
 	defineConstant("snake_mu_rate", 0); //snake mu
-	defineConstant("newt_mu_rate", 1e-8); //newt mu/ 
+	defineConstant("newt_mu_rate", 1e-6); //newt mu/ 
 	defineConstant("snake_mu_effect_sd", 0);
 	defineConstant("newt_mu_effect_sd", 0.3);
 	defineConstant("msprime_file", "newt_snake/data/test_1000_su_1e-10_nu_1e-10_sue_0.1_nue_0.1_.init.trees");
@@ -27,7 +27,7 @@ initialize() {
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.10);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.20);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
@@ -79,7 +79,7 @@ reproduction(p0) {//snakes
 				offspring = subpop.addCrossed(individual, mate);
 				offspring.setSpatialPosition(p0.pointReflected(pos));
 				offspring.setValue("newts_killed",0);
-				offspring.setValue("pheno", 5.0); //exp(offspring.sumOfMutationsOfType(m2)/10)
+				offspring.setValue("pheno", setpheno); //exp(offspring.sumOfMutationsOfType(m2)/10)
 			}
 		}
 	}
@@ -108,7 +108,7 @@ reproduction(p0) {//snakes
 	for (ind in p0.individuals) {
 		ind.setSpatialPosition(p0.pointUniform());
 		ind.setValue("newts_killed",0);
-		ind.setValue("pheno",5.0); //exp(offspring.sumOfMutationsOfType(m2)/10)
+		ind.setValue("pheno",setpheno); //exp(offspring.sumOfMutationsOfType(m2)/10)
 	
 	}
 	sim.addSubpop("p2", 1);
@@ -282,15 +282,20 @@ early() {
 
 // The varabales that I want to collect from slim 
 
-1 early(){
-	// header info
-	
+1 early(){	
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
 	
-	
 	myFN="test1";
-	mytextfile="~/Desktop/"+"snake_mu_rate"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_late_100000" + "_.text";
+	mytextfile="~/Desktop/data/test_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_snakesetpheno_" + setpheno + "_late_1000" + "_.text";
+	
+	myphenotypefile="~/Desktop/data/byind_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_snakesetpheno_" + setpheno + "_late_1000" + "_.text";
+	
+	
+	// making the name into global varables
+	defineGlobal("mytextfile", mytextfile);
+	defineGlobal("myphenotypefile", myphenotypefile);
+	
 	
 	beta_n = cor(inds_n.getValue('pheno'), inds_n.fitnessScaling);
 	beta_s = cor(inds_s.getValue('pheno'), inds_s.fitnessScaling);
@@ -298,9 +303,11 @@ early() {
 	mytextfileheader="gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density" + "    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Newt_sd_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Snake_sd_Pheno" + "    " + "Newt_pop_size" +
 		"    " +"Snake_pop_size"+"    "+ "mean_newts_eaten"+"    "+ "sd_newts_eaten"+"    "+ "mean_snakes_eaten"+"    "+ "sd_snakes_eaten" +"    "+ "beta_n" + "    " + "beta_s" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "time";
 	
+myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age";
+	
 	mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
-	// making the name into global varables
-	defineGlobal("mytextfile", mytextfile);
+	
+	
 	
 	if (sim.generation == 1) {
 		catn(mytextfileheader);
@@ -308,6 +315,10 @@ early() {
 		
 		writeFile(mytextfile, mytextfileheader, append = T);
 		writeFile(mytextfile, mytextfileinfo , append = T);
+
+		writeFile(myphenotypefile, myphenotypefileheader , append = T);
+		myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age);
+		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
 	
 	}
 }
@@ -329,16 +340,22 @@ early(){ //caculating the selection coefficents
 	inds_s = p0.individuals;
 	
 	
-	if ((sim.generation % 20) == 0) {
+	if ((sim.generation % 1) == 0) {
 		mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
-		cat(mytextfileinfo);
+		catn(sim.generation + "    "  + mean(inds_n.getValue("pheno")));
 		writeFile(mytextfile, mytextfileinfo , append = T);
+	
 	}
 }
 
+2: early(){
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age);
+	writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+}
 
-
-10000 late() {
+1000 late() {
 	// outpath will need to be defined in the slim call so will the varables and ending time
 	//outpath="~/Desktop/";
 	//myFN="test1";
