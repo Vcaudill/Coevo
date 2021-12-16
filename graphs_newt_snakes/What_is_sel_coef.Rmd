@@ -79,7 +79,10 @@ I want to look at the newts' phenotype, fitness, and its ability to survive (bas
 ```{r, data}
 
 files <- list.files(path="~/Desktop/data", pattern="byind", full.names=TRUE, recursive=FALSE)
-file <- read.table(files[1], header = TRUE)
+number=7
+file <- read.table(files[number], header = TRUE)
+file_name <- substr(files[number], 36, 168)
+print(paste0("File Name: ", file_name))
 ```
 
 ```{r, pheno dist graph, warning = F}
@@ -88,23 +91,43 @@ file <- read.table(files[1], header = TRUE)
 hist(file$phenotype[file$gen==1], col="darkred",xlim = c(0, 3), main = "Newt Phenotypes Distribution for 1st Gen", xlab = "Phenotype")
 #xlim = c(1, 6)
 
-p1<-ggplot(file, aes(phenotype)) + 
-  geom_histogram(col = "darkred", fill = "darkred", binwidth=30)+ 
+p1<-ggplot(file[which(file$phenotype<=1001),], aes(phenotype)) + 
+  geom_histogram(col = "darkred", fill = "darkred", binwidth=0.05)+ 
   theme_bw()+
   scale_y_log10()+
-  xlim(-1, 1000) +
+  xlim(-1, max(file[which(file$phenotype<=1001),]$phenotype)) +
+  #ylim(1, 30)+
   # gganimate specific bits:
 labs(title = 'Newt Phenotype Dist. Generation: {frame_time}', x = 'Phenotype', y = 'Count') +
   transition_time(gen) +
   ease_aes('linear')
-animate(p1, duration = 25, fps = 30, width = 400, height = 400, renderer = gifski_renderer())
+animate(p1, duration = 25, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
+anim_save("data/gganimate1.gif")
+```
+
+
+```{r, fit dist graph, warning = F}
+#animation.hook="gifski"
+
+hist(file$fitness[file$gen==1], col="darkred",xlim = c(0, 1), main = "Newt Fitness Distribution for 1st Gen", xlab = "Fitness")
+#xlim = c(1, 6)
+
+p1<-ggplot(file, aes(fitness)) + 
+  geom_histogram(col = "darkred", fill = "darkred", binwidth=0.01)+ 
+  theme_bw()+
+  xlim(-0.2, 1.0)+
+  # gganimate specific bits:
+labs(title = 'Newt Fitness Dist. Generation: {frame_time}', x = 'Fitness', y = 'Count') +
+  transition_time(gen) +
+  ease_aes('linear')
+animate(p1, duration = 25, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
 anim_save("data/gganimate1.gif")
 ```
 
 ```{r, pheno fit graph, warning = F}
 graph_file<-file
 title<-"Phenotype by Fitness"
-subt<-"extra stuff"
+subt<-file_name
     p <- ggplot(graph_file[which(graph_file$phenotype<=1001),], aes(phenotype, fitness)) +
     geom_point(colour = "darkred")+
     ggtitle(title, subtitle = subt) +
@@ -114,14 +137,14 @@ subt<-"extra stuff"
 labs(title = 'Generation: {frame_time}', x = 'Phenotype', y = 'Fitness') +
   transition_time(gen) +
   ease_aes('linear')
-animate(p, duration = 25, fps = 30, width = 400, height = 400, renderer = gifski_renderer())
+animate(p, duration = 25, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
 anim_save("data/gganimate1_2.gif")
 ```
 
 ```{r, pheno fit graph log, warning = F}
 graph_file<-file
 title<-"Phenotype by Fitness"
-subt<-"extra stuff"
+subt<-file_name
     p <- ggplot(graph_file[which(graph_file$phenotype<=1001),], aes(phenotype, fitness)) +
     geom_point(colour = "darkred")+
     ggtitle(title, subtitle = subt) +
@@ -132,7 +155,7 @@ subt<-"extra stuff"
 labs(title = 'Generation: {frame_time}', x = 'Phenotype (log)', y = 'Fitness') +
   transition_time(gen) +
   ease_aes('linear')
-animate(p, duration = 25, fps = 30, width = 400, height = 400, renderer = gifski_renderer())
+animate(p, duration = 25, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
 anim_save("data/gganimate1_2log.gif")
 
 
