@@ -4,7 +4,19 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library(gganimate)
+library(gifski)
+library(gapminder)
 ```
 
 ## Figure out if there is selection in my simulation
@@ -55,4 +67,74 @@ I wonder what happens to the phenotype distributions when I change mutation rate
 ## Quant Gen book 
 
 Heritability and genetic correlation page 54 might be more info in ch 9
+
+
+
+## NoSpace Selection Experiment 
+
+Peter and I talked through a selection experiment in the nospace slimulation. We decided that newts' toxicity would be able to mutate and coevolve with to the snakes resistance (snakes phenotype is set to a value and unable to mutate). I picked parameters that would (hopefully) cause the newts toxicity phenotype to evolve quickly. I also tried increasing interaction rate and moving the snake resistant phenotype further or closer to the newt mean phenotype. 
+
+I want to look at the newts' phenotype, fitness, and its ability to survive (based on phenotype) throughout the generations. Sometimes I get extreme newt phenotypes if the mutation rate is too high. In every simulation where newts became more toxic than snakes there was some competition between snakes and newts where snakes were eating any newt. Then newts and snakes were killing each other. Finally, newts were killing any snake that they met. The transition between newts being eaten by snakes to newts and snakes were killing each other took more time (generations) then when newt became more toxic than snakes.  
+
+```{r, data}
+
+files <- list.files(path="~/Desktop/data", pattern="byind", full.names=TRUE, recursive=FALSE)
+file <- read.table(files[1], header = TRUE)
+```
+
+```{r, pheno dist graph, warning = F}
+#animation.hook="gifski"
+
+hist(file$phenotype[file$gen==1], col="darkred",xlim = c(0, 3), main = "Newt Phenotypes Distribution for 1st Gen", xlab = "Phenotype")
+#xlim = c(1, 6)
+
+p1<-ggplot(file, aes(phenotype)) + 
+  geom_histogram(col = "darkred", fill = "darkred", binwidth=30)+ 
+  theme_bw()+
+  scale_y_log10()+
+  xlim(-1, 1000) +
+  # gganimate specific bits:
+labs(title = 'Newt Phenotype Dist. Generation: {frame_time}', x = 'Phenotype', y = 'Count') +
+  transition_time(gen) +
+  ease_aes('linear')
+animate(p1, duration = 25, fps = 30, width = 400, height = 400, renderer = gifski_renderer())
+anim_save("data/gganimate1.gif")
+```
+
+```{r, pheno fit graph, warning = F}
+graph_file<-file
+title<-"Phenotype by Fitness"
+subt<-"extra stuff"
+    p <- ggplot(graph_file[which(graph_file$phenotype<=1001),], aes(phenotype, fitness)) +
+    geom_point(colour = "darkred")+
+    ggtitle(title, subtitle = subt) +
+    #xlim(-1, 1000) +
+    theme_bw() + theme(legend.position="none")+
+    # gganimate specific bits:
+labs(title = 'Generation: {frame_time}', x = 'Phenotype', y = 'Fitness') +
+  transition_time(gen) +
+  ease_aes('linear')
+animate(p, duration = 25, fps = 30, width = 400, height = 400, renderer = gifski_renderer())
+anim_save("data/gganimate1_2.gif")
+```
+
+```{r, pheno fit graph log, warning = F}
+graph_file<-file
+title<-"Phenotype by Fitness"
+subt<-"extra stuff"
+    p <- ggplot(graph_file[which(graph_file$phenotype<=1001),], aes(phenotype, fitness)) +
+    geom_point(colour = "darkred")+
+    ggtitle(title, subtitle = subt) +
+    #xlim(-1, 1000) +
+    scale_x_log10()+
+    theme_bw() + theme(legend.position="none")+
+    # gganimate specific bits:
+labs(title = 'Generation: {frame_time}', x = 'Phenotype (log)', y = 'Fitness') +
+  transition_time(gen) +
+  ease_aes('linear')
+animate(p, duration = 25, fps = 30, width = 400, height = 400, renderer = gifski_renderer())
+anim_save("data/gganimate1_2log.gif")
+
+
+```
 
