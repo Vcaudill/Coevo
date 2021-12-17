@@ -79,10 +79,12 @@ I want to look at the newts' phenotype, fitness, and its ability to survive (bas
 ```{r, data}
 
 files <- list.files(path="~/Desktop/data", pattern="byind", full.names=TRUE, recursive=FALSE)
-number=7
+number=1
 file <- read.table(files[number], header = TRUE)
 file_name <- substr(files[number], 36, 168)
 print(paste0("File Name: ", file_name))
+
+
 ```
 
 ```{r, pheno dist graph, warning = F}
@@ -101,8 +103,9 @@ p1<-ggplot(file[which(file$phenotype<=1001),], aes(phenotype)) +
 labs(title = 'Newt Phenotype Dist. Generation: {frame_time}', x = 'Phenotype', y = 'Count') +
   transition_time(gen) +
   ease_aes('linear')
-animate(p1, duration = 25, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
+animate(p1, duration = 30 , fps = round(max(file$gen)/33), width = 400, height = 400, renderer = gifski_renderer())
 anim_save("data/gganimate1.gif")
+#fps = round(max(file$gen)/33)
 ```
 
 
@@ -120,7 +123,7 @@ p1<-ggplot(file, aes(fitness)) +
 labs(title = 'Newt Fitness Dist. Generation: {frame_time}', x = 'Fitness', y = 'Count') +
   transition_time(gen) +
   ease_aes('linear')
-animate(p1, duration = 25, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
+animate(p1, duration = 30, fps = round(max(file$gen)/33), width = 400, height = 400, renderer = gifski_renderer())
 anim_save("data/gganimate1.gif")
 ```
 
@@ -137,7 +140,7 @@ subt<-file_name
 labs(title = 'Generation: {frame_time}', x = 'Phenotype', y = 'Fitness') +
   transition_time(gen) +
   ease_aes('linear')
-animate(p, duration = 25, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
+animate(p, duration = 30, fps = round(max(file$gen)/33), width = 400, height = 400, renderer = gifski_renderer())
 anim_save("data/gganimate1_2.gif")
 ```
 
@@ -155,7 +158,7 @@ subt<-file_name
 labs(title = 'Generation: {frame_time}', x = 'Phenotype (log)', y = 'Fitness') +
   transition_time(gen) +
   ease_aes('linear')
-animate(p, duration = 25, fps = 1, width = 400, height = 400, renderer = gifski_renderer())
+animate(p, duration = 30, fps = round(max(file$gen)/33), width = 400, height = 400, renderer = gifski_renderer())
 anim_save("data/gganimate1_2log.gif")
 
 
