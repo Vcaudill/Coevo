@@ -79,7 +79,7 @@ I want to look at the newts' phenotype, fitness, and its ability to survive (bas
 ```{r, data}
 
 files <- list.files(path="~/Desktop/data", pattern="byind", full.names=TRUE, recursive=FALSE)
-number=1
+number=7
 file <- read.table(files[number], header = TRUE)
 file_name <- substr(files[number], 36, 168)
 print(paste0("File Name: ", file_name))
@@ -158,8 +158,62 @@ subt<-file_name
 labs(title = 'Generation: {frame_time}', x = 'Phenotype (log)', y = 'Fitness') +
   transition_time(gen) +
   ease_aes('linear')
-animate(p, duration = 30, fps = round(max(file$gen)/33), width = 400, height = 400, renderer = gifski_renderer())
+animate(p, duration = 30, fps = round(max(graph_file$gen)/33), width = 400, height = 400, renderer = gifski_renderer())
 anim_save("data/gganimate1_2log.gif")
+
+
+```
+
+
+```{r, fitness and phenotype with gen bins}
+graph_file<-file
+graph_file$zone = "A"
+graph_file[which(graph_file$gen > 100 & graph_file$gen < 199),]$zone="B"
+graph_file[which(graph_file$gen > 200 & graph_file$gen < 299),]$zone="C"
+graph_file[which(graph_file$gen > 300 & graph_file$gen < 399),]$zone="D"
+graph_file[which(graph_file$gen > 400 & graph_file$gen < 499),]$zone="E"
+graph_file[which(graph_file$gen > 500 & graph_file$gen < 599),]$zone="F"
+graph_file[which(graph_file$gen > 600 & graph_file$gen < 699),]$zone="G"
+graph_file[which(graph_file$gen > 700 & graph_file$gen < 799),]$zone="H"
+graph_file[which(graph_file$gen > 800 & graph_file$gen < 899),]$zone="I"
+graph_file[which(graph_file$gen > 900 ),]$zone="J"
+
+
+title<-"1000gen Fitness, Color every 100gen"
+subt<-file_name
+    p <- ggplot(graph_file, aes(fitness, fill = zone)) +
+    geom_histogram( bins = 50)+
+    ggtitle(title, subtitle = subt) +
+    #xlim(-1, 1000) +
+    #scale_x_log10()+
+    theme_bw() 
+    
+p
+
+title<-"1000gen Phenotype, Color every 100gen"
+subt<-file_name
+    p <- ggplot(graph_file, aes(phenotype, fill = zone)) +
+    geom_histogram( bins = 50)+
+    ggtitle(title, subtitle = subt) +
+    #xlim(-1, 1000) +
+    #scale_x_log10()+
+    theme_bw() 
+    
+p
+
+```
+
+```{r, phenotype bins}
+
+graph_file<-file
+
+pmin = min(file$phenotype)
+pmax = max(file$phenotype)
+psd = sd(file$phenotype)
+pmean = mean(file$phenotype)
+
+bin(file$phenotype)
+graph_file$
 
 
 ```
