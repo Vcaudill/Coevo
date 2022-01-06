@@ -204,16 +204,18 @@ p
 ```
 
 ```{r, phenotype bins}
-
+library(OneR)
 graph_file<-file
-
+data = file$phenotype
 pmin = min(file$phenotype)
 pmax = max(file$phenotype)
 psd = sd(file$phenotype)
 pmean = mean(file$phenotype)
 
-bin(file$phenotype)
-graph_file$
+mybins = bin(file$phenotype, nbins = 3)
+str(bin(data, nbins = 3, labels = c("small", "medium", "large")))
+
+
 
 
 ```
