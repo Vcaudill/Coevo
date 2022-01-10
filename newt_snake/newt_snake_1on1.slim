@@ -33,7 +33,7 @@ initialize() {
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
 	defineConstant("simID", getSeed());
-	defineConstant("NUMGENS", 10); // how long to run for
+	defineConstant("NUMGENS", 1000); // how long to run for
 	
 	//setSeed(1641885067682); looking at no space with the same seed!
 	
@@ -403,9 +403,10 @@ early(){
 
 
 
-s99 1000 late() {
+s99 10 late() {
 	// outpath will need to be defined in the slim call so will the varables and ending time
 	//sim.treeSeqOutput(outpath+"mu_rate"+mu_rate+ "newt_mu_rate"+newt_mu_rate + "snake_mu_effect_sd"+ snake_mu_effect_sd +"newt_mu_effect_sd" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+simID + "_late_500000" + "_.trees");
+	
 	catn("Done!");
 	sim.simulationFinished();
 }
