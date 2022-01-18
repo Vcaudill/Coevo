@@ -356,6 +356,49 @@ early() {
 	p3.defineSpatialMap("newt_cov", "xy", newt_cov, F, c(-0.1,0.1), c("red", "white", "blue")); // showing the cov of newts
 }
 
+//files I want to make
+//1 early(){	
+//	inds_n = p1.individuals;
+//	inds_s = p0.individuals;
+//	
+//	myFN="test1";//should be supplied by msprime slim?
+//	mytextfile="~/Desktop/data/test_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_interaction_rate_" + interaction_rate + "_late_1000" + "_.text"; //file name dir needs to be set up
+//	
+//	myphenotypefile="~/Desktop/data/byind_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_interaction_rate_" + interaction_rate + "_late_1000" + "_.text"; //file name dir needs to be set up
+//	
+//	
+//	// making the name into global varables
+//	defineGlobal("mytextfile", mytextfile);
+//	defineGlobal("myphenotypefile", myphenotypefile);
+//	
+//	
+//	beta_n = cor(inds_n.getValue('pheno'), inds_n.fitnessScaling);
+//	beta_s = cor(inds_s.getValue('pheno'), inds_s.fitnessScaling);
+//	
+//	mytextfileheader="gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density" + "    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Newt_sd_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Snake_sd_Pheno" + "    " + "Newt_pop_size" +
+//		"    " +"Snake_pop_size"+"    "+ "mean_newts_eaten"+"    "+ "sd_newts_eaten"+"    "+ "mean_snakes_eaten"+"    "+ "sd_snakes_eaten" +"    "+ "beta_n" + "    " + "beta_s" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "time";
+//	
+//myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age";
+//	
+//	mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
+//	
+//	
+//	
+//	if (sim.generation == 1) {
+//		catn(mytextfileheader);
+//		catn(mytextfileinfo);
+//		
+//		writeFile(mytextfile, mytextfileheader, append = T);
+//		writeFile(mytextfile, mytextfileinfo , append = T);
+//
+//		writeFile(myphenotypefile, myphenotypefileheader , append = T);
+//		myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age);
+//		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+//	
+//	}
+//}
+
+
 // The varabales that I want to collect from slim 
 
 1 early(){

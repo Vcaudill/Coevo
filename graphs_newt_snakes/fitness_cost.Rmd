@@ -38,7 +38,7 @@ I chose a phenotype of 3 to be half as good (this might be a tad too strong). I 
 
 Fitness scaling = e^-cost 
 
-If a phenotype of 3 is half the total fitness the cost wold be log 2
+If a phenotype of 3 is half the total fitness the cost would be log 2
 
 c(p) = (a/b)^2
 c(3) = (a/b)^2
@@ -530,3 +530,13 @@ g4 <- var_by_var(Newt_mean_Pheno, beta_s, beta_n, Snake_mean_Pheno, title="Space
 grid.arrange(g1, g2, g3, g4, nrow=2)
 
 ```
+
+## Extra thoughts
+
+Right now the phenotype of newts and snakes goes down due to fitness cost. However, it does not go down to 0. Which might indicate that there is a benefit for having a costly phenotype. I think the cost is too high in this case.
+
+Original choice is 10 phenotypes dropped to ~0.3
+Next choice is 100 phenotypes hold around 2-3
+
+what would phenotypes be like for 10, 20, 30, 40, 50, 60, 70, 80, 90, and 100
+
