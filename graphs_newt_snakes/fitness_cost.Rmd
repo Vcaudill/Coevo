@@ -531,12 +531,105 @@ grid.arrange(g1, g2, g3, g4, nrow=2)
 
 ```
 
-## Extra thoughts
+## Extra thoughts on different values for cost
 
-Right now the phenotype of newts and snakes goes down due to fitness cost. However, it does not go down to 0. Which might indicate that there is a benefit for having a costly phenotype. I think the cost is too high in this case.
+Right now the phenotype of newts and snakes goes down due to fitness cost. However, the mean phenotype of snakes and newts does not go down to 0. This result might indicate that there is a benefit for having a costly phenotype. I think the cost value I picked is too high in this case.
 
 Original choice is 10 phenotypes dropped to ~0.3
-Next choice is 100 phenotypes hold around 2-3
+Next choice is 100 phenotypes hold around 2-3?
 
-what would phenotypes be like for 10, 20, 30, 40, 50, 60, 70, 80, 90, and 100
+For this experiment I tested different cost values (exp(-('pheno'/cost_value)^2. The main question I asked was, what would phenotypes be like if my cost-value was set at 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, and 200? I want to look at the mean and standard deviation of the newt and snake phenotypes between these simulations.
+
+I run one cost1on1 simulation per cost value. Each of these simulations start out with the same msprime file and run on different seeds.
+
+
+```{r, phenotypes at differnt costs data gather}
+
+files <- list.files(path="~/Desktop/data", pattern="costtest", full.names=TRUE, recursive=FALSE)
+number=1
+file <- read.table(files[number], header = TRUE)
+#file_name <- substr(files[number], 36, 186)
+#print(paste0("File Name: ", file_name))
+
+costnum <- as.numeric(unlist(strsplit(files[number], split= "_"))[30])
+file$cost <-costnum
+
+
+for(i in seq(2, length(files), 2)){
+  temp_file <- read.table(files[i], header = TRUE)
+  costnum<-as.numeric(unlist(strsplit(files[i], split= "_"))[30])
+  temp_file$cost <-costnum
+  file <- rbind(file, temp_file)
+  
+}
+```
+
+```{r, phenotypes at differnt costs figure}
+pl1 <- ggplot(file, aes(gen, Newt_mean_Pheno, col=factor(cost))) + geom_line()+ 
+    ggtitle("Newt Mean Pheno by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+pl2 <- ggplot(file, aes(gen, Snake_mean_Pheno, col=factor(cost))) + geom_line()+ 
+    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+pl3 <- ggplot(file, aes(gen, Newt_sd_Pheno, col=factor(cost))) + geom_line()+ 
+    ggtitle("Newt SD Pheno by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+pl4 <- ggplot(file, aes(gen, Snake_sd_Pheno, col=factor(cost))) + geom_line()+ 
+    ggtitle("Snake Sd Pheno by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+pl5 <- ggplot(file, aes(gen, Newt_max_Pheno, col=factor(cost))) + geom_line()+ 
+    ggtitle("Newt Max Pheno by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+pl6 <- ggplot(file, aes(gen, Snake_max_Pheno, col=factor(cost))) + geom_line()+ 
+    ggtitle("Snake Max Pheno by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+pl7 <- ggplot(file, aes(gen, Newt_min_Pheno, col=factor(cost))) + geom_line()+ 
+    ggtitle("Newt Min Pheno by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+pl8 <- ggplot(file, aes(gen, Snake_min_Pheno, col=factor(cost))) + geom_line()+ 
+    ggtitle("Snake Min Pheno by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+
+grid.arrange(pl1, pl2, nrow=1)
+grid.arrange(pl3, pl4, nrow=1)
+grid.arrange(pl5, pl6, nrow=1)
+grid.arrange(pl7, pl8, nrow=1)
+
+```
+
+Here I looked at the mean, sd, max, and min of newts and snakes phenotypes at every 20 generations (dots would be more accurate but lines are easier to see in this case). Each line is a simulation that I ran at a certain cost value. These cost values when from 10 to 200. It looks like the higher I set the cost value the larger the mean phenotype gets and stays. I also noticed that the standard deviation and maximum phenotype got larger as the cost value got larger. The minimum phenotype also seemed to get larger as the cost value was increased, but it varied a lot and looked to have been near or at 0 is some of the simulations. I feel like some of the max phenotypes for the newts and snakes are really high at some points in the simulations (occurring when the cost value is high). It seems like the higher the cost value (which is similar to the phenotype of half fitness?) the larger and more variable the phenotype of newts and snakes gets.
+
+## At Different Costs do the Mean Phenotpyes Still Match?
+
+My next thoughts in this experiment fell on the interaction between newts and snakes. To see if the newts and snakes are interacting I looked at the difference between the mean snake phenotype and the mean newt phenotype. This will (hopefully) show me that newts and snake phenotypes are similar and thus they are competing. In other words one of the species phenotype is not so high that the other species cannot compete. However, I would like to not that for each of these simulations I ran only one copy to get a general sence of what might be happing when the cost value was changed.
+
+
+```{r, cost and the dif between snake and newt}
+file$dif <- file$Snake_mean_Pheno-file$Newt_mean_Pheno
+
+ggplot(file, aes(gen, dif, col=factor(cost))) + geom_line()+ 
+    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+```
+
+From this figure I looked at the difference between snake and newt mean phenotype over 5000 generations (data gathered every 20 gens). Each line is a simulation that I ran at a certain cost value ranging from 10 to 200. For the most part the two phenotypes remained close to each other. When the cost values are smaller the phenotype of newts and snakes is smaller and then the difference between them is smaller. When the cost value was higher then the difference between snake and newt phenotypes was higher. I liked how there were times in this simulation where it seems like newts are winning (negative values) and then in the smae simulation snakes seem to be winning (positive values). Maybe some evidence of a phenotype cycling? 
+
 
