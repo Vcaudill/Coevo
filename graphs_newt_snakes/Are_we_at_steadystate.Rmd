@@ -1,0 +1,35 @@
+---
+title: "Are We At SteadyState Yet"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+```
+
+
+## Goal
+
+My aim is to run one cost_1on1 simulation for a really long time to determine if I am able to tell if the simulation has gone into steady state. The simulation the cost value will be 100 and I will run it for 10 million generations. The goal is to collect whole population data every 20th generation and individual data every 1000th generation
+
+Approximation of data points:
+gen/when data is collected 10000000/20 = 
+gen/when data is collected * number of ind 10000000/1000*1500 = 1.5e+07
+
+These files might be too big (we will see).
+
+Things should stop changing by 2Ne generations. So maybe around 1,400 generations if my population size is around 700.
+
+I have noticed that there seems to be no more variation in the populations. On SLiM all of the individuals in their respective populations have the same color indicating same phenotype
+
+
+

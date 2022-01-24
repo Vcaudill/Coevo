@@ -43,9 +43,11 @@ If a phenotype of 3 is half the total fitness the cost would be log 2
 c(p) = (a/b)^2
 c(3) = (a/b)^2
 log(2) = (a/b)^2
-b = 3/log(2) = 10
+b = 3/log(2) = 4.2
 
-SO cost = (phenotype/10)^2
+SO cost = (phenotype/4.2)^2
+
+I used 10 instead of 4.2 (due to math errors).
 
 **Special Note** Phenotype is arbitrary (scale for the snakes resistance) 
 
@@ -631,5 +633,46 @@ ggplot(file, aes(gen, dif, col=factor(cost))) + geom_line()+
 ```
 
 From this figure I looked at the difference between snake and newt mean phenotype over 5000 generations (data gathered every 20 gens). Each line is a simulation that I ran at a certain cost value ranging from 10 to 200. For the most part the two phenotypes remained close to each other. When the cost values are smaller the phenotype of newts and snakes is smaller and then the difference between them is smaller. When the cost value was higher then the difference between snake and newt phenotypes was higher. I liked how there were times in this simulation where it seems like newts are winning (negative values) and then in the smae simulation snakes seem to be winning (positive values). Maybe some evidence of a phenotype cycling? 
+
+## An Equilibrium 
+
+Is there a point where the cost of a phenotype reaches a balance with selection pressure experienced by the population?
+
+```{r, cost equlibrium}
+
+file$newt_equl <- file$Newt_mean_Pheno/file$cost
+file$snake_equl <- file$Snake_mean_Pheno/file$cost
+
+e1 <- ggplot(file, aes(gen, newt_equl, col=factor(cost))) + geom_line()+ 
+    ggtitle("Newt Mean Pheno/Cost by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype/Cost")+
+    theme_bw() 
+
+e2 <- ggplot(file, aes(gen, snake_equl, col=factor(cost))) + geom_line()+ 
+    ggtitle("Snake Mean Pheno/Cost by Gen", subtitle = "Different Cost") +
+    xlab("Generations") + ylab("Phenotype/Cost")+
+    theme_bw() 
+
+
+grid.arrange(e1, e2, nrow=1)
+```
+
+
+```{r, population size equlibrium}
+
+pop1 <- ggplot(file, aes(gen, Newt_pop_size, col=factor(cost))) + geom_line()+ 
+    ggtitle("Newt Popsize by Gen", subtitle = "Different Cost") +
+    xlab("Popsize") + ylab("Phenotype/Cost")+
+    theme_bw() 
+
+pop2 <- ggplot(file, aes(gen, Snake_pop_size, col=factor(cost))) + geom_line()+ 
+    ggtitle("Snake Popsize by Gen", subtitle = "Different Cost") +
+    xlab("Popsize") + ylab("Phenotype/Cost")+
+    theme_bw() 
+
+
+grid.arrange(pop1, pop2, nrow=1)
+```
+
 
 

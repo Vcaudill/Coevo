@@ -1,0 +1,39 @@
+---
+title: "Comparing Genetic Architectures"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+```
+
+## Purpose
+
+Here I am doing a small experiment to compare different genetic architectures between snakes and newts. I will use the cost_1on1 simulation and my snake_newt_gv msprime simulation. 
+
+Outline
+
+-Pick 4 different mu sigma combinations where mu*sigma^2 is constant (mu=1e-11, sigma=5) to (mu=1e-8, sigma=0.005) i.e (mu=1e-11, sigma=5, mu=1e-10, sigma=0.5, mu=1e-9, sigma=0.05 mu=1e-8, sigma=0.005)
+-In total that will be 16 msprime simulations and 16 slim simulations
+-make a co-evolutionary heatmap
+
+
+Started to run msprim simulations on cluster
+
+
+
+
+
+
+
+
+
