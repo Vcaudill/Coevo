@@ -32,6 +32,7 @@ phenotype <- c(0:5)
 plot(phenotype, phenotype^2, type = "l", main="Fitness Cost", xlab="Phenotype", ylab="Cost")
 abline(v=3, col="red")
 abline(h=9, col="red") # represents half of the individuals fitness
+
 ```
 
 I chose a phenotype of 3 to be half as good (this might be a tad too strong). I chose the value 3 because of the phenotypes of newts and snakes seen in the Brodies map. To calculate cost I need to look at the fitness scaling (between 0 and 1) and make my chosen phenotype meet the line at half of the total fitness (0.5). 
@@ -674,5 +675,12 @@ pop2 <- ggplot(file, aes(gen, Snake_pop_size, col=factor(cost))) + geom_line()+
 grid.arrange(pop1, pop2, nrow=1)
 ```
 
-
+```{r, is this pheno what I expect}
+phenotype <- c(0:200)
+plot(phenotype,exp(-(phenotype/200)^2), type = "l", main="Fitness Cost", xlab="Phenotype", ylab="Cost")
+lines(phenotype,exp(-(phenotype/150)^2))
+lines(phenotype,exp(-(phenotype/100)^2))
+lines(phenotype,exp(-(phenotype/50)^2))
+lines(phenotype,exp(-(phenotype/10)^2))
+```
 

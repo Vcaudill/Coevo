@@ -29,7 +29,7 @@ These files might be too big (we will see).
 
 Things should stop changing by 2Ne generations. So maybe around 1,400 generations if my population size is around 700.
 
-I have noticed that there seems to be no more variation in the populations. On SLiM all of the individuals in their respective populations have the same color indicating same phenotype
+I have noticed that there seems to be no more variation in the populations. On SLiM all of the individuals in their respective populations have the same color indicating same phenotype. The beta values are all 0's. All of the phenotypes have gotten really small (very close to 0). There is no longer co-evolution, but maybe coexistence.
 
 
-
+More things that I have noticed: If interaction rate is higher like 0.15 or 0.10 then one of the populations will go extinct. This might change if the population size is larger 
