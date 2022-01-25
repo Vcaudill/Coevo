@@ -22,18 +22,383 @@ Here I am doing a small experiment to compare different genetic architectures be
 
 Outline
 
--Pick 4 different mu sigma combinations where mu*sigma^2 is constant (mu=1e-11, sigma=5) to (mu=1e-8, sigma=0.005) i.e (mu=1e-11, sigma=5, mu=1e-10, sigma=0.5, mu=1e-9, sigma=0.05 mu=1e-8, sigma=0.005)
+-Pick 4 different mu sigma combinations where mu*sigma^2 is constant (mu=1e-11, sigma=5) to (mu=1e-8, sigma=0.005) i.e ((mu=1e-11, sigma=5(A)), (mu=1e-10, sigma=0.5(B)), (mu=1e-9, sigma=0.05(C)), (mu=1e-8, sigma=0.005(D))) The ABCD represents the group of mu and sigma. When in the newt and snake simulation the groups will be paired to make 16 pairs. 
 -In total that will be 16 msprime simulations and 16 slim simulations
+-See if there are any obvious winners
 -make a co-evolutionary heatmap
 
 
-Started to run msprim simulations on cluster
+
+I ran msprime simulations and the slim simulations on cluster in GA_lt folder.
+Mt goal is to first see if there is an obvious "winner" in the co-evolutionary arms race between these species. 
+
+First, I want to look at the mean pheotypes of newts and snakes as the generations increase. Then I want to look at the difference between the mean phenotypes for each of the 16 simulations. I need to make the data frame to compare all 16 simulations. I noticed in the mu=1e-11, sigma=5 simulations that the staring pheotypes of some of the individulas were really high and sometimes the population crashed and died out.
+
+```{r, making data frames}
+
+making_data_frames <- function(files, spe_col) {
+i=1
+for (current_file in files){
+ #print(current_file)
+
+  if(i ==1){
+    file <- read.table(current_file, header = TRUE)
+  
+    file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+      # might want to change to all_of(spe_col)
+    file %>% 
+      select(all_of(spe_col), gen) %>%
+      #rownames_to_column() %>% 
+      gather(variable, value, -gen) %>% 
+      spread(gen, value) -> new_file
+      
+    new_file$variable[i] <- paste0(spe_col,"_output_", i)
+    i = i + 1
+    next
+    }
+  file <- read.table(current_file, header = TRUE)
+  
+  file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+
+file %>% 
+  select(all_of(spe_col), gen) %>%
+  #rownames_to_column() %>% 
+  gather(variable, value, -gen) %>% 
+  spread(gen, value) -> temp_file
+
+temp_file$variable[1] <- paste0(spe_col,"_output_", i)
+
+new_file<-rbind(new_file, temp_file)
+i = i + 1
+}
+return(new_file)
+}
+
+```
+
+```{r, making resueable figures, results='hide', message=FALSE, warning=FALSE}
+
+phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE, leg_off=FALSE){
+  # Looks at the mean phenotype of all of the simulations and graphs them as lines together
+  # good for seeing what all of the simulations are doing
+  # it can log the y axis and turn off the legend
+  data_frame_temp <- as.data.frame(t(file))
+  
+  colnames(data_frame_temp) <- data_frame_temp[1,]
+  names(data_frame_temp) <- colnames(data_frame_temp)
+  steps <- colnames(file[ , !(names(file) %in% "variable")])
+data_frame_temp <- data_frame_temp[-1, ] 
+data_frame_temp$steps <- as.numeric(unlist(steps))
+  
+  graph_file <- melt(data_frame_temp,  id.vars = 'steps', variable.name = 'series')
+
+  graph_file$series<-unlist(str_split_fixed(graph_file$series, "Pheno_", 2))[,2]
+
+    p <- ggplot(graph_file, aes(steps, as.numeric(value))) + geom_line(aes(colour = series))+ 
+    #ggtitle(title, subtitle = subt) +
+    #scale_color_manual(values = rep(my_color, nrow(file)))+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() + theme(legend.position="none")
+    
+    if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype (Log)")
+    }
+     if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+    return(p)
+}
+
+var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE, by_gen=FALSE, just_two=FALSE, colored=FALSE, color_label=NULL, highcol="darkseagreen"){
+
+  # very powerful and confusing graph. It can plot a max of 4 variables at a time!
+  # I use it to compare newts and snakes to each other
+  # I can log the y axis
+  # I can look at things by generation (uses just the newt x and snake x)
+  # I can compare newt to snake (uses the newt x and snake y)
+  # I can subtract (snake - newt) (subtracts the x value and plots the y value)
+  # Color can plot var by var and pick a 3rd var to color the points (use thenewt x, snake y and newt file y for the color)
+  
+  data_frame_newt_temp_x <- Newt_file_x
+  data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
+  
+  data_frame_snake_temp_x <- Snake_file_x
+  data_frame_snake_temp_x <- data_frame_snake_temp_x[ , !(names(data_frame_snake_temp_x) %in% "variable")]
+  
+  data_frame_newt_temp_y <- Newt_file_y
+  data_frame_newt_temp_y <- data_frame_newt_temp_y[ , !(names(data_frame_newt_temp_y) %in% "variable")]
+  
+  data_frame_snake_temp_y <- Snake_file_y
+  data_frame_snake_temp_y <- data_frame_snake_temp_y[ , !(names(data_frame_snake_temp_y) %in% "variable")]
+  
+  
+  Number <- colnames(data_frame_newt_temp_x)
+  data_frame_newt_x <- gather(data_frame_newt_temp_x, Number, value_x)
+  data_frame_newt_x$type <- "Newt"
+  data_frame_newt_y <- gather(data_frame_newt_temp_y, Number, value_y)
+  data_frame_newt <- cbind(data_frame_newt_x, data_frame_newt_y)
+  data_frame_newt <- data_frame_newt[-4]
+  data_frame_snake_x <- gather(data_frame_snake_temp_x, Number, value_x)
+  data_frame_snake_x$type <- "Snake"
+  data_frame_snake_y <- gather(data_frame_snake_temp_y, Number, value_y)
+  data_frame_snake <- cbind(data_frame_snake_x, data_frame_snake_y)
+  data_frame_snake <- data_frame_snake[-4]
+  
+  
+ if(subtract_x==FALSE){
+   combo <- rbind(data_frame_newt, data_frame_snake)
+   combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
+   p <- ggplot(combo_s) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color=type), alpha=0.1)+
+      scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+ }
+ if(subtract_x==TRUE){
+    subtract_val <- data_frame_snake_x$value_x - data_frame_newt_x$value_x
+    total_sub_dataframe <- data.frame(subtract_val, data_frame_newt_y$value_y, data_frame_snake_y$value_y)
+    total_sub_dataframe <- total_sub_dataframe[sample(nrow(total_sub_dataframe), nrow(total_sub_dataframe)), ]
+    colnames(total_sub_dataframe) <- c("SnakeMisNewt_Pheno","Newts","Snakes")
+     p <- ggplot(total_sub_dataframe) +
+      #xlim(0, 1000)+
+       ggtitle(title, subtitle = subt) +
+       xlab(x_label) + ylab(y_label)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Newts), color="Newts"), alpha=0.1)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Snakes), color="Snakes"), alpha=0.1)+
+        scale_colour_manual(name = "Species", values = c("Newts" = "darkred", "Snakes" = "steelblue"))+
+        theme(plot.title = element_text(size=5)) +
+        theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+ }
+  if(by_gen==TRUE){
+    combo <- rbind(data_frame_newt, data_frame_snake)
+    combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
+       p <- ggplot(combo_s) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(Number), y=as.numeric(value_y), color=type), alpha=0.1)+
+      scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  }
+  
+  
+  
+   if(just_two==TRUE){
+     just2 <- cbind(data_frame_newt_x, data_frame_snake_y)
+     just2 <- just2[-4]
+       p <- ggplot(just2) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y)), color = "darkgreen", alpha=0.1)+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+   }
+  
+
+   if(colored==TRUE){
+     color3 <- cbind(data_frame_newt_x, data_frame_snake_y, data_frame_newt_y)
+     color3 <- color3[-c(1,3,4,6)]
+     suppressWarnings(suppressMessages(suppressPackageStartupMessages({require(scales)})))
+     amin <- 0.1
+     lowcol.hex <- as.hexmode(round(col2rgb(highcol) * amin + 255 * (1 - amin)))
+     lowcol <- paste0("#",   sep = "",
+                 paste(format(lowcol.hex, width = 2), collapse = ""))
+       p <- ggplot(color3) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color = value_y.1))+
+      theme(plot.title = element_text(size=5)) +
+      scale_colour_gradient(high = highcol, low = lowcol) + 
+      labs(colour = color_label) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  }
+  if(logy==TRUE){
+    p = p + scale_y_log10()
+  }
+  
+  
+  
+  return(p)
+ 
+  
+}
+
+phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE, ylim_max=100){
+  #this function can graph phenotype of all of the simulations (as a mean or boxplot) by generations (I can specify the amount of generations to show)
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+  
+   if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+   }
+   Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_newt$type <- "Newt"
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  data_frame_snake$type <- "Snake"
+  
+ combo <- rbind(data_frame_newt, data_frame_snake)
+ 
+ small_combo <- aggregate(as.numeric(combo$value),by=list(Number=as.numeric(combo$Number),type=combo$type),data=combo,FUN=mean, na.action = TRUE)
+
+if(boxy==TRUE){
+  p <- ggplot(combo) +
+    ylim(0, ylim_max)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(value), color=type) )
+  }
+if(boxy==FALSE){
+  p <- ggplot(small_combo) +
+  #xlim(0, 1000)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_point(aes(x=factor(as.numeric(Number)), y=as.numeric(x), color=type) )
+}
+
+ if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+
+return(p)
+}
 
 
+phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE){
+  #this function can graph to difference between phenotypes of all of the simulations (as lines or boxplot) by generations
+  #(I can specify the amount of generations to show)
+
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file 
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+
+  if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+ }
+  
+  Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  dif <- as.numeric(data_frame_snake$value)-as.numeric(data_frame_newt$value)
+  
+  df_dif <- as.data.frame(dif)
+  df_dif$Number <- as.numeric(data_frame_newt$Number)
+  
+  if(boxy==TRUE){
+ p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(dif)), color="darkolivegreen" )
+ }
+ if(boxy==FALSE){
+   usims<-length(unique(Newt_file$variable))
+   df_dif$trial <- rep(paste0("sim_",LETTERS[1:usims]), ncol(Newt_file)-1)
+   p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    #xlim(100, 5000)+
+    ylim(-5, 5)+
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_line(aes(x=as.numeric(Number), y=as.numeric(dif), color=factor(trial)))
+    #scale_color_brewer(palette="viridis")
+    #theme(legend.position="none")
+    #scale_color_manual(values = rep("darkolivegreen", nrow(data_frame_newt_temp)))
+   p
+ }
+   if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+  return(p)
+  
+}
 
 
+phenotype_change_graph_s <- function(files, title, is_log=FALSE, xlim_value){
+  # this shows me how the phenotype change in one single for each simulation
+  # it takes all of the files and reads all of them in to take the first and last point
+  # highly inefficient
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=1:144)) +
+  xlim(0, xlim_value)+
+  ggtitle(title) +
+  xlab("Simulation number") + ylab("Phenotype")+
+  theme_bw()
 
 
+if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype  (Log)")
+  
+}
+
+i=1
+for (current_file in files){
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
+  file <- file[complete.cases(file), ]
+ p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])+0.1), color= darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])+0.1), color=lighten("darkred"))  + 
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])+0.1), color=darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])+0.1), color=lighten("steelblue"))+
+  geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Newt_mean_Pheno[1])+0.1, yend=as.numeric(Newt_mean_Pheno[50])+0.1, colour="Newt"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))+
+   geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Snake_mean_Pheno[1])+0.1, yend=as.numeric(Snake_mean_Pheno[50])+0.1, colour="Snake"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))
+   
+ i = i+1
+}
+p <- p +
+ scale_colour_manual(name = "Species", values = c("Newt" = "darkred", "Snake"="steelblue"))
+return(p)
+}
+
+
+```
+
+```{r, create dataframe}
+files <- list.files(path="~/Desktop/GA_lt/gen_5000/lit/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+file <- read.table(files[1], header = TRUE)
+Newt_mean_Pheno <- making_data_frames(files, all_of("Newt_mean_Pheno"))
+Snake_mean_Pheno <- making_data_frames(files, all_of("Snake_mean_Pheno"))
+```
+
+
+```{r, plots compairing sims}
+
+a1<-phenotype_trends(Newt_mean_Pheno, "Newt Phenotype Simulation Trend", "16 trials", "darkred", is_log=T, leg_off=FALSE)
+a2<-phenotype_trends(Snake_mean_Pheno, "Snake Phenotype Simulation Trend", "16 trial", "steelblue", is_log=T, leg_off=FALSE)
+
+grid.arrange(a1, a2, nrow=1)
+
+
+bp2 <- phenotype_dif_boxplot(Newt_mean_Pheno, Snake_mean_Pheno, title="Space: Differences", subt="16 trial",boxy=FALSE, section=FALSE, section_num=0)
+
+grid.arrange(bp2, nrow=1)
+```
 
 
 
