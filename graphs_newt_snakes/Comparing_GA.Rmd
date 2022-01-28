@@ -602,7 +602,7 @@ params$dif_20<-0
 for(i in seq(1, nrow(params), 1)){
   
   sumitup <- GA_file[ which(GA_file$gen>=1500 & GA_file$sim ==LETTERS[i]),]
-  sumitup_20 <- GA_file_20[ which(GA_file_20$gen>=2500 & GA_file_20$sim ==LETTERS[i]),]
+  sumitup_20 <- GA_file_20[ which(GA_file_20$gen>=3500 & GA_file_20$sim ==LETTERS[i]),]
   params$Newt_mean_Pheno[i]<-mean(sumitup$Newt_mean_Pheno)
   params$Snake_mean_Pheno[i]<-mean(sumitup$Snake_mean_Pheno)
   params$Newt_pop_size[i]<-mean(sumitup$Newt_pop_size)
@@ -616,6 +616,67 @@ for(i in seq(1, nrow(params), 1)){
   
 }
 
+title="Space: Newt VS Snake Population Size"
+subt="Gen 16sims"
+y_label="Snake Popsize"
+x_label="Newt Popsize"
+
+params$newt_mu_effect_sd
+
+params$snake <- paste0(params$snake_mu_rate, "_",params$snake_mu_effect_sd)
+params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
+
+t16 <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)),size=3)+
+#  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)))+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+t16
+
+t16g <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = "Gen 16sims 20000Gen") +
+  xlab(x_label) + ylab(y_label)+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+t16g
+
+t16d <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab("DIF: s-n")+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(dif), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+t16d
+
+t16d2 <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab("Snake pop size") + ylab("DIF: s-n")+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Snake_pop_size), y=as.numeric(dif), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+t16d2
 
 
 ```
