@@ -14,6 +14,7 @@ require(reshape2)
 library(plyr)
 library(gridGraphics)
 library(grid)
+library("reshape")
 ```
 
 ## Purpose
@@ -467,7 +468,7 @@ First things that I noticed it that there are some newt and snake phenotypes tha
 lets look at other things like population size and newt deaths
 
 ```{r population size}
-GA_file$Newt_pop_size
+
 sl1 <- ggplot(GA_file, aes(gen, Newt_pop_size, col=factor(sim))) + geom_line()+ 
     ggtitle("Newt pop-size by Gen", subtitle = "Different sim") +
     #ylim(0,10)+
@@ -585,6 +586,43 @@ dif <- ggplot(GA_file_20[ which(GA_file_20$gen!=1),]) +
 dif
 ```
 
+```{r, 100000 gen}
+files <- list.files(path="~/Desktop/GA_lt/gen_100000/lit/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+number=1
+GA_file_100 <- read.table(files[number], header = TRUE)
+#file_name <- substr(files[number], 36, 186)
+#print(paste0("File Name: ", file_name))
+
+
+GA_file_100$sim <-"A"
+
+
+for(i in seq(2, length(files), 1)){
+  
+  temp_file <- read.table(files[i], header = TRUE)
+  temp_file$sim <-LETTERS[i]
+  GA_file_100 <- rbind(GA_file_100, temp_file)
+  
+}
+GA_file_100$dif <- GA_file_100$Snake_mean_Pheno-GA_file_100$Newt_mean_Pheno
+
+title="Space: Newt VS Snake Population Size Color=S-N Phenotype"
+subt="100000 Gen 16sims"
+y_label="Snake Popsize"
+x_label="Newt Popsize"
+dif <- ggplot(GA_file_100[ which(GA_file_100$gen!=1),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = dif))+
+  theme(plot.title = element_text(size=5)) +
+  scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+dif
+```
+
 
 ```{r, what does the params have to do with it}
 params <- read.csv("/Users/victoria/Desktop/Coevo/data/GAtestvar_lit.csv", header = TRUE)
@@ -598,6 +636,12 @@ params$Snake_mean_Pheno_20<-0
 params$Newt_pop_size_20<-0
 params$Snake_pop_size_20<-0
 params$dif_20<-0
+
+params$Newt_mean_Pheno_100<-0
+params$Snake_mean_Pheno_100<-0
+params$Newt_pop_size_100<-0
+params$Snake_pop_size_100<-0
+params$dif_100<-0
 
 for(i in seq(1, nrow(params), 1)){
   
@@ -621,7 +665,7 @@ subt="Gen 16sims"
 y_label="Snake Popsize"
 x_label="Newt Popsize"
 
-params$newt_mu_effect_sd
+
 
 params$snake <- paste0(params$snake_mu_rate, "_",params$snake_mu_effect_sd)
 params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
@@ -639,18 +683,6 @@ t16 <- ggplot(params) +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
 t16
 
-t16g <- ggplot(params) +
-  #xlim(0, 1000)+
-  ggtitle(title, subtitle = "Gen 16sims 20000Gen") +
-  xlab(x_label) + ylab(y_label)+
-  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
-  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)), size=3)+
-  theme(plot.title = element_text(size=5)) +
-  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
-  #labs(colour = color_label) +
-  #facet_wrap(~sim)+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
-t16g
 
 t16d <- ggplot(params) +
   #xlim(0, 1000)+
@@ -680,6 +712,139 @@ t16d2
 
 
 ```
+```{r, 20000gen simple params}
 
+t16g <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = "Gen 16sims 20000Gen") +
+  xlab(x_label) + ylab(y_label)+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+t16g
+
+```
+
+```{r, 1000000gen}
+
+
+```
+
+```{r, building a heatmap}
+                                      # Install reshape package
+
+
+params_small <- params[-c(1:7, 9:20)]
+
+data_melt <- melt(params_small) 
+
+ggp <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "16 Sim Heatmap") +
+  xlab("Newt GA") + ylab("Snake GA")+
+  geom_tile(aes(fill = value))+ 
+  scale_fill_gradient(low = "green", high = "black", name = "Newt Population Size") 
+ggp  
+
+params_small <- params[-c(1:8, 10:20)]
+
+data_melt <- melt(params_small) 
+
+ggp21 <- ggplot(data_melt, aes(newt, snake)) +    # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "16 Sim Heatmap") +
+  xlab("Newt GA") + ylab("Snake GA")+
+  geom_tile(aes(fill = value))+ 
+  scale_fill_viridis_c(name = "Snake Population Size")
+  #scale_fill_gradient(low = "green", high = "black") 
+ggp21  
+
+params_small <- params[-c(1:9, 11:20)]
+data_melt <- melt(params_small) 
+
+gdif <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "16 Sim Heatmap") +
+  xlab("Newt GA") + ylab("Snake GA")+
+  geom_tile(aes(fill = value))+ 
+  scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = "Snake-Newt") 
+gdif  
+
+params_small <- params[-c(1:14, 16:20)]
+data_melt <- melt(params_small) 
+
+gdif <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "16 Sim Heatmap 20000") +
+  xlab("Newt GA") + ylab("Snake GA")+
+  geom_tile(aes(fill = value))+ 
+  scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = "Snake-Newt") 
+gdif  
+
+
+#TESTING
+GA_file_20$Newt_mean_Pheno
+ggplot(GA_file_20, aes(gen, dif, col=factor(sim))) + geom_line()+ 
+  facet_wrap(~sim)+
+    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+    ylim(-5,5)+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+ggplot(GA_file_20, aes(gen, Newt_mean_Pheno, col=factor(sim))) + geom_line()+ 
+  facet_wrap(~sim)+
+    ggtitle("Newt_mean_Pheno by Gen", subtitle = "Different Sim") +
+    ylim(-5,5)+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+ggplot(GA_file_20, aes(gen, Snake_mean_Pheno, col=factor(sim))) + geom_line()+ 
+  facet_wrap(~sim)+
+    ggtitle("Snake_mean_Pheno by Gen", subtitle = "Different Sim") +
+    ylim(-5,5)+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+ggplot(GA_file_20, aes(gen, Newt_pop_size, col=factor(sim))) + geom_line()+ 
+    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+    
+    xlab("Generations") + ylab("Newt_pop_size")+
+    theme_bw() 
+
+ggplot(GA_file_20, aes(gen, Snake_pop_size, col=factor(sim))) + geom_line()+ 
+    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+    
+    xlab("Generations") + ylab("Snake_pop_size")+
+    theme_bw() 
+
+
+
+```
+
+
+
+thoughts
+
+
+
+a simulation with no interaction 
+
+check that that column is the variance 
+mu*sig^2 = 2.5e-13
+2.5e-12 vs 2.5e-13
+
+try to check out the sigma values 0.015
+1e-8*(0.005)^2=2.5e-13
+1e-9*(0.05)^2=2.5e-12
+1e-10*(0.5)^2=2.5e-11
+1e-11*(5)^2=2.5e-10
+
+lets set everything to 2.5e-11
+
+Now making the smprime with these
+1e-12*(5)^2 = 2.5e-11
+1e-10*(0.5)^2 = 2.5e-11
+1e-8*(0.05)^2 = 2.5e-11
+1e-6*(0.005)^2 = 2.5e-11
 
 
