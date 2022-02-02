@@ -23,17 +23,28 @@ Here I am doing a small experiment to compare different genetic architectures be
 
 Outline
 
--Pick 4 different mu sigma combinations where mu*sigma^2 is constant (mu=1e-11, sigma=5) to (mu=1e-8, sigma=0.005) i.e ((mu=1e-11, sigma=5(A)), (mu=1e-10, sigma=0.5(B)), (mu=1e-9, sigma=0.05(C)), (mu=1e-8, sigma=0.005(D))) The ABCD represents the group of mu and sigma. When in the newt and snake simulation the groups will be paired to make 16 pairs. 
+-Pick 4 different mu sigma combinations where mu*sigma^2 is constant (mu=1e-11, sigma=5) to (mu=1e-8, sigma=0.005). 
+-I picked values where mu*sigma was constant mu=1e-11, sigma=5(A), mu=1e-10, sigma=0.5(B), mu=1e-9, sigma=0.05(C), mu=1e-8, sigma=0.005(D). The ABCD represents the group of mu and sigma. When in the newt and snake simulation the groups will be paired to make 16 pairs. 
 -In total that will be 16 msprime simulations and 16 slim simulations
 -See if there are any obvious winners
 -make a co-evolutionary heatmap
 
+Rerunning this experiment with these values
+1e-12*(5)^2 = 2.5e-11
+1e-10*(0.5)^2 = 2.5e-11
+1e-8*(0.05)^2 = 2.5e-11
+1e-6*(0.005)^2 = 2.5e-11
+*Things with 1e-6 mutation rate go every slow and end up with large file sizes. Might want to think about a different set*
 
+adding 1e-9*(0.1581139)^2
+adding 1e-11*(1.581139)^2
 
 I ran msprime simulations and the slim simulations on cluster in GA_lt folder.
-Mt goal is to first see if there is an obvious "winner" in the co-evolutionary arms race between these species. 
+My goal is to first see if there is an obvious "winner" in the co-evolutionary arms race between these species. 
 
-First, I want to look at the mean pheotypes of newts and snakes as the generations increase. Then I want to look at the difference between the mean phenotypes for each of the 16 simulations. I need to make the data frame to compare all 16 simulations. I noticed in the mu=1e-11, sigma=5 simulations that the staring pheotypes of some of the individulas were really high and sometimes the population crashed and died out.
+First, I want to look at the mean pheotypes of newts and snakes as the generations increase. Then I want to look at the difference between the mean phenotypes for each of the 16 simulations. I need to make the data frame to compare all 16 simulations. I noticed in the mu=1e-11, sigma=5 simulations that the starting pheotypes of some of the individuals were really high and sometimes the population crashed and died out.
+
+Rcode noate: I have code to make my dataframes, it combines many simulations into one graph-able dataframe. Then, I have some functions that can be called to make some figures. 
 
 ```{r, making data frames}
 
@@ -118,7 +129,10 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
   # I can compare newt to snake (uses the newt x and snake y)
   # I can subtract (snake - newt) (subtracts the x value and plots the y value)
   # Color can plot var by var and pick a 3rd var to color the points (use thenewt x, snake y and newt file y for the color)
- 
+  #Newt_file_x <- Newt_pop_size
+  #Newt_file_y <- Newt_mean_Pheno
+  #Snake_file_x <- Snake_pop_size
+  #Snake_file_y <- Snake_mean_Pheno
   data_frame_newt_temp_x <- Newt_file_x
   data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
   
@@ -160,7 +174,7 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
  if(subtract_x==TRUE){
     subtract_val <- data_frame_snake_x$value_x - data_frame_newt_x$value_x
     total_sub_dataframe <- data.frame(subtract_val, data_frame_newt_y$value_y, data_frame_snake_y$value_y)
-    total_sub_dataframe$wrap <- rep(1:16, length(Number))
+    total_sub_dataframe$wrap <- rep(1:25, length(Number))
     total_sub_dataframe <- total_sub_dataframe[sample(nrow(total_sub_dataframe), nrow(total_sub_dataframe)), ]
     colnames(total_sub_dataframe) <- c("SnakeMisNewt_Pheno","Newts","Snakes")
      p <- ggplot(total_sub_dataframe) +
@@ -207,7 +221,7 @@ var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, tit
      
      color3 <- cbind(data_frame_newt_x, data_frame_snake_y, data_frame_newt_y)
      color3 <- color3[-c(1,3,4,6)]
-     color3$wrap <- rep(1:16, length(Number))
+     color3$wrap <- rep(1:25, length(Number))
      suppressWarnings(suppressMessages(suppressPackageStartupMessages({require(scales)})))
      amin <- 0.1
      lowcol.hex <- as.hexmode(round(col2rgb(highcol) * amin + 255 * (1 - amin)))
@@ -390,7 +404,8 @@ return(p)
 ```
 
 ```{r, create dataframe}
- files <- list.files(path="~/Desktop/GA_lt/gen_5000/lit/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+ #files <- list.files(path="~/Desktop/GA_lt/gen_5000/lit/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+files <- list.files(path="~/Desktop/GA_lt/doover/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
  file <- read.table(files[1], header = TRUE)
  Newt_mean_Pheno <- making_data_frames(files, all_of("Newt_mean_Pheno"))
  Snake_mean_Pheno <- making_data_frames(files, all_of("Snake_mean_Pheno"))
@@ -413,11 +428,14 @@ return(p)
 ```
 
 
-
+The first step in seeing if there is a winner in the coevolution interaction is to read in the data and look at the results. I make a dataframe named GA_file. It contains all of the data points from my 16 simulations. I normally look at one varable at a time from all of my simulations, but since there are so feww I can look at them all at once. There are 4016 observations with 28 variables which contains information from both newts and snakes.
 
 ```{r, phenotypes at differnt costs data gather}
 
-files <- list.files(path="~/Desktop/GA_lt/gen_5000/lit/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+#files <- list.files(path="~/Desktop/GA_lt/gen_5000/lit/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+
+files <- list.files(path="~/Desktop/GA_lt/doover/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+
 number=1
 GA_file <- read.table(files[number], header = TRUE)
 #file_name <- substr(files[number], 36, 186)
@@ -436,6 +454,7 @@ for(i in seq(2, length(files), 1)){
 GA_file$dif <- GA_file$Snake_mean_Pheno-GA_file$Newt_mean_Pheno
 ```
 
+The first thing I want to look at are the difference between snake and newt phenotypes as the number of generations increases.  
 
 ```{r easier dif plot}
 
@@ -625,38 +644,39 @@ dif
 
 
 ```{r, what does the params have to do with it}
-params <- read.csv("/Users/victoria/Desktop/Coevo/data/GAtestvar_lit.csv", header = TRUE)
+#params6 <- read.csv("/Users/victoria/Desktop/Coevo/data/GAtestvar_lit_old.csv", header = TRUE)
+params <- read.csv("/Users/victoria/Desktop/GAtestvar_lit.csv", header = TRUE)
 params$Newt_mean_Pheno<-0
 params$Snake_mean_Pheno<-0
 params$Newt_pop_size<-0
 params$Snake_pop_size<-0
 params$dif<-0
-params$Newt_mean_Pheno_20<-0
-params$Snake_mean_Pheno_20<-0
-params$Newt_pop_size_20<-0
-params$Snake_pop_size_20<-0
-params$dif_20<-0
+#params$Newt_mean_Pheno_20<-0
+#params$Snake_mean_Pheno_20<-0
+#params$Newt_pop_size_20<-0
+#params$Snake_pop_size_20<-0
+#params$dif_20<-0
 
-params$Newt_mean_Pheno_100<-0
-params$Snake_mean_Pheno_100<-0
-params$Newt_pop_size_100<-0
-params$Snake_pop_size_100<-0
-params$dif_100<-0
+#params$Newt_mean_Pheno_100<-0
+#params$Snake_mean_Pheno_100<-0
+#params$Newt_pop_size_100<-0
+#params$Snake_pop_size_100<-0
+#params$dif_100<-0
 
 for(i in seq(1, nrow(params), 1)){
   
   sumitup <- GA_file[ which(GA_file$gen>=1500 & GA_file$sim ==LETTERS[i]),]
-  sumitup_20 <- GA_file_20[ which(GA_file_20$gen>=3500 & GA_file_20$sim ==LETTERS[i]),]
+  #sumitup_20 <- GA_file_20[ which(GA_file_20$gen>=3500 & GA_file_20$sim ==LETTERS[i]),]
   params$Newt_mean_Pheno[i]<-mean(sumitup$Newt_mean_Pheno)
   params$Snake_mean_Pheno[i]<-mean(sumitup$Snake_mean_Pheno)
   params$Newt_pop_size[i]<-mean(sumitup$Newt_pop_size)
   params$Snake_pop_size[i]<-mean(sumitup$Snake_pop_size)
   params$dif[i]<-mean(sumitup$dif)
-  params$Newt_mean_Pheno_20[i]<-mean(sumitup_20$Newt_mean_Pheno)
-  params$Snake_mean_Pheno_20[i]<-mean(sumitup_20$Snake_mean_Pheno)
-  params$Newt_pop_size_20[i]<-mean(sumitup_20$Newt_pop_size)
-  params$Snake_pop_size_20[i]<-mean(sumitup_20$Snake_pop_size)
-  params$dif_20[i]<-mean(sumitup_20$dif)
+  #params$Newt_mean_Pheno_20[i]<-mean(sumitup_20$Newt_mean_Pheno)
+  #params$Snake_mean_Pheno_20[i]<-mean(sumitup_20$Snake_mean_Pheno)
+  #params$Newt_pop_size_20[i]<-mean(sumitup_20$Newt_pop_size)
+  #params$Snake_pop_size_20[i]<-mean(sumitup_20$Snake_pop_size)
+  #params$dif_20[i]<-mean(sumitup_20$dif)
   
 }
 
@@ -738,86 +758,86 @@ t16g
                                       # Install reshape package
 
 
-params_small <- params[-c(1:7, 9:20)]
-
+#params_small <- params[-c(1:7, 9:20)]
+params_small <- params[-c(1:7, 9:10)]
 data_melt <- melt(params_small) 
 
 ggp <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
-  ggtitle("Newt GA by Snake GA", subtitle = "16 Sim Heatmap") +
+  ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap") +
   xlab("Newt GA") + ylab("Snake GA")+
   geom_tile(aes(fill = value))+ 
   scale_fill_gradient(low = "green", high = "black", name = "Newt Population Size") 
 ggp  
 
-params_small <- params[-c(1:8, 10:20)]
-
+#params_small <- params[-c(1:8, 10:20)]
+params_small <- params[-c(1:8, 10)]
 data_melt <- melt(params_small) 
 
 ggp21 <- ggplot(data_melt, aes(newt, snake)) +    # Create heatmap with ggplot2
-  ggtitle("Newt GA by Snake GA", subtitle = "16 Sim Heatmap") +
+  ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap") +
   xlab("Newt GA") + ylab("Snake GA")+
   geom_tile(aes(fill = value))+ 
   scale_fill_viridis_c(name = "Snake Population Size")
   #scale_fill_gradient(low = "green", high = "black") 
 ggp21  
 
-params_small <- params[-c(1:9, 11:20)]
+params_small <- params[-c(1:9)]
 data_melt <- melt(params_small) 
 
 gdif <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
-  ggtitle("Newt GA by Snake GA", subtitle = "16 Sim Heatmap") +
+  ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap") +
   xlab("Newt GA") + ylab("Snake GA")+
   geom_tile(aes(fill = value))+ 
   scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = "Snake-Newt") 
 gdif  
 
-params_small <- params[-c(1:14, 16:20)]
-data_melt <- melt(params_small) 
-
-gdif <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
-  ggtitle("Newt GA by Snake GA", subtitle = "16 Sim Heatmap 20000") +
-  xlab("Newt GA") + ylab("Snake GA")+
-  geom_tile(aes(fill = value))+ 
-  scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = "Snake-Newt") 
-gdif  
-
-
-#TESTING
-GA_file_20$Newt_mean_Pheno
-ggplot(GA_file_20, aes(gen, dif, col=factor(sim))) + geom_line()+ 
-  facet_wrap(~sim)+
-    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
-    ylim(-5,5)+
-    xlab("Generations") + ylab("Phenotype")+
-    theme_bw() 
-
-ggplot(GA_file_20, aes(gen, Newt_mean_Pheno, col=factor(sim))) + geom_line()+ 
-  facet_wrap(~sim)+
-    ggtitle("Newt_mean_Pheno by Gen", subtitle = "Different Sim") +
-    ylim(-5,5)+
-    xlab("Generations") + ylab("Phenotype")+
-    theme_bw() 
-
-ggplot(GA_file_20, aes(gen, Snake_mean_Pheno, col=factor(sim))) + geom_line()+ 
-  facet_wrap(~sim)+
-    ggtitle("Snake_mean_Pheno by Gen", subtitle = "Different Sim") +
-    ylim(-5,5)+
-    xlab("Generations") + ylab("Phenotype")+
-    theme_bw() 
-
-ggplot(GA_file_20, aes(gen, Newt_pop_size, col=factor(sim))) + geom_line()+ 
-    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
-    
-    xlab("Generations") + ylab("Newt_pop_size")+
-    theme_bw() 
-
-ggplot(GA_file_20, aes(gen, Snake_pop_size, col=factor(sim))) + geom_line()+ 
-    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
-    
-    xlab("Generations") + ylab("Snake_pop_size")+
-    theme_bw() 
-
-
+# params_small <- params[-c(1:14, 16:20)]
+# data_melt <- melt(params_small) 
+# 
+# gdif <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
+#   ggtitle("Newt GA by Snake GA", subtitle = "16 Sim Heatmap 20000") +
+#   xlab("Newt GA") + ylab("Snake GA")+
+#   geom_tile(aes(fill = value))+ 
+#   scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = "Snake-Newt") 
+# gdif  
+# 
+# 
+# #TESTING
+# GA_file_20$Newt_mean_Pheno
+# ggplot(GA_file_20, aes(gen, dif, col=factor(sim))) + geom_line()+ 
+#   facet_wrap(~sim)+
+#     ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+#     ylim(-5,5)+
+#     xlab("Generations") + ylab("Phenotype")+
+#     theme_bw() 
+# 
+# ggplot(GA_file_20, aes(gen, Newt_mean_Pheno, col=factor(sim))) + geom_line()+ 
+#   facet_wrap(~sim)+
+#     ggtitle("Newt_mean_Pheno by Gen", subtitle = "Different Sim") +
+#     ylim(-5,5)+
+#     xlab("Generations") + ylab("Phenotype")+
+#     theme_bw() 
+# 
+# ggplot(GA_file_20, aes(gen, Snake_mean_Pheno, col=factor(sim))) + geom_line()+ 
+#   facet_wrap(~sim)+
+#     ggtitle("Snake_mean_Pheno by Gen", subtitle = "Different Sim") +
+#     ylim(-5,5)+
+#     xlab("Generations") + ylab("Phenotype")+
+#     theme_bw() 
+# 
+# ggplot(GA_file_20, aes(gen, Newt_pop_size, col=factor(sim))) + geom_line()+ 
+#     ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+#     
+#     xlab("Generations") + ylab("Newt_pop_size")+
+#     theme_bw() 
+# 
+# ggplot(GA_file_20, aes(gen, Snake_pop_size, col=factor(sim))) + geom_line()+ 
+#     ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+#     
+#     xlab("Generations") + ylab("Snake_pop_size")+
+#     theme_bw() 
+# 
+# 
 
 ```
 
