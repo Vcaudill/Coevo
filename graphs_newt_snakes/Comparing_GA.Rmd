@@ -53,6 +53,8 @@ Rerunning this experiment with these values
 I ran msprime simulations and the slim simulations on cluster in GA_lt folder.
 My goal is to first see if there is an obvious "winner" in the co-evolutionary arms race between these species. 
 
+## Explore Phenotype and Population Size
+
 First, I want to look at the mean pheotypes of newts and snakes as the generations increase. Then I want to look at the difference between the mean phenotypes for each of the 16 simulations. I need to make the data frame to compare all 16 simulations. I noticed in the mu=1e-11, sigma=5 simulations that the starting pheotypes of some of the individuals were really high and sometimes the population crashed and died out.
 
 R-code noate: I have code to make my dataframes, it combines many simulations into one graph-able dataframe. Then, I have some functions that can be called to make some figures. 
@@ -503,6 +505,7 @@ labels = c("Snake", "Newt", "Dif"))+
 
 First things that I noticed, are that there are some newt and snake phenotypes that start of really high (I had to cut them so 1st gen is not present). These really high phenotypes dropped after the first generation and were seen in simulations that had a higher mu*si^2 value (last 2 rows/columns). A question that I had after seeing these plots are why are some of them (snake/newt mean phenotypes) flat? Also, the combination of mu times sigma^2 increases the amount of variation. For snakes variation going up as you go down the rows (least A->E->I->M most) and for newts variation increases as you go across the columns (least M->N->O->P most). It might not be strange to see flat phenotype lines in species who have a low variation, but I expected more competition when the GAs were the same.  The simulations that seemed to have the most completion were K, L, O, and P. It might be a generation problem, it there where more generations would variation eventually increase? This is one value for the whole simulation, what is occurring at different spatial points throughout the simulation (P.S. I recorded all individuals phenotype, species, fitness, and locations)?  
 
+
 Next, I checked the population size of newts and snakes through out the 5,000 generations. I found that snake population size seems to be higher than newt population size. The way that the colors are stacked indicates that some GA combinations lead to higher population sizes in a species. It is hard to tell which GA leads to a higher population size, but I would hypothesize that the simulations with higher variance (mu*si^2) will increase a species population size. I also looked at the relationship between newt and snake population size and newt/snake phenotype for all of the simulations combined. 
 
 ```{r, population size}
@@ -537,6 +540,8 @@ vcf2
 ```
 
 When looking at the combined simulation data you can see a relationship between population size and phenotype. As a species population size grows so does its phenotype. For example when the population size of the newts is large then the phenotype of the newts is larger that the phenotype of the newts when the newt population is smaller. However, it is difficult to discern what is going on in each individual simulation and how close the newts and snakes phenotype match.
+
+## 16 Simulation Plots
 
 To get a better idea of what is going on in each simulation I plot newt population size by snake population size and color the points with the difference between snake and newt mean phenotype. The results are really cool to look at!
 
@@ -574,7 +579,7 @@ svc1
 svc2
 
 ```
-I also decided to look at the mean predation of newts by taking newt death (caused by snakes) and dividing by the total newt population size (not sure if this counts the newts that just died). Predation does not look all that different to me.
+I also decided to look at the mean predation of newts by taking newt death (caused by snakes) and dividing by the total newt population size (not sure if this counts the newts that just died). Predation does not look all that different between simulations to me. Should it look different?
 
 ```{r, mean predation}
 GA_file$mean_predation <- GA_file$newt_deaths/GA_file$Newt_pop_size
@@ -589,7 +594,7 @@ pre <- ggplot(GA_file[ which(GA_file$gen!=1),]) +
   xlab(x_label) + ylab(y_label)+
   geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = mean_predation))+
   theme(plot.title = element_text(size=5)) +
-  scale_colour_gradient2(high = "darkolivegreen4", mid = "beige", low = "darkred")+
+  scale_colour_gradient2(high = "darkolivegreen4", low = "beige")+
   #labs(colour = color_label) +
   facet_wrap(~sim)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
@@ -597,7 +602,9 @@ pre
 
 ```
 
-I also repeade the experiment with 20,000 and then again with 100,000 generations.
+Thoughts about predation: If there were lots of newts and snake predation would be higher. If newts had a lower phenotype predation would be higher. If the interaction rate was higher there might be more predation. Right now I do not see any trends. It seems very well mixed. 
+
+To examined what would happen if I kept running my simulations for longer I repeated the experiment with 20,000 generations and then again with 100,000 generations. Below are the summary figures for these simulations. The first figure presented shows all 16 simulations the x axis is newt population size and the y axis is snake population size. The color of the points is the difference between snake mean phenotype and newt mean phenotype. If the point is blue snakes have a higher phenotype, if the point is beige snakes and newts have a similar, and if the point is red newts have a higher phenotype. 
 
 
 ```{r, 20000 gen}
@@ -642,6 +649,10 @@ dif <- ggplot(GA_file_20[ which(GA_file_20$gen!=1),]) +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
 dif
 ```
+
+The 20,000 generation plot shows a similar pattern to the 5,000 generation plot where there is a higher phenotype when one species has has a mu-rate & effect sd of 1.0e-10 & 0.5. In this simulation set the plots along the diagonal A F K P look more neutral.
+
+Next, I plotted the same figure with the 100,000 generation data. Two of the GAs simulation would not finish (I ran out of memory on A and individuals on P, possibly I will try to rerun them).
 
 ```{r, 100000 gen}
 files_100 <- list.files(path="~/Desktop/GA_lt/gen_100000/lit/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
@@ -688,6 +699,32 @@ dif <- ggplot(GA_file_100[ which(GA_file_100$gen!=1),]) +
 dif
 ```
 
+These results show a very different pattern in the newt snake phenotype. A higher phenotype occurs when the other species has a lower variation (mu*si^2). I wonder if this is due to drift (the flat lines). I also find it weird how neutral the some of the simulations in the third column and row look. So I decided to plot the mean newt phenotype, snake mean phenotype and the difference betwwen snake-newt phenotype as the number of gernerations increased. 
+
+
+```{r, GA_file_100 phenotype}
+ggplot(GA_file_100) +
+    facet_wrap(~sim)+
+    geom_line(aes(gen, dif, col="dif"))+
+    ggtitle("Phenotpe by Gen For all Sims", subtitle = "Different Sim") +
+    geom_line(aes(gen, Snake_mean_Pheno, color="Snake_mean_Pheno"),)+
+    geom_line(aes(gen, Newt_mean_Pheno, color="Newt_mean_Pheno"))+
+    ylim(-5,10)+
+    xlab("Generations") + ylab("Phenotype")+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+```
+
+This is kind of a cool result! It seems like when mu*si^2 is low that species has a disadvantage and cannot coevolve with the other species. It also seems that when the mu-rate & effect sd are 1.0e-10 & 0.5 there might be and advantage for that species for some time, but the other species can catch up. 
+
+
+## Summarized Data
+
+For this last section summarized the data to presented in one plot. I summarize the last half of the data for 5,000 generations the last 1,500 generations for 20,00- generations and the last 10,000 generations for the 100,000 simulation.
+
 
 ```{r, what does the params have to do with it}
 params <- read.csv("/Users/victoria/Desktop/Coevo/data/GAtestvar_lit_old.csv", header = TRUE)
@@ -713,7 +750,7 @@ params$dif_100<-0
 
 for(i in seq(1, nrow(params), 1)){
  
-  sumitup <- GA_file[which(GA_file$gen>=1500 & GA_file$sim ==LETTERS[i]),]
+  sumitup <- GA_file[which(GA_file$gen>=2500 & GA_file$sim ==LETTERS[i]),]
   sumitup_20 <- GA_file_20[ which(GA_file_20$gen>=3500 & GA_file_20$sim ==LETTERS[i]),]
   sumitup_100 <- GA_file_100[ which(GA_file_100$gen>=90000 & GA_file_100$sim ==LETTERS[i]),]
   
@@ -824,6 +861,8 @@ t16g10 <- ggplot(params[which(params$trial !=1 & params$trial !=16),]) +
 t16g10
 
 ```
+
+##Heatmap
 
 ```{r, building a heatmap}
                                       # Install reshape package
