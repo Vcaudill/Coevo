@@ -1,0 +1,1056 @@
+---
+title: "Comparing GA Part 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library("reshape")
+```
+
+## Purpose
+
+Here I am doing a contuation of the small experiment to compare different genetic architectures between snakes and newts. I will use the cost_1on1 simulation and my snake_newt_gv msprime simulation. 
+
+Outline
+
+-Pick 5 different mu sigma combinations where mu*sigma^2 is constant 
+-In total that will be 25 msprime simulations and 25 slim simulations
+-See if there are any obvious winners
+-make a co-evolutionary heatmap
+
+Rerunning this experiment with these values
+
+- 1e-8*(0.05)^2 = 2.5e-11
+- 1e-9*(0.1581139)^2 = 2.5e-11
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(1.581139)^2 = 2.5e-11
+- 1e-12*(5)^2 = 2.5e-11
+
+*Things with 1e-6 mutation rate go every slow and end up with large file sizes. Might want to think about a different set*
+
+These are the results of the 25sims experiment. As a note the long sigma (1.581139) might be at a slight advantage because variation is 2.500001e-11
+
+I ran msprime simulations and the slim simulations on cluster in GA_lt doover folder.
+My goal is to first see if there is an obvious "winner" in the co-evolutionary arms race between these species. And then to compare to part 1 of the experiment when some GA have an advantage/disadvatage 
+
+## Explore Phenotype and Population Size
+
+First, I want to look at the mean pheotypes of newts and snakes as the generations increase. Then I want to look at the difference between the mean phenotypes for each of the 25 simulations. I need to make the data frame to compare all 25 simulations. I noticed in the mu=1e-11, sigma=5 simulations that the starting pheotypes of some of the individuals were really high and sometimes the population crashed and died out.
+
+R-code noate: I have code to make my dataframes, it combines many simulations into one graph-able dataframe. Then, I have some functions that can be called to make some figures. 
+
+```{r, making data frames}
+
+making_data_frames <- function(files, spe_col) {
+i=1
+for (current_file in files){
+ #print(current_file)
+
+  if(i ==1){
+    file <- read.table(current_file, header = TRUE)
+  
+    file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+      # might want to change to all_of(spe_col)
+    file %>% 
+      select(all_of(spe_col), gen) %>%
+      #rownames_to_column() %>% 
+      gather(variable, value, -gen) %>% 
+      spread(gen, value) -> new_file
+      
+    new_file$variable[i] <- paste0(spe_col,"_output_", i)
+    i = i + 1
+    next
+    }
+  file <- read.table(current_file, header = TRUE)
+  
+  file[[spe_col]][file[[spe_col]] == "NULL"] <- NA
+
+file %>% 
+  select(all_of(spe_col), gen) %>%
+  #rownames_to_column() %>% 
+  gather(variable, value, -gen) %>% 
+  spread(gen, value) -> temp_file
+
+temp_file$variable[1] <- paste0(spe_col,"_output_", i)
+
+new_file<-rbind(new_file, temp_file)
+i = i + 1
+}
+return(new_file)
+}
+
+```
+
+```{r, making resueable figures, results='hide', message=FALSE, warning=FALSE}
+
+phenotype_trends <- function(file, title, subt, my_color, is_log=FALSE, leg_off=FALSE){
+  # Looks at the mean phenotype of all of the simulations and graphs them as lines together
+  # good for seeing what all of the simulations are doing
+  # it can log the y axis and turn off the legend
+  data_frame_temp <- as.data.frame(t(file))
+  
+  colnames(data_frame_temp) <- data_frame_temp[1,]
+  names(data_frame_temp) <- colnames(data_frame_temp)
+  steps <- colnames(file[ , !(names(file) %in% "variable")])
+data_frame_temp <- data_frame_temp[-1, ] 
+data_frame_temp$steps <- as.numeric(unlist(steps))
+  
+  graph_file <- melt(data_frame_temp,  id.vars = 'steps', variable.name = 'series')
+
+  graph_file$series<-unlist(str_split_fixed(graph_file$series, "Pheno_", 2))[,2]
+
+    p <- ggplot(graph_file, aes(steps, as.numeric(value))) + geom_line(aes(colour = series))+ 
+    #ggtitle(title, subtitle = subt) +
+    #scale_color_manual(values = rep(my_color, nrow(file)))+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() + theme(legend.position="none")
+    
+    if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype (Log)")
+    }
+     if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+    return(p)
+}
+
+var_by_var <- function(Newt_file_x, Snake_file_x, Newt_file_y, Snake_file_y, title, subt, x_label, y_label, logy=FALSE, subtract_x=FALSE, by_gen=FALSE, just_two=FALSE, colored=FALSE, color_label=NULL, highcol="darkseagreen", facet=FALSE){
+
+  # very powerful and confusing graph. It can plot a max of 4 variables at a time!
+  # I use it to compare newts and snakes to each other
+  # I can log the y axis
+  # I can look at things by generation (uses just the newt x and snake x)
+  # I can compare newt to snake (uses the newt x and snake y)
+  # I can subtract (snake - newt) (subtracts the x value and plots the y value)
+  # Color can plot var by var and pick a 3rd var to color the points (use thenewt x, snake y and newt file y for the color)
+  #Newt_file_x <- Newt_pop_size
+  #Newt_file_y <- Newt_mean_Pheno
+  #Snake_file_x <- Snake_pop_size
+  #Snake_file_y <- Snake_mean_Pheno
+  number_of_files = length(unique(Newt_file_x$variable))
+  data_frame_newt_temp_x <- Newt_file_x
+  data_frame_newt_temp_x <- data_frame_newt_temp_x[ , !(names(data_frame_newt_temp_x) %in% "variable")]
+  
+  data_frame_snake_temp_x <- Snake_file_x
+  data_frame_snake_temp_x <- data_frame_snake_temp_x[ , !(names(data_frame_snake_temp_x) %in% "variable")]
+  
+  data_frame_newt_temp_y <- Newt_file_y
+  data_frame_newt_temp_y <- data_frame_newt_temp_y[ , !(names(data_frame_newt_temp_y) %in% "variable")]
+  
+  data_frame_snake_temp_y <- Snake_file_y
+  data_frame_snake_temp_y <- data_frame_snake_temp_y[ , !(names(data_frame_snake_temp_y) %in% "variable")]
+  
+  
+  Number <- colnames(data_frame_newt_temp_x)
+  data_frame_newt_x <- gather(data_frame_newt_temp_x, Number, value_x)
+  data_frame_newt_x$type <- "Newt"
+  data_frame_newt_y <- gather(data_frame_newt_temp_y, Number, value_y)
+  data_frame_newt <- cbind(data_frame_newt_x, data_frame_newt_y)
+  data_frame_newt <- data_frame_newt[-4]
+  data_frame_snake_x <- gather(data_frame_snake_temp_x, Number, value_x)
+  data_frame_snake_x$type <- "Snake"
+  data_frame_snake_y <- gather(data_frame_snake_temp_y, Number, value_y)
+  data_frame_snake <- cbind(data_frame_snake_x, data_frame_snake_y)
+  data_frame_snake <- data_frame_snake[-4]
+  
+  
+ if(subtract_x==FALSE){
+   combo <- rbind(data_frame_newt, data_frame_snake)
+   combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
+   p <- ggplot(combo_s) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color=type), alpha=0.1)+
+      scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+ }
+ if(subtract_x==TRUE){
+    subtract_val <- data_frame_snake_x$value_x - data_frame_newt_x$value_x
+    total_sub_dataframe <- data.frame(subtract_val, data_frame_newt_y$value_y, data_frame_snake_y$value_y)
+    total_sub_dataframe$wrap <- rep(1:number_of_files, length(Number))
+    total_sub_dataframe <- total_sub_dataframe[sample(nrow(total_sub_dataframe), nrow(total_sub_dataframe)), ]
+    colnames(total_sub_dataframe) <- c("SnakeMisNewt_Pheno","Newts","Snakes")
+     p <- ggplot(total_sub_dataframe) +
+      #xlim(0, 1000)+
+       ggtitle(title, subtitle = subt) +
+       xlab(x_label) + ylab(y_label)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Newts), color="Newts"), alpha=0.1)+
+       geom_point(aes(x=as.numeric(SnakeMisNewt_Pheno), y=as.numeric(Snakes), color="Snakes"), alpha=0.1)+
+        scale_colour_manual(name = "Species", values = c("Newts" = "darkred", "Snakes" = "steelblue"))+
+        theme(plot.title = element_text(size=5)) +
+        theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+    
+     
+ }
+  if(by_gen==TRUE){
+    combo <- rbind(data_frame_newt, data_frame_snake)
+    combo_s <- combo[sample(nrow(combo), nrow(combo)), ]
+       p <- ggplot(combo_s) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(Number), y=as.numeric(value_y), color=type), alpha=0.1)+
+      scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  }
+  
+  
+  
+   if(just_two==TRUE){
+     just2 <- cbind(data_frame_newt_x, data_frame_snake_y)
+     just2 <- just2[-4]
+       p <- ggplot(just2) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y)), color = "darkgreen", alpha=0.1)+
+      theme(plot.title = element_text(size=5)) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+   }
+  
+
+   if(colored==TRUE){
+     
+     color3 <- cbind(data_frame_newt_x, data_frame_snake_y, data_frame_newt_y)
+     color3 <- color3[-c(1,3,4,6)]
+     color3$wrap <- rep(1:number_of_files, length(Number))
+     suppressWarnings(suppressMessages(suppressPackageStartupMessages({require(scales)})))
+     amin <- 0.1
+     lowcol.hex <- as.hexmode(round(col2rgb(highcol) * amin + 255 * (1 - amin)))
+     lowcol <- paste0("#",   sep = "",
+                 paste(format(lowcol.hex, width = 2), collapse = ""))
+       p <- ggplot(color3) +
+    #xlim(0, 1000)+
+      ggtitle(title, subtitle = subt) +
+      xlab(x_label) + ylab(y_label)+
+      geom_point(aes(x=as.numeric(value_x), y=as.numeric(value_y), color = value_y.1))+
+      theme(plot.title = element_text(size=5)) +
+      scale_colour_gradient(high = highcol, low = lowcol) + 
+      labs(colour = color_label) +
+      theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+       if(facet==TRUE){
+    
+     p = p + facet_wrap(~wrap)
+  }
+  }
+  if(logy==TRUE){
+    p = p + scale_y_log10()
+  }
+  
+  
+  
+  return(p)
+ 
+  
+}
+
+phenotype_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE, ylim_max=100){
+  #this function can graph phenotype of all of the simulations (as a mean or boxplot) by generations (I can specify the amount of generations to show)
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+  
+   if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+   }
+   Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_newt$type <- "Newt"
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  data_frame_snake$type <- "Snake"
+  
+ combo <- rbind(data_frame_newt, data_frame_snake)
+ 
+ small_combo <- aggregate(as.numeric(combo$value),by=list(Number=as.numeric(combo$Number),type=combo$type),data=combo,FUN=mean, na.action = TRUE)
+
+if(boxy==TRUE){
+  p <- ggplot(combo) +
+    ylim(0, ylim_max)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(value), color=type) )
+  }
+if(boxy==FALSE){
+  p <- ggplot(small_combo) +
+  #xlim(0, 1000)+
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotypes")+
+    scale_color_manual(name = "Species", values = c("Newt" = "darkred", "Snake" = "steelblue"))+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_point(aes(x=factor(as.numeric(Number)), y=as.numeric(x), color=type) )
+}
+
+ if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+
+return(p)
+}
+
+
+phenotype_dif_boxplot <- function(Newt_file, Snake_file, title, subt, boxy=FALSE, section=FALSE, section_num=0, leg_off=FALSE){
+  #this function can graph to difference between phenotypes of all of the simulations (as lines or boxplot) by generations
+  #(I can specify the amount of generations to show)
+
+  data_frame_newt_temp <- Newt_file
+  data_frame_newt_temp <- data_frame_newt_temp[ , !(names(data_frame_newt_temp) %in% "variable")]
+  
+  data_frame_snake_temp <- Snake_file 
+  data_frame_snake_temp <- data_frame_snake_temp[ , !(names(data_frame_snake_temp) %in% "variable")]
+
+  if(section==TRUE){
+   
+   selcol = seq(1,ncol(data_frame_newt_temp), section_num)
+   data_frame_newt_temp <- data_frame_newt_temp %>% select(all_of(selcol))
+   data_frame_snake_temp <- data_frame_snake_temp %>% select(all_of(selcol))
+   
+ }
+  
+  Number <- colnames(data_frame_newt_temp)
+  data_frame_newt <- gather(data_frame_newt_temp, Number, value)
+  data_frame_snake <- gather(data_frame_snake_temp, Number, value)
+  dif <- as.numeric(data_frame_snake$value)-as.numeric(data_frame_newt$value)
+  
+  df_dif <- as.data.frame(dif)
+  df_dif$Number <- as.numeric(data_frame_newt$Number)
+  
+  if(boxy==TRUE){
+ p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_boxplot(aes(x=factor(as.numeric(Number)), y=as.numeric(dif)), color="darkolivegreen" )
+ }
+ if(boxy==FALSE){
+   usims<-length(unique(Newt_file$variable))
+   df_dif$trial <- rep(paste0("sim_",LETTERS[1:usims]), ncol(Newt_file)-1)
+   p <- ggplot(df_dif) +
+    ggtitle(title, subtitle = subt) +
+    #xlim(100, 5000)+
+    ylim(-5, 5)+
+    xlab("Generation") + ylab("Average Phenotype Differences")+
+    theme(plot.title = element_text(size=5)) +
+    theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+    geom_line(aes(x=as.numeric(Number), y=as.numeric(dif), color=factor(trial)))
+    #scale_color_brewer(palette="viridis")
+    #theme(legend.position="none")
+    #scale_color_manual(values = rep("darkolivegreen", nrow(data_frame_newt_temp)))
+   p
+ }
+   if(leg_off==TRUE){
+ p = p+ theme(legend.position = "none")}
+  return(p)
+  
+}
+
+
+phenotype_change_graph_s <- function(files, title, is_log=FALSE, xlim_value){
+  # this shows me how the phenotype change in one single for each simulation
+  # it takes all of the files and reads all of them in to take the first and last point
+  # highly inefficient
+file1 <- read.table(files[1], header = TRUE)
+p <- ggplot(file1, aes(x=1:144)) +
+  xlim(0, xlim_value)+
+  ggtitle(title) +
+  xlab("Simulation number") + ylab("Phenotype")+
+  theme_bw()
+
+
+if(is_log==TRUE){
+  p = p + scale_y_log10() + ylab("Phenotype  (Log)")
+  
+}
+
+i=1
+for (current_file in files){
+
+  file <- read.table(current_file, header = TRUE)
+  file$Newt_mean_Pheno[file$Newt_mean_Pheno == "NULL"] <- 0
+  file$Snake_mean_Pheno[file$Snake_mean_Pheno == "NULL"] <- 0
+  file <- file[complete.cases(file), ]
+ p <- p + geom_point(data= file, x = i, aes(y = as.numeric(Newt_mean_Pheno[1])+0.1), color= darken("darkred")) +
+   geom_point(data= file,x = i, aes(y = as.numeric(Newt_mean_Pheno[50])+0.1), color=lighten("darkred"))  + 
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[1])+0.1), color=darken("steelblue")) +
+  geom_point(data= file, x = i, aes(y = as.numeric(Snake_mean_Pheno[50])+0.1), color=lighten("steelblue"))+
+  geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Newt_mean_Pheno[1])+0.1, yend=as.numeric(Newt_mean_Pheno[50])+0.1, colour="Newt"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))+
+   geom_segment(data = file, x=i, xend=i, aes( y=as.numeric(Snake_mean_Pheno[1])+0.1, yend=as.numeric(Snake_mean_Pheno[50])+0.1, colour="Snake"), size = 0.3, arrow = arrow(length = unit(0.5, "cm")))
+   
+ i = i+1
+}
+p <- p +
+ scale_colour_manual(name = "Species", values = c("Newt" = "darkred", "Snake"="steelblue"))
+return(p)
+}
+
+
+```
+
+```{r, create dataframe}
+files <- list.files(path="~/Desktop/GA_lt/doover/gen_5000/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+ file <- read.table(files[1], header = TRUE)
+ Newt_mean_Pheno <- making_data_frames(files, all_of("Newt_mean_Pheno"))
+ Snake_mean_Pheno <- making_data_frames(files, all_of("Snake_mean_Pheno"))
+ Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
+ Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
+```
+
+
+The first step in seeing if there is a winner in the coevolution interaction is to read in the data and look at the results. I make a dataframe named GA_file. It contains all of the data points from my 25 simulations. I normally look at one variable at a time from all of my simulations, but since there are so few I can look at them all at once. There are over 4,000 observations with 28 variables which contains information from both newts and snakes. I focus on the mean phenotype of both the newt and the snake, usually creating a variable that looks at the difference between the mean pheotypes.
+
+Since there are 25 simulations, for convenience I print out the simulation letter with the paramiter I used for the snake and newt mutation rate and mutation effect size
+
+```{r, phenotypes at differnt costs data gather}
+
+files <- list.files(path="~/Desktop/GA_lt/doover/gen_5000/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+number=1
+GA_file <- read.table(files[number], header = TRUE)
+#file_name <- substr(files[number], 36, 186)
+#print(paste0("File Name: ", file_name))
+
+
+GA_file$sim <-"A"
+
+
+for(i in seq(1, length(files), 1)){
+  temp_file <- read.table(files[i], header = TRUE)
+  temp_file$sim <-LETTERS[i]
+  GA_file <- rbind(GA_file, temp_file)
+  myletter <- LETTERS[i]
+  snake_mu_rate <- unlist(str_split(unlist(str_split(files[i],"snake_mu_rate_"))[2], "_"))[1]
+  newt_mu_rate <- unlist(str_split(unlist(str_split(files[i],"newt_mu_rate_"))[2], "_"))[1]
+  snake_mu_effect_sd <- unlist(str_split(unlist(str_split(files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  newt_mu_effect_sd <- unlist(str_split(unlist(str_split(files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  print(paste0("Simulation ", LETTERS[i],": Snake mu-rate & effect sd (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt mu-rate & effect sd (", newt_mu_rate, ", ", newt_mu_effect_sd, ")" ))
+  
+}
+GA_file$dif <- GA_file$Snake_mean_Pheno-GA_file$Newt_mean_Pheno
+
+```
+
+The first thing I want to look at are the difference between snake and newt mean phenotypes as the number of generations increases. The first graph presented is the newt mean phenotype for all simulations as the number of generations increases. There are some lines that are squiggly and some lines that are flat. The second plot is the represents the snake mean phenotype as the number of generations increases for all the simulations. The third plot, shows both the newt and snake mean phenotype (red, blue) and the difference between the snake mean phenotype and the newt mean phenotype (snake-newt, black).   
+
+```{r, easier dif plot}
+
+pl1 <- ggplot(GA_file, aes(gen, Newt_mean_Pheno, col=factor(sim))) + geom_line()+ 
+    ggtitle("Newt Mean Pheno by Gen", subtitle = "Different sim") +
+    ylim(0,7.5)+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+pl2 <- ggplot(GA_file, aes(gen, Snake_mean_Pheno, col=factor(sim))) + geom_line() + 
+    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Cost") +
+    ylim(0,7.5)+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+grid.arrange(pl1, pl2, nrow=1)
+
+
+ggplot(GA_file, aes(gen, dif, col=factor(sim))) + geom_line()+ 
+    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+    ylim(-7,7)+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+ggplot(GA_file) +
+    facet_wrap(~sim)+
+    geom_line(aes(gen, dif, col="dif"))+
+    ggtitle("Phenotpe by Gen For all Sims", subtitle = "Different Sim") +
+    geom_line(aes(gen, Snake_mean_Pheno, color="Snake_mean_Pheno"),)+
+    geom_line(aes(gen, Newt_mean_Pheno, color="Newt_mean_Pheno"))+
+    ylim(-5,10)+
+    xlab("Generations") + ylab("Phenotype")+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+```
+
+Some things that I noticed, are that there are some newt and snake phenotypes that start of really high (I had to cut them so 1st gen is not present). These really high phenotypes dropped after the first generation and were seen in simulations that had a higher mu*si^2 value (last 2 rows/columns). A question that I had after seeing these plots are why are some of them (snake/newt mean phenotypes) flat? Also, the combination of mu times sigma^2 increases the amount of variation. For snakes variation going up as you go down the rows (least A->E->I->M most) and for newts variation increases as you go across the columns (least M->N->O->P most). It might not be strange to see flat phenotype lines in species who have a low variation, but I expected more competition when the GAs were the same.  The simulations that seemed to have the most completion were K, L, O, and P. It might be a generation problem, it there where more generations would variation eventually increase? This is one value for the whole simulation, what is occurring at different spatial points throughout the simulation (P.S. I recorded all individuals phenotype, species, fitness, and locations)?  
+
+
+Next, I checked the population size of newts and snakes through out the 5,000 generations. I found that snake population size seems to be higher than newt population size. The way that the colors are stacked indicates that some GA combinations lead to higher population sizes in a species. It is hard to tell which GA leads to a higher population size, but I would hypothesize that the simulations with higher variance (mu*si^2) will increase a species population size. I also looked at the relationship between newt and snake population size and newt/snake phenotype for all of the simulations combined. 
+
+```{r, population size}
+
+sl1 <- ggplot(GA_file, aes(gen, Newt_pop_size, col=factor(sim))) + geom_line()+ 
+    ggtitle("Newt pop-size by Gen", subtitle = "Different sim") +
+    #ylim(0,10)+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+
+sl2 <- ggplot(GA_file, aes(gen, Snake_pop_size, col=factor(sim))) + geom_line()+ 
+    ggtitle("Snake pop-size by Gen", subtitle = "Different Cost") +
+    #ylim(0,10)+
+    xlab("Generations") + ylab("Phenotype")+
+    theme_bw() 
+grid.arrange(sl1, sl2, nrow=1)
+
+
+vcf1 <- var_by_var(subset(Newt_pop_size, select = -c(2)), subset(Newt_mean_Pheno, select = -c(2)), subset(Newt_mean_Pheno, select = -c(2)), subset(Snake_pop_size, select = -c(2)), title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred", facet=FALSE) 
+
+vcf2 <- var_by_var(subset(Newt_pop_size, select = -c(2)), subset(Snake_mean_Pheno, select = -c(2)), subset(Snake_mean_Pheno, select = -c(2)), subset(Snake_pop_size, select = -c(2)), title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue", facet=FALSE) 
+
+vc1 <- var_by_var(subset(Newt_pop_size, select = -c(2)), subset(Newt_mean_Pheno, select = -c(2)), subset(Newt_mean_Pheno, select = -c(2)), subset(Snake_pop_size, select = -c(2)), title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Newt Phenotype" , highcol="darkred", facet=TRUE) 
+
+vc2 <- var_by_var(subset(Newt_pop_size, select = -c(2)), subset(Snake_mean_Pheno, select = -c(2)), subset(Snake_mean_Pheno, select = -c(2)), subset(Snake_pop_size, select = -c(2)), title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake Phenotype", highcol="steelblue", facet=TRUE) 
+
+
+vcf1 
+vcf2
+#vc1 
+#vc2
+```
+
+When looking at the combined simulation data you can see a relationship between population size and phenotype. As a species population size grows so does its phenotype. For example when the population size of the newts is large then the phenotype of the newts is larger that the phenotype of the newts when the newt population is smaller. However, it is difficult to discern what is going on in each individual simulation and how close the newts and snakes phenotype match.
+
+## 25 Simulation Plots
+
+To get a better idea of what is going on in each simulation I plot newt population size by snake population size and color the points with the difference between snake and newt mean phenotype. The results are really cool to look at!
+
+```{r, whale}
+title="Space: Newt VS Snake Population Size Color=S-N Phenotype"
+subt="25sims"
+y_label="Snake Popsize"
+x_label="Newt Popsize"
+dif <- ggplot(GA_file[ which(GA_file$gen!=1),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = dif))+
+  theme(plot.title = element_text(size=5)) +
+  scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+dif
+```
+
+The relationship between a species population size and the "whining" species can be a times easy to spot (C, G, O, I, J, L, and P), but at other times it can be hard to discern. When snakes are "winning" their population size is greater than the newts. When the newts are "winning" their population size is equal or greater then the snakes. There are other question that I have for this figure, like why are A, F, K, and P not beige? Or why the species with highest variation is not "winning" in the co-evolutionary arms race? I wonder if I would get these sames results if I ran the simulation for longer? - I suspect not because it seems like the colors are getting lighter (as least they look this way in the plot). 
+
+
+To do a reverse check I plot newt mean phenotype by snake mean phenotype and color with the population size. It is not as pretty as the other graph, but it does show that when the phenotype of a species is low it ofter has a smaller population size. I find the smears sort of funny. 
+
+```{r,pheno by popsize}
+
+
+svc1 <- var_by_var(subset(Newt_mean_Pheno, select = -c(2)), subset(Newt_pop_size, select = -c(2)), subset(Newt_pop_size, select = -c(2)), subset(Snake_mean_Pheno, select = -c(2)), title="Space: Newt VS Snake Phenotype Color=Population Size", subt="Newt", y_label="Snake Phenotype", x_label="Newt Phenotype", colored=TRUE, color_label="Newt Popsize" , highcol="darkred", facet=TRUE) 
+
+svc2 <- var_by_var(subset(Newt_mean_Pheno, select = -c(2)), subset(Snake_pop_size, select = -c(2)), subset(Snake_pop_size, select = -c(2)), subset(Snake_mean_Pheno, select = -c(2)), title="Space: Newt VS Snake Phenotype Color=Population Size", subt="Snake", y_label="Snake Phenotype", x_label="Newt Phenotype", colored=TRUE, color_label="Snake Popsize", highcol="steelblue", facet=TRUE) 
+
+
+grid.arrange(svc1, svc2, nrow=1)
+
+```
+
+I also decided to look at the mean predation of newts by taking newt death (caused by snakes) and dividing by the total newt population size (not sure if this counts the newts that just died). Predation does not look all that different between simulations to me. Should it look different?
+
+```{r, mean predation}
+GA_file$mean_predation <- GA_file$newt_deaths/GA_file$Newt_pop_size
+
+title="Space: Newt VS Snake Population Size Color=Mean_predation"
+subt="25sims newt_deaths/Newt_pop_size"
+y_label="Snake Popsize"
+x_label="Newt Popsize"
+pre <- ggplot(GA_file[ which(GA_file$gen!=1),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = mean_predation))+
+  theme(plot.title = element_text(size=5)) +
+  scale_colour_gradient2(high = "darkolivegreen4", low = "beige")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+pre
+
+```
+
+Thoughts about predation: If there were lots of newts and snake predation would be higher. If newts had a lower phenotype predation would be higher. If the interaction rate was higher there might be more predation. Right now I do not see any trends. It seems very well mixed. 
+
+## Longer Simulations 
+
+To examined what would happen if I kept running my simulations for longer I repeated the experiment with 20,000 generations and then again with 100,000 generations. Below are the summary figures for these simulations. The first figure presented shows all 25 simulations the x axis is newt population size and the y axis is snake population size. The color of the points is the difference between snake mean phenotype and newt mean phenotype. If the point is blue snakes have a higher phenotype, if the point is beige snakes and newts have a similar, and if the point is red newts have a higher phenotype. 
+
+
+```{r, 20000 gen}
+files_20 <- list.files(path="~/Desktop/GA_lt/doover/gen_20000/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+number=1
+GA_file_20 <- read.table(files_20[number], header = TRUE)
+#file_name <- substr(files[number], 36, 186)
+#print(paste0("File Name: ", file_name))
+
+
+GA_file_20$sim <-"A"
+
+for(i in seq(1, length(files_20), 1)){
+  temp_file <- read.table(files_20[i], header = TRUE)
+  temp_file$sim <-LETTERS[i]
+  GA_file_20 <- rbind(GA_file_20, temp_file)
+  myletter <- LETTERS[i]
+  snake_mu_rate <- unlist(str_split(unlist(str_split(files_20[i],"snake_mu_rate_"))[2], "_"))[1]
+  newt_mu_rate <- unlist(str_split(unlist(str_split(files_20[i],"newt_mu_rate_"))[2], "_"))[1]
+  snake_mu_effect_sd <- unlist(str_split(unlist(str_split(files_20[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  newt_mu_effect_sd <- unlist(str_split(unlist(str_split(files_20[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  print(paste0("20,000 Gen Simulation ", LETTERS[i],": Snake (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt (", newt_mu_rate, ", ", newt_mu_effect_sd, ")" ))
+  
+}
+
+
+GA_file_20$dif <- GA_file_20$Snake_mean_Pheno-GA_file_20$Newt_mean_Pheno
+
+title="Space: Newt VS Snake Population Size Color=S-N Phenotype"
+subt="20000 Gen 25sims"
+y_label="Snake Popsize"
+x_label="Newt Popsize"
+dif <- ggplot(GA_file_20[ which(GA_file_20$gen!=1),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = dif))+
+  theme(plot.title = element_text(size=5)) +
+  scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+dif
+```
+
+The 20,000 generation plot shows a similar pattern to the 5,000 generation plot where there is a higher phenotype when one species has has a mu-rate & effect sd of 1.0e-10 & 0.5. In this simulation set the plots along the diagonal A F K P look more neutral.
+
+Next, I plotted the same figure with the 100,000 generation data. Two of the GAs simulation would not finish (I ran out of memory on A and individuals on P, possibly I will try to rerun them).
+
+```{r, 100000 gen}
+files_100 <- list.files(path="~/Desktop/GA_lt/doover/gen_100000/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+number=1
+GA_file_100 <- read.table(files_100[number], header = TRUE)
+#file_name <- substr(files[number], 36, 186)
+#print(paste0("File Name: ", file_name))
+#blank<-GA_file_100
+#blank[,2:length(blank)] = 0
+#write.csv(blank, "~/Desktop/GA_lt/gen_100000/lit/text_files/blank.csv")
+
+
+GA_file_100$sim <-"A"
+for(i in seq(1, length(files_100), 1)){
+  temp_file <- read.table(files_100[i], header = TRUE)
+  temp_file$sim <-LETTERS[i]
+  GA_file_100 <- rbind(GA_file_100, temp_file)
+  myletter <- LETTERS[i]
+  snake_mu_rate <- unlist(str_split(unlist(str_split(files_100[i],"snake_mu_rate_"))[2], "_"))[1]
+  newt_mu_rate <- unlist(str_split(unlist(str_split(files_100[i],"newt_mu_rate_"))[2], "_"))[1]
+  snake_mu_effect_sd <- unlist(str_split(unlist(str_split(files_100[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  newt_mu_effect_sd <- unlist(str_split(unlist(str_split(files_100[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  print(paste0("100,000 Gen Simulation ", LETTERS[i],": Snake (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt (", newt_mu_rate, ", ", newt_mu_effect_sd, ")" ))
+  
+}
+
+
+GA_file_100$dif <- GA_file_100$Snake_mean_Pheno-GA_file_100$Newt_mean_Pheno
+
+title="Space: Newt VS Snake Population Size Color=S-N Phenotype"
+subt="100000 Gen 25sims"
+y_label="Snake Popsize"
+x_label="Newt Popsize"
+dif <- ggplot(GA_file_100[ which(GA_file_100$gen!=1),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = dif))+
+  theme(plot.title = element_text(size=5)) +
+  scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+dif
+```
+
+These results show a very different pattern in the newt snake phenotype. A higher phenotype occurs when the other species has a lower variation (mu*si^2). I wonder if this is due to drift (the flat lines). I also find it weird how neutral the some of the simulations in the third column and row look. So I decided to plot the mean newt phenotype, snake mean phenotype and the difference betwwen snake-newt phenotype as the number of gernerations increased. 
+
+
+```{r, GA_file_100 phenotype}
+ggplot(GA_file_100) +
+    facet_wrap(~sim)+
+    geom_line(aes(gen, dif, col="dif"))+
+    ggtitle("Phenotpe by Gen For all Sims", subtitle = "100,000Gen Different Sim") +
+    geom_line(aes(gen, Snake_mean_Pheno, color="Snake_mean_Pheno"),)+
+    geom_line(aes(gen, Newt_mean_Pheno, color="Newt_mean_Pheno"))+
+    ylim(-5,10)+
+    xlab("Generations") + ylab("Phenotype")+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+```
+
+This is kind of a cool result! It seems like when mu*si^2 is low that species has a disadvantage and cannot coevolve with the other species. It also seems that when the mu-rate & effect sd are 1.0e-10 & 0.5 there might be and advantage for that species for some time, but the other species can catch up. 
+
+
+## Summarized Data
+
+For this section summarized the data to presented in one plot. I summarize the last half of the data for 5,000 generations the last 1,500 generations for 20,000 generations and the last 10,000 generations for the 100,000 simulation. By summarizing the data I can try to compare the GA of the snakes tot the GA of the newts through information of their population sizes and phenotypes. I summarize by taking the mean value of a specific parameter.
+
+In each of these plots color will represent the GA of the snake and shape will represent the GA of the newt. The colors and shapes are labeled with the mutation rate and mutation effect size sd seperated by a subscript. 
+
+```{r, what does the params have to do with it}
+params <- read.csv("/Users/victoria/Desktop/Coevo/data/GAtestvar_lit_25.csv", header = TRUE)
+#params <- read.csv("/Users/victoria/Desktop/GAtestvar_lit.csv", header = TRUE)
+params$Newt_mean_Pheno<-0
+params$Snake_mean_Pheno<-0
+params$Newt_pop_size<-0
+params$Snake_pop_size<-0
+params$dif<-0
+
+params$Newt_mean_Pheno_20<-0
+params$Snake_mean_Pheno_20<-0
+params$Newt_pop_size_20<-0
+params$Snake_pop_size_20<-0
+params$dif_20<-0
+
+params$Newt_mean_Pheno_100<-0
+params$Snake_mean_Pheno_100<-0
+params$Newt_pop_size_100<-0
+params$Snake_pop_size_100<-0
+params$dif_100<-0
+
+
+for(i in seq(1, nrow(params), 1)){
+ 
+  sumitup <- GA_file[which(GA_file$gen>=2500 & GA_file$sim ==LETTERS[i]),]
+  sumitup_20 <- GA_file_20[ which(GA_file_20$gen>=3500 & GA_file_20$sim ==LETTERS[i]),]
+  sumitup_100 <- GA_file_100[ which(GA_file_100$gen>=90000 & GA_file_100$sim ==LETTERS[i]),]
+  
+  params$Newt_mean_Pheno[i]<-mean(sumitup$Newt_mean_Pheno)
+  params$Snake_mean_Pheno[i]<-mean(sumitup$Snake_mean_Pheno)
+  params$Newt_pop_size[i]<-mean(sumitup$Newt_pop_size)
+  params$Snake_pop_size[i]<-mean(sumitup$Snake_pop_size)
+  params$dif[i]<-mean(sumitup$dif)
+  
+  params$Newt_mean_Pheno_20[i]<-mean(sumitup_20$Newt_mean_Pheno)
+  params$Snake_mean_Pheno_20[i]<-mean(sumitup_20$Snake_mean_Pheno)
+  params$Newt_pop_size_20[i]<-mean(sumitup_20$Newt_pop_size)
+  params$Snake_pop_size_20[i]<-mean(sumitup_20$Snake_pop_size)
+  params$dif_20[i]<-mean(sumitup_20$dif)
+  
+  params$Newt_mean_Pheno_100[i]<-mean(sumitup_100$Newt_mean_Pheno, na.rm = TRUE)
+  params$Snake_mean_Pheno_100[i]<-mean(sumitup_100$Snake_mean_Pheno, na.rm = TRUE)
+  params$Newt_pop_size_100[i]<-mean(sumitup_100$Newt_pop_size, na.rm = TRUE)
+  params$Snake_pop_size_100[i]<-mean(sumitup_100$Snake_pop_size, na.rm = TRUE)
+  params$dif_100[i]<-mean(sumitup_100$dif, na.rm = TRUE)
+  
+}
+  
+
+title="Space: Newt VS Snake Population Size"
+subt="Gen 25sims"
+y_label="Snake Popsize"
+x_label="Newt Popsize"
+
+
+
+params$snake <- paste0(params$snake_mu_rate, "_",params$snake_mu_effect_sd)
+params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
+
+t25 <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)),size=3)+
+#  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)))+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+t25
+
+
+t25d <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab("DIF: s-n")+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(dif), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+t25d2 <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab("Snake pop size") + ylab("DIF: s-n")+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Snake_pop_size), y=as.numeric(dif), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+grid.arrange(t25d, t25d2, nrow=1)
+
+
+
+```
+
+The first figure in this section plots newts population size by snakes population size. As we saw previously, a larger population size indicates that a species has a higher phenotype or might be "winning" in a coevolutionary arms race. In this figure I can see four chunks, a top left a middle left, middle right, and bottom right each containing either 3 or 5 points. The top left chunk I think snakes are successfully winning, the have a much larger population size than newts and their phenotype was higher (seen in 25 sim plot). The middle left chunk snakes could be winning, the snake population size was larger, but the was not a big difference between newts and snake phenotypes. In the middle right chunk, the snake population size was a bit larger than newt population size, but newts often had a higher mean phenotype so I think the newts are winning. In the bottom right chunk newts are winning, they have both a larger population size and a higher phenotype. For the different GAs I noticed that a species is more likely to win if; first they have a GA with 1e-10_0.5, second they do not have a GA of 1e-11_5, third when snakes and newts had the same GA the pehnotypes were similar or newts were winning. The second and third plots show either newt or snake population size by the difference between snake and newt mean phenotype. They show/confirm what I saw in the first plot upper chunk snakes are winning, lower chunk newts are winning, center chunks harder to tell. I dont see any direct pattern of color and shape, there might be an interaction pattern, but I havent been able to spot it.
+
+## Summarize data Longer SImulations
+
+I also summarized and examined the data for the simulations that I ran longer than the 5,000 generations.
+The results some-what agree and disagree with the above figures. First, the 20,000 generation figure looks similar to the 5,000 generation. There are sill 4 groups altho the groups seem to be spreading out more. There seems to be some clear winners, but some of the clear winners are different than what I saw in the 5,000gen experiment. Some of the shapes are clustering together like the plus and squares. There might be a color pattern red, green , purple, blue, but I am not sure.
+
+In the 100,000 generation experiment the results look very different than the 5,000 or 20,000 generations. There are three distinct groups. One where the snakes are winning and one wher the newts are winning. Any species that did not have the 1e-8_0.005 was winning. Newts tended to lose more than the snakes. There are several points that are sticking arounfd the center. I wonder if I can turn this into an animation?  
+
+
+```{r, 20000gen simple params}
+title="Space: Newt VS Snake Population Size"
+subt="Gen 25sims 20000Gen"
+y_label="Snake Popsize"
+x_label="Newt Popsize"
+
+t25g <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = "Gen 25sims 20000Gen") +
+  xlab(x_label) + ylab(y_label)+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+t2520 <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab("DIF: s-n")+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(dif_20), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+grid.arrange(t25g, t2520, nrow=1)
+
+```
+
+```{r, 1000000gen}
+truth<-params[which(params$trial !=1 & params$trial !=25),]
+
+t25g10 <- ggplot(params[which(params$trial !=1 & params$trial !=25),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = "Gen 25sims 100000Gen") +
+  xlab(x_label) + ylab(y_label)+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Newt_pop_size_100), y=as.numeric(Snake_pop_size_100), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+params[params==0]<-NA
+t2510 <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = "Gen 25sims 100000Gen") +
+  xlab(x_label) + ylab("DIF: s-n")+
+  #geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)))+
+  geom_point(aes(x=as.numeric(Newt_pop_size_100), y=as.numeric(dif_100), color = factor(snake), shape=factor(newt)), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+grid.arrange(t25g10, t2510, nrow=1)
+
+```
+
+##Heatmap
+
+The last result section of this markdown will hold the results of my heat maps. My experiment had 25 simulations with 4 different types of GA for both the newts and snakes. My goal was to see if I could easily determine a winner from these results. All of the heat maps will have the GA of the newt along the x-axis and the GA of the snake along the y-axis. The intersection of the axis (a box) is one simulation that I ran. Each box will have a color that is either the population size of the snake or the diffence between snake mean phenotype and newt mean phenotype.
+
+
+```{r, building a heatmap}
+
+params_small <- params[-c(1:8, 10:20)]
+data_melt <- melt(params_small) 
+
+ggp21 <- ggplot(data_melt, aes(newt, snake)) +    # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap") +
+  xlab("Newt GA") + ylab("Snake GA")+
+  geom_tile(aes(fill = value))+ 
+  scale_fill_viridis_c(name = "Snake Population Size")
+  #scale_fill_gradient(low = "green", high = "black") 
+ggp21  
+
+params_small <- params[-c(1:9, 11:20)]
+data_melt <- melt(params_small) 
+# 
+gdif5 <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap 5000") +
+   xlab("Newt GA") + ylab("Snake GA")+
+   geom_tile(aes(fill = value))+ 
+  scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = "Snake-Newt") 
+ gdif5 
+ 
+```
+
+For the 5,000 generation simulation I have created two heat maps. The first heatmap shows how the GA of newts and snakes effected the size of the snake population. As we saw in earier results the simulations with the smallest snake population size ocurred when the newts had a GA of 1e-10 and 0.5. The simulations where the snake had the largest population size ocurred when the snakes had a GA of 1e-10 and 0.5. Now in the second figure we can really look at the difference between snake and newt phenotype. I see similar results, but I also noticed that a species phenotype was higher when the other speces had a GA of 1e-11 and 5 (except when they meet). The boxes along the diagonol seem close to neutral or newts had a higher phenotype. Now I will look at the results from the 20,000 generation experiment.
+
+
+```{r, heatmap for 20000}
+params_small <- params[-c(1:13, 15:20)]
+#params_small <- params[-c(1:8, 10)]
+data_melt <- melt(params_small) 
+
+ggp212 <- ggplot(data_melt, aes(newt, snake)) +    # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap 20000") +
+  xlab("Newt GA") + ylab("Snake GA")+
+  geom_tile(aes(fill = value))+ 
+  scale_fill_viridis_c(name = "Snake Population Size")
+  #scale_fill_gradient(low = "green", high = "black") 
+ggp212 
+ 
+params_small <- params[-c(1:14, 16:20)]
+data_melt <- melt(params_small) 
+# 
+gdif <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap 20000") +
+   xlab("Newt GA") + ylab("Snake GA")+
+   geom_tile(aes(fill = value))+ 
+  scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = "Snake-Newt") 
+ gdif  
+```
+
+In the 20,000 generation experiment the results look similar to the results in the 5,000 generation experiments. Here snakes and newts with the GA of 1e-10 and 0.05 have an advantage both in population size and phenotype. I see less of a pattern when the GA is 1e-11 and 5. The diganal seems to be more neutral in this result. I might also see a losing pattern stating to form the the GA is 1e-1 and 0.005 (light, dark, other color). There is a bit of an odd symmetry here. Lastly, I will look at the results from the 100,000 generation simulations. Again the two grey boxes are where my simulation failed to run (no memory and individuals died out)
+
+```{r, heatmap 100}
+ params_small <- params[-c(1:18, 20)]
+params_small[params_small==0]<-NA
+data_melt <- melt(params_small) 
+
+ggp2123 <- ggplot(data_melt, aes(newt, snake)) +    # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap 100000") +
+  xlab("Newt GA") + ylab("Snake GA")+
+  geom_tile(aes(fill = value))+ 
+  scale_fill_viridis_c(name = "Snake Population Size")
+  #scale_fill_gradient(low = "green", high = "black") 
+ggp2123 
+ 
+ params_small <- params[-c(1:19)]
+ params_small[params_small==0]<-NA
+data_melt <- melt(params_small) 
+# 
+
+gdif10 <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
+  ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap 100000") +
+   xlab("Newt GA") + ylab("Snake GA")+
+   geom_tile(aes(fill = value))+ 
+  scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = "Snake-Newt") 
+ gdif10  
+```
+
+Again, these results are very different when compared to the 5,000 and 20,000 generation simulations. The only pattern that I see is that when either the newt or snake has a GA of 1e-8 and 0.005 the other species has a higher phenotype and population size. Most of the other simulations ended up being close to neutral except when the snake GA is 1e-10_0.5 and the newt GA is 1e-11_5. I no longer see an advantage when the GA is 1e-10_0.5. I wonder why this occurred. Is this what steady state looks like? Is coevolution still occurring? Why did that one box get really blue? Is the species who is winning because the other species 1e-8_0.005 because that GA is not realistic? Are the effects of the mutations too low? I wonder how this boxplot would look though a series of time steps.
+
+```{r, test figs}
+ 
+# 
+# 
+ 
+ # params_small <- params[-c(1:9)]
+# data_melt <- melt(params_small) 
+# 
+# gdif <- ggplot(data_melt, aes(newt, snake)) +                           # Create heatmap with ggplot2
+#   ggtitle("Newt GA by Snake GA", subtitle = "25 Sim Heatmap") +
+#   xlab("Newt GA") + ylab("Snake GA")+
+#   geom_tile(aes(fill = value))+ 
+#   scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = "Snake-Newt") 
+# gdif  
+ 
+# #TESTING
+# GA_file_20$Newt_mean_Pheno
+# ggplot(GA_file_20, aes(gen, dif, col=factor(sim))) + geom_line()+ 
+#   facet_wrap(~sim)+
+#     ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+#     ylim(-5,5)+
+#     xlab("Generations") + ylab("Phenotype")+
+#     theme_bw() 
+# 
+# ggplot(GA_file_20, aes(gen, Newt_mean_Pheno, col=factor(sim))) + geom_line()+ 
+#   facet_wrap(~sim)+
+#     ggtitle("Newt_mean_Pheno by Gen", subtitle = "Different Sim") +
+#     ylim(-5,5)+
+#     xlab("Generations") + ylab("Phenotype")+
+#     theme_bw() 
+# 
+# ggplot(GA_file_20, aes(gen, Snake_mean_Pheno, col=factor(sim))) + geom_line()+ 
+#   facet_wrap(~sim)+
+#     ggtitle("Snake_mean_Pheno by Gen", subtitle = "Different Sim") +
+#     ylim(-5,5)+
+#     xlab("Generations") + ylab("Phenotype")+
+#     theme_bw() 
+# 
+# ggplot(GA_file_20, aes(gen, Newt_pop_size, col=factor(sim))) + geom_line()+ 
+#     ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+#     
+#     xlab("Generations") + ylab("Newt_pop_size")+
+#     theme_bw() 
+# 
+# ggplot(GA_file_20, aes(gen, Snake_pop_size, col=factor(sim))) + geom_line()+ 
+#     ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+#     
+#     xlab("Generations") + ylab("Snake_pop_size")+
+#     theme_bw() 
+# 
+# 
+
+```
+
+
+## Conclusion & Thoughts
+
+It was really cool to see how different GA effect effects the phenotype and population sizes of newts and snakes. It is really confusing trying to compare GA that have different orders of magnitude. I wonder if mutation rate or effect size sd drives coevolution or a combination of the two of them. If I repeated the experiment would the results be the same?  
+
+Something I would like to try next is to see these results ib a simulation with no interaction. 
+
+
+
+
+
