@@ -1082,6 +1082,11 @@ I would like to repeat this experiment with replicas. But I need to thing about 
 
 There are some papers that I would like to read and think about:
 
+Interactions between Genetic Drift, Gene Flow, and Selection Mosaics Drive Parasite Local Adaptation
+
+Rethinking Conventional Wisdom: Are Locally Adapted Parasites Ahead in the Coevolutionary Race?
+
+Evolution of spatially structured host–parasite interactions
 
 
 
