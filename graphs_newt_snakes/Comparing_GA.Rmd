@@ -919,7 +919,7 @@ grid.arrange(t16g10, t1610, nrow=1)
 
 ```
 
-##Heatmap
+## Heatmap
 
 The last result section of this markdown will hold the results of my heat maps. My experiment had 16 simulations with 4 different types of GA for both the newts and snakes. My goal was to see if I could easily determine a winner from these results. All of the heat maps will have the GA of the newt along the x-axis and the GA of the snake along the y-axis. The intersection of the axis (a box) is one simulation that I ran. Each box will have a color that is either the population size of the snake or the difference between snake mean phenotype and newt mean phenotype.
 

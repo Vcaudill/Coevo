@@ -21,7 +21,7 @@ library("reshape")
 
 ## Purpose
 
-Here I am doing a contuation of the small experiment to compare different genetic architectures between snakes and newts. I will use the cost_1on1 simulation and my snake_newt_gv msprime simulation. 
+Here I am doing a continuation of the small experiment to compare different genetic architectures between snakes and newts. I will use the cost_1on1 simulation and my snake_newt_gv msprime simulation. 
 
 Outline
 
@@ -49,7 +49,8 @@ My goal is to first see if there is an obvious "winner" in the co-evolutionary a
 
 First, I want to look at the mean pheotypes of newts and snakes as the generations increase. Then I want to look at the difference between the mean phenotypes for each of the 25 simulations. I need to make the data frame to compare all 25 simulations. 
 
-R-code noate: I have code to make my dataframes, it combines many simulations into one graph-able dataframe. Then, I have some functions that can be called to make some figures. Will need to change this once more simulations are run.
+R-code note: I have code to make my dataframes, it combines many simulations into one graph-able dataframe. Then, I have some functions that can be called to make some figures. Will need to change this once more simulations are run. I think these dataframes and pre-made figures might help when I start having reps.
+
 
 ```{r, making data frames}
 
@@ -419,9 +420,11 @@ files <- list.files(path="~/Desktop/GA_lt/doover/gen_5000/text_files", pattern="
 ```
 
 
-The first step in seeing if there is a winner in the coevolution interaction is to read in the data and look at the results. I make a dataframe named GA_file. It contains all of the data points from my 25 simulations. I normally look at one variable at a time from all of my simulations, but since there are so few I can look at them all at once. There are over 6,000 observations with 28 variables which contains information from both newts and snakes. I focus on the mean phenotype of both the newt and the snake, usually creating a variable that looks at the difference between the mean pheotypes.
+The first step in seeing if there is a winner in the coevolution interaction is to read in the data and look at the results. I make a dataframe named GA_file. It contains all of the data points from my 25 simulations. I normally look at one variable at a time from all of my simulations, but since there are so few I can look at them all at once. There are over 6,000 observations with 28 variables which contains information from both newts and snakes. I focus on the mean phenotype of both the newt and the snake, usually creating a variable that looks at the difference between the mean phenotypes.
 
-Since there are 25 simulations, for convenience I print out the simulation letter with the paramiter I used for the snake and newt mutation rate and mutation effect size
+Since there are 25 simulations, for convenience I print out the simulation letter with the parameter I used for the snake and newt mutation rate and mutation effect size.
+
+Here are all of the simulations and the identification letter:
 
 ```{r, phenotypes at differnt costs data gather}
 
@@ -451,7 +454,7 @@ GA_file$dif <- GA_file$Snake_mean_Pheno-GA_file$Newt_mean_Pheno
 
 ```
 
-The first thing I want to look at are the difference between snake and newt mean phenotypes as the number of generations increases.  
+The first thing I want to look at are the difference between snake and newt mean phenotypes as the number of generations increases. I ran these simulations for 5,000 generations shown on the x-axis. The y-axis is the mean phenotype value. Each line represents a different simulation. Each graph here is showing either newt mean phenotype or snake mean phenotype for all 25 simulations.
 
 ```{r, easier dif plot}
 
@@ -470,7 +473,7 @@ grid.arrange(pl1, pl2, nrow=1)
 
 
 ggplot(GA_file, aes(gen, dif, col=factor(sim))) + geom_line()+ 
-    ggtitle("Snake Mean Pheno by Gen", subtitle = "Different Sim") +
+    ggtitle("Snake-Newt Mean Pheno by Gen", subtitle = "Different Sim") +
     ylim(-7,7)+
     xlab("Generations") + ylab("Phenotype")+
     theme_bw() 
@@ -491,8 +494,11 @@ labels = c("Snake", "Newt", "Dif"))+
 
 ```
 
-describe results
+The first set of figures show that mean phenotype for both newts and snake ranges from 0 to 6. There are a few simulations where the phenotype look flat, but most of the simulations look like the phenotype is steadily increasing. There is a cost in this simulation, which can be seen decreasing the mean phenotype in some of the simulation (look closely at the beginning of the simulations).
  
+When looking at the difference between phenotypes there are some that start out above/below zero and stay that way, ant there are others that hang out near zero possible crossing the zero line. Are there any simulations that start out above/below the zero mark and cross it and stay that way?
+
+In the figure that separates newts mean phenotype, snakes mean phenotype and the difference between snakes and newt phenotype (red, blue, black) we can see where the phenotype flat lines and where the phenotype increase. The GA for snakes is decreasing mu rate and increasing effect size as you go down. The GA for newts decreasing mu rate and increasing effect size as you go across. A few possibility for flat phenotypes: they could have a negative value (e^x) where a less negative value doesn't get further away from 0, there could be a large difference between snake and newt phenotype where the other species cant catch up. I do not see a GA related trend for flat lines only a large difference in phenotype trends. These trends would probably change if I were to re-run this experiment.  
 
 Next, I checked the population size of newts and snakes through out the 5,000 generations. 
 
@@ -527,7 +533,7 @@ vcf2
 #vc2
 ```
 
-desrbe plots
+The population size figures for newts and snakes are the first set of figures shown in this section. The generation time is shown on the x-axis and the size of the species population is shown on the y-axis. Snake population size gets a bit bigger than newt population size. However, there is a different balance between newt and snake population size in this set of simulations when compared to part 1. The snake population size does not get as high. When looking at the figures where newt population size is on the x-axis and snake population sixe is on the y-axis the shade of the point represents the mean phenotype at that point in the simulation. These plots contain all of the points from all 25 simulations. There is still a trend in the phenotype being larger in the species with a larger population size. However, I also see an area of high value phenotypes in the center when both species population size is similar in size (600 newts - 700 snakes).
 
 
 ## 25 Simulation Plots
@@ -552,7 +558,7 @@ dif <- ggplot(GA_file[ which(GA_file$gen!=1),]) +
 dif
 ```
 
-describe this plot and talk about how it compares to the 16 sim one 
+This figure separates the 25 simulations that I ran. Each letter is one simulation with a specific GA for newts and snakes. The GA for snakes is decreasing mu rate and increasing effect size as you go down. The GA for newts decreasing mu rate and increasing effect size as you go across. The color of the points is the difference between snake mean phenotype and newt mean phenotype. A lot of the difference between phenotypes are either 0 or close to 0. No trends really pop out to me.
 
 
 To do a reverse check I plot newt mean phenotype by snake mean phenotype and color with the population size.  
@@ -568,6 +574,8 @@ svc2 <- var_by_var(subset(Newt_mean_Pheno, select = -c(2)), subset(Snake_pop_siz
 grid.arrange(svc1, svc2, nrow=1)
 
 ```
+
+Here this set of figures has newt mean phenotype on the x-axis and snake mean phenotype on the y-axis. The color of the points is depicted by the size of the species population. I expected that the the darker points wouls show up when one species phenotype was lower that the other. For example if the the newts had a higher phenotype than snakes I would expect the newt population size to be dark red. In some of the simulations like 3, 8, 10 it looks like the population size of the newts in decreasing at the snake phenotype increases. A strinking thing that I note is the lack of horizontal lines. What could this mean?
 
 I also decided to look at the mean predation of newts by taking newt death (caused by snakes) and dividing by the total newt population size (not sure if this counts the newts that just died). Predation does not look all that different between simulations to me. Should it look different?
 
@@ -592,12 +600,13 @@ pre
 
 ```
 
-Thoughts about predation: 
+In the plot about predation newt population size in on the x-axis and snake population size is on the y-axis. The shade of the points is the amount of newts eaten by snakes over the newts population size. There is more predation when the population size of snakes is higher and newt populations are smaller. There is less predation when newt population is higher than snake population. It seems like in each of the tiny figures that darker green is seen in mostly the left points and lighter green is seen in the right most points. As a whole figure I do not see a trend between the GA. I wonder if there would be a slight trend seen in replica simulations. 
 
 ## Longer Simulations 
 
-To examined what would happen if I kept running my simulations for longer I repeated the experiment with 20,000 generations and then again with 100,000 generations. Below are the summary figures for these simulations. The first figure presented shows all 25 simulations the x axis is newt population size and the y axis is snake population size. The color of the points is the difference between snake mean phenotype and newt mean phenotype. If the point is blue snakes have a higher phenotype, if the point is beige snakes and newts have a similar, and if the point is red newts have a higher phenotype. 
+To examined what would happen if I kept running my simulations for longer I repeated the experiment with 20,000 generations and then again with 100,000 generations. Note that all of these simulations 5,000 gen, 20,000 gen and 100,000 gen have the same starting conditions (msprime simulations). Below are the summary figures for these simulations. The first figure presented shows all 25 simulations the x axis is newt population size and the y axis is snake population size. The color of the points is the difference between snake mean phenotype and newt mean phenotype. If the point is blue snakes have a higher phenotype, if the point is beige snakes and newts have a similar, and if the point is red newts have a higher phenotype. 
 
+Here are the simulations that I ran:
 
 ```{r, 20000 gen}
 files_20 <- list.files(path="~/Desktop/GA_lt/doover/gen_20000/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
@@ -642,9 +651,9 @@ dif <- ggplot(GA_file_20[ which(GA_file_20$gen!=1),]) +
 dif
 ```
 
-compare 20,000 generation plot 5,000 generation plot 
+This figures shows the difference between snake mean phenotype and newt mean phenotype for all 25 simulations with the newt population size on the x-axis and the snake population size on the y-axis for 20,000 generations. These results are very similar to the 5,000 generations. To me its is striking to see W and K both have long red tails. I wonder what the results of many replicas would look like? Are there minute details between the GAs that I am not picking up by looking the mean phenotype for the whole population?
 
-Next, I plotted the same figure with the 100,000 generation data. 
+Next, I plotted the same figure with the 100,000 generation data. Here are the simulations that I ran:
 
 ```{r, 100000 gen}
 files_100 <- list.files(path="~/Desktop/GA_lt/doover/gen_100000/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
@@ -691,14 +700,16 @@ dif <- ggplot(GA_file_100[ which(GA_file_100$gen!=1),]) +
 dif
 ```
 
-note differences between 10000, 20000, and 5000 gen plots. Next, I plotted the mean newt phenotype, snake mean phenotype and the difference between snake-newt phenotype as the number of generations increased. 
+This figures shows the difference between snake mean phenotype and newt mean phenotype for all 25 simulations with the newt population size on the x-axis and the snake population size on the y-axis for 100,000 generations. There is not  striking difference between this figure and the ones from 20,000 and 5,000 generations. All of the plots have a very low difference in snake and newt phenotype. Simulations F and H  have a constant blue color, indicating the snake phenotype was always lager than the newt phenotype. I wonder what was going on in the newt phenotype (possibly a flat line). Simulation Y goes from neutral to red and simulation W goes from red to neutral. Simulation G, I, L, M, N, O, Q, R, T, U, V, and X have points that are blue, red, and beige. I want to take a closer look at O, because the population sizes and phenotype seem to have a large range.
+
+Next, I plotted the mean newt phenotype, snake mean phenotype and the difference between snake-newt phenotype as the number of generations increased. 
 
 
 ```{r, GA_file_100 phenotype}
 ggplot(GA_file_100) +
     facet_wrap(~sim)+
     geom_line(aes(gen, dif, col="dif"))+
-    ggtitle("Phenotpe by Gen For all Sims", subtitle = "100,000Gen Different Sim") +
+    ggtitle("Phenotpe by Gen For all Sims", subtitle = "100,000 Gen ") +
     geom_line(aes(gen, Snake_mean_Pheno, color="Snake_mean_Pheno"),)+
     geom_line(aes(gen, Newt_mean_Pheno, color="Newt_mean_Pheno"))+
     ylim(-5,10)+
@@ -710,12 +721,12 @@ labels = c("Snake", "Newt", "Dif"))+
 
 ```
 
-what are the reults and what do they mean? how do they compare with the other set of simulations  
+This figures shows the difference between snake mean phenotype and newt mean phenotype (in black), newt phenotype (red), and snake phenotype (blue) for 100,000 generations. The GA for snakes is decreasing mu rate and increasing effect size as you go down. The GA for newts decreasing mu rate and increasing effect size as you go across. Here we can clearly see some trends! It seems like at the lowest mutation rate/ high effect size GA the mean phenotype line for both snakes (row 5) and newts (column 5) are relatively flat. But there still seems to be co-evolution going on (the phenotypes are closely matched at some points in time). Simulations H, F and, O are strange the newt phenotype goes to 0 and remains there. Simulation F looks extremely weird. I wonder if the initial slope of the simulations differ between GAs?    
 
 
 ## Summarized Data
 
-For this section summarized the data to presented in one plot. I summarize the last half of the data for 5,000 generations the last 1,500 generations for 20,000 generations and the last 10,000 generations for the 100,000 simulation. By summarizing the data I can try to compare the GA of the snakes tot the GA of the newts through information of their population sizes and phenotypes. I summarize by taking the mean value of a specific parameter.
+For this section summarized the data to presented in one plot. I summarize the last half of the data for 5,000 generations the last 1,500 generations for 20,000 generations and the last 10,000 generations for the 100,000 simulation. By summarizing the data I can try to compare the GA of the snakes to the GA of the newts through information of their population sizes and phenotypes. I summarize by taking the mean value of a specific parameter.
 
 In each of these plots color will represent the GA of the snake and shape will represent the GA of the newt. The colors and shapes are labeled with the mutation rate and mutation effect size sd separated by a subscript. 
 
@@ -824,13 +835,13 @@ grid.arrange(t25d, t25d2, nrow=1)
 
 ```
 
-describe the figures not the shapes and colors. How does this compare to the 16 sims?
+This figure shows all 25 simulations for 5,000 generations in one plot. Each color and shape combo is one simulation with a GA for the neat and a genetic architecture for the snake. Normally, I would expect that a simulation that resulted with a species that had a higher population size than the other species would result in a "co-evolution win", but it is a bit difficult to tell since many of the simulations were more neutral. There was no easy to identify patter between snakes or newts having specific GA (no color or shape clustering). This result does match what I saw when plotting the difference between snake and newt phenotype.
 
 ## Summarize data Longer SImulations
 
 I also summarized and examined the data for the simulations that I ran longer than the 5,000 generations.
 
-other comparisions 
+These are other comparisons for 20,000 and 100,000 generations. Each point on the plot is one simulation with a GA for newts (shape) and a GA for snakes (color). The x-axis is newt population size and the y- axis is either snake population size or the difference between snake and newt mean phenotype.
 
 
 ```{r, 20000gen simple params}
@@ -869,6 +880,11 @@ grid.arrange(t25g, t2520, nrow=1)
 
 ```
 
+This is the 20,000 generation figure. There is only one snake "winner" having both a higher phenotype and a larger population size. The vast majority of points fall into neither newts or snakes are winning or newts are winning. Again trying to see an obvious trend between the GA is difficult. I can see that newts lowest mutation rate/ high effect size often results in the newt "win". There are not very many simulations where the snakes population size was super high.
+
+Next, lets look at the 100,000 generation summary plot. 
+
+
 ```{r, 1000000gen}
 truth<-params[which(params$trial !=1 & params$trial !=25),]
 
@@ -902,7 +918,9 @@ grid.arrange(t25g10, t2510, nrow=1)
 
 ```
 
-##Heatmap
+In this plot the points seem to spread out more and at the same time cluster closer together near 0. We can easily see the simulations were the newts phenotype went to 0: F, H, O and T. It is strange that the only simulations where the snake can "win" is when the newt phenotype is not evolving. I have noticed that the pink colored points are clustered toward the bottom, but the cross-box is not really close to the top. I wonder if there would be more separation if I ran the simulations for longer? I wonder if I re-ran the msprime simulation if there would be no snake "winners"
+
+## Heatmap
 
 The last result section of this markdown will hold the results of my heat maps. My experiment had 25 simulations with 5 different types of GA for both the newts and snakes. My goal was to see if I could easily determine a winner from these results. All of the heat maps will have the GA of the newt along the x-axis and the GA of the snake along the y-axis. The intersection of the axis (a box) is one simulation that I ran. Each box will have a color that is either the population size of the snake or the difference between snake mean phenotype and newt mean phenotype.
 
@@ -932,7 +950,11 @@ gdif5 <- ggplot(data_melt, aes(newt, snake)) +                           # Creat
  
 ```
 
-For the 5,000 generation simulation I have created two heat maps. The first heatmap shows how the GA of newts and snakes effected the size of the snake population. Describe Now I will look at the results from the 20,000 generation experiment.
+Note: When reading this figure, the snake GA has flipped, now as you go down the mutation rate increase and the effect size has decreased. The GA of the newt has mutation rate decreasing and effect size increase as its read across.
+
+For the 5,000 generation simulation I have created two heat maps. The first heatmap shows how the GA of newts and snakes effected the size of the snake population. If you squint a bit it seems like snake population size is larger in the simulations on the left side of the image. There is no difference in snake population size from the top to the bottom. This suggests that the newt GA has an impact on the size of the snake population. If there are more mutations of small effect in the newt then the snake will have a larger population size regardless of GA (not true in all simulation cases). I would like to check this further with reps. When looking at the same figure, but colored with the difference between snake and newt mean phenotype, we can see that all of the blue points are on the left side of the simulation. This mirrors what we see in the figure above it.  
+
+Now I will look at the results from the 20,000 generation experiment.
 
 
 ```{r, heatmap for 20000}
@@ -959,13 +981,13 @@ gdif <- ggplot(data_melt, aes(newt, snake)) +                           # Create
  gdif  
 ```
 
-Write about the 20,000 generation experiment results 
+The first heatmap for 20,000 generation shows how the GA of newts and snakes effected the size of the snake population. There is less of a difference between the left and right side, but there are darker squares on the right side. There is again no difference in snake population size from the top to the bottom. This suggests that the newt GA has an impact on the size of the snake population. In this case when there are less mutations of large effect in the newt then the snake will have a smaller population size regardless of GA (not true in all simulation cases). The bright yellow square probably has a newt phenotype close to 0. When looking at the next figure (the one colored by the difference between mean phenotypes) we can see darker red squares to the right of the image. We can especially see a column of red when news have a GA of 1e-12_5. Most of the square are neutral or red with only one blue square
 
 Lastly, I will look at the results from the 100,000 generation simulations. 
 
 ```{r, heatmap 100}
  params_small <- params[-c(1:18, 20)]
-params_small[params_small==0]<-NA
+
 data_melt <- melt(params_small) 
 
 ggp2123 <- ggplot(data_melt, aes(newt, snake)) +    # Create heatmap with ggplot2
@@ -977,7 +999,7 @@ ggp2123 <- ggplot(data_melt, aes(newt, snake)) +    # Create heatmap with ggplot
 ggp2123 
  
  params_small <- params[-c(1:19)]
- params_small[params_small==0]<-NA
+ 
 data_melt <- melt(params_small) 
 # 
 
@@ -989,7 +1011,8 @@ gdif10 <- ggplot(data_melt, aes(newt, snake)) +                           # Crea
  gdif10  
 ```
 
-Write about final results. Also talk about how these results are similar/differ from the 16 sim experiment 
+In the final set of heat maps, the results are even more confusing. There is less of a difference between the right and left side, but potentially a difference between the top and bottom. There seems to be lighter squares on the bottom (but this might be due to all of the sims where the newts phenotype went to 0). In the 100,000 generation heat map colored by snake-newt mean phenotype there are dark red squares in the upper half of the figure. These results indicate that a snake GA with a slower mutation rate and a larger effect size would result in newts having a higher phenotype regardless of the newts GA. Something that I noticed is that all the corners of the simulation have a low snake population size and a larger newt phenotype, why is this occurring? Is this potentially due to a cycle? Why are there so few blue squares? Would these results hold if I ran more simulations and ran them for longer?
+
 
 ```{r, test figs}
  
@@ -1047,6 +1070,10 @@ Write about final results. Also talk about how these results are similar/differ 
 
 
 ## Conclusion & Thoughts
+
+My main conclusion to this experiment is that when the GA for news and snakes have the same potential for genetic variance that it is difficult to see a co-evolution "winner". I wonder if "winning" might cycle though time or needs more time to occur. It is even possible that "winning" might not occur. 
+
+When I think about this experiment (same genetic variance) vs the other experiment (different genetic variance) it is easier to see a winner in the different genetic variance experiment. In the summary plots the obvious winners got further from the 0 line and when the species were still competing clustered closer to the 0 line. In this experiment there didn't seem to be a best GA, although the GA with a low mutation rate and high effect size did seem to be flatter. All-in-all I think it would be best to run both experiments again with may reps and different msprime files.
 
 
 
