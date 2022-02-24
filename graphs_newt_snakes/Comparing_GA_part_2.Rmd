@@ -723,6 +723,21 @@ labels = c("Snake", "Newt", "Dif"))+
 
 This figures shows the difference between snake mean phenotype and newt mean phenotype (in black), newt phenotype (red), and snake phenotype (blue) for 100,000 generations. The GA for snakes is decreasing mu rate and increasing effect size as you go down. The GA for newts decreasing mu rate and increasing effect size as you go across. Here we can clearly see some trends! It seems like at the lowest mutation rate/ high effect size GA the mean phenotype line for both snakes (row 5) and newts (column 5) are relatively flat. But there still seems to be co-evolution going on (the phenotypes are closely matched at some points in time). Simulations H, F and, O are strange the newt phenotype goes to 0 and remains there. Simulation F looks extremely weird. I wonder if the initial slope of the simulations differ between GAs?    
 
+## Data as box plots
+
+Here I want to look at some boxplots of the phenotype and predation from the 100,000 generation simulation. 
+
+```{r, boxplottinh}
+GA_file_100$mean_predation <- GA_file_100$newt_deaths/GA_file_100$Newt_pop_size
+
+GA_file_100$gen_boxy <- round_any(GA_file_100$gen, 1000, f = ceiling) 
+ggplot(data = GA_file_100[which(GA_file_100$gen_boxy>=95000),], aes(x = factor(gen_boxy), y = mean_predation)) +
+  facet_wrap(~sim)+
+  geom_boxplot() +
+  xlab("Generation") +
+  ylab("mean_predation") 
+
+```
 
 ## Summarized Data
 
