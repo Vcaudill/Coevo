@@ -13,7 +13,7 @@ library(gganimate)
 library(gifski)
 library(gapminder)
 
-files <- list.files(path="~/Desktop/GA_lt/gen_5000/lit/text_files", pattern="GA2_litby", full.names=TRUE, recursive=FALSE)
+files <- list.files(path="~/Desktop/GA_lt/gen_5000/lit/text_files", pattern="GA4_litby", full.names=TRUE, recursive=FALSE)
 
 
 number=1
@@ -23,8 +23,8 @@ myGA_file <- read.table(files[number], header = TRUE)
 #max_snake_pheno = max(GA_file[GA_file$species=="S",]$phenotype)
 
 graph_file<-myGA_file
-frames<-max(graph_file$gen)/100+1
-my_duration <- 20
+frames<-length(unique(graph_file$gen))
+my_duration <- 50
 my_fps<-frames/my_duration
 title<-"Phenotype bin Space By Generation"
 subt<-"sim details"
@@ -50,7 +50,7 @@ p <- ggplot(graph_file, aes(loc_x, loc_y, color=species, group=species, alpha = 
   transition_time(gen) +
   ease_aes('linear')
 animate(p, duration = my_duration, fps = my_fps, nframes=frames, width = 600, height = 400, renderer = gifski_renderer())
-anim_save("data/gganimateGA1.gif")
+anim_save("data/gganimateGA4.gif")
 
 
 
