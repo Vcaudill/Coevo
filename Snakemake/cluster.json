@@ -1,0 +1,22 @@
+{
+    "__default__":
+    {
+        "time" : "00:10:00",
+        "n" : 1, 
+        "partition" : "kern",
+        "mem" : "10Gb",
+        "cores" : "1",
+        "account" : "kernlab",
+        "gres" : "gpu:0"
+    },
+    "specfic_job":
+    {
+        "time" : "01:00:00",
+        "partition" : "kern",
+        "cores" : "1",
+        "mem" : "10G",
+        "account" : "kernlab",
+        "gres" : "gpu:0"
+    }
+
+}

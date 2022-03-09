@@ -331,7 +331,7 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(8, 8);
+	grid_res = c(5, 5);
 	
 	
 	// cov in the early and not late part of slim (ind die between early and late)
@@ -341,10 +341,40 @@ early() {
 	//snake_num=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="length(individuals);", empty=0.0);
 	//catn(snake_num);
 	//catn(snake_cov);
+	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals)*0.0; ", empty=0.0);
+	
+	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals)*0.0; ", empty=0.0);
+	
+	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals)*0.0; ", empty=0.0);
+	
 	
 	//newt
 	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*0.0;", empty=0.0);
-	//catn(newt_cov);
+	
+	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals)*0.0; ", empty=0.0);
+	
+	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals)*0.0; ", empty=0.0);
+	
+	
+	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals)*0.0; ", empty=0.0);
+	
+	//correlations 	
+	
+	
+	mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno), c(snake_mean_pheno));
+	num_newts_By_num_snakes = cor(c(newt_sum_ind), c(snake_sum_ind));
+	sum_newt_pheno_By_num_snake = cor(c(newt_sum_pheno), c(snake_sum_ind));
+	sum_snake_pheno_By_num_newt = cor(c(snake_sum_pheno), c(newt_sum_ind));
+	sum_newt_pheno_By_num_newt = cor(c(newt_sum_pheno), c(newt_sum_ind));
+	sum_snake_pheno_By_snake_newt = cor(c(snake_sum_pheno), c(snake_sum_ind));
+	
+	defineGlobal("mean_newt_pheno_By_mean_snake_pheno", mean_newt_pheno_By_mean_snake_pheno);
+	defineGlobal("num_newts_By_num_snakes", num_newts_By_num_snakes);
+	defineGlobal("sum_newt_pheno_By_num_snake", sum_newt_pheno_By_num_snake);
+	defineGlobal("sum_snake_pheno_By_num_newt", sum_snake_pheno_By_num_newt);
+	defineGlobal("sum_newt_pheno_By_num_newt", sum_newt_pheno_By_num_newt);
+	defineGlobal("sum_snake_pheno_By_snake_newt", sum_snake_pheno_By_snake_newt);
+	
 	// maybe it should be transposed?
 	// standorize the colors 
 	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
@@ -366,45 +396,47 @@ early() {
 	inds_s = p0.individuals;
 	
 	myFN="test1";//should be supplied by msprime slim?
-	mytextfile="~/Desktop/data/longcosttest_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_interaction_rate_" + interaction_rate + "_cost_" + setCOST + "_late_" + NUMGENS + "_.text"; //file name
+	//mytextfile="~/Desktop/data/longcosttest_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_interaction_rate_" + interaction_rate + "_cost_" + setCOST + "_late_" + NUMGENS + "_.text"; //file name
 	
-	myphenotypefile="~/Desktop/data/longcostbyind_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_cost_" + setCOST + "_interaction_rate_" + interaction_rate + "_late_" + NUMGENS + "_.text"; //file name
-	
+	//	myphenotypefile="~/Desktop/data/longcostbyind_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_cost_" + setCOST + "_interaction_rate_" + interaction_rate + "_late_" + NUMGENS + "_.text"; //file name
+	mycorfile="~/Desktop/data/cortest_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_interaction_rate_" + interaction_rate + "_cost_" + setCOST + "_late_" + NUMGENS + "_.text"; //file name
 	
 	// making the name into global varables
-	defineGlobal("mytextfile", mytextfile);
-	defineGlobal("myphenotypefile", myphenotypefile);
-	
+	//defineGlobal("mytextfile", mytextfile);
+	//defineGlobal("myphenotypefile", myphenotypefile);
+	defineGlobal("mycorfile", mycorfile);
 	
 	beta_n = cor(inds_n.getValue('pheno'), inds_n.fitnessScaling);
 	beta_s = cor(inds_s.getValue('pheno'), inds_s.fitnessScaling);
 	
-	mytextfileheader="gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density" + "    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Newt_sd_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Snake_sd_Pheno" + "    " + "Newt_pop_size" +
-		"    " +"Snake_pop_size"+"    "+ "mean_newts_eaten"+"    "+ "sd_newts_eaten"+"    "+ "mean_snakes_eaten"+"    "+ "sd_snakes_eaten" +"    "+ "beta_n" + "    " + "beta_s" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "time";
+	//	mytextfileheader="gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density" + "    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Newt_sd_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Snake_sd_Pheno" + "    " + "Newt_pop_size" +
+	//		"    " +"Snake_pop_size"+"    "+ "mean_newts_eaten"+"    "+ "sd_newts_eaten"+"    "+ "mean_snakes_eaten"+"    "+ "sd_snakes_eaten" +"    "+ "beta_n" + "    " + "beta_s" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "time";
 	
-	myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age"+ "    " + "species"+ "    " + "loc_x" + "    " + "loc_y";
+	//	myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age"+ "    " + "species"+ "    " + "loc_x" + "    " + "loc_y";
+	mycorfileheader="gen" + "    " + "mean_newt_pheno_By_mean_snake_pheno" + "    " + "num_newts_By_num_snakes"+ "    " + "sum_newt_pheno_By_num_snake"+ "    " + "sum_snake_pheno_By_num_newt"+ "    " + "sum_newt_pheno_By_num_newt" + "    " + "sum_snake_pheno_By_snake_newt";
 	
-	mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
+	//	mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
 	
 	
 	
 	if (sim.generation == 1) {
-		catn(mytextfileheader);
-		catn(mytextfileinfo);
 		
-		writeFile(mytextfile, mytextfileheader, append = T);
-		writeFile(mytextfile, mytextfileinfo , append = T);
-		
-		//myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age"+ "    " + "species"+ "    " + "loc_x" + "    " + "loc_y";		
-		
-		writeFile(myphenotypefile, myphenotypefileheader , append = T);
-//writing info about the newt "N"		
-		myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age)+ "    " + "N"+ "    " + asString(inds_n.x) + "    " + asString(inds_n.x);
-		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
-		//writing info about the snakes "S"
-		myphenotypefileinfo = sim.generation + "    "  + asString(inds_s.getValue("pheno"))+ "    " + asString(inds_s.fitnessScaling)+"    "  +asString(inds_s.age)+ "    " + "S"+ "    " + asString(inds_s.x) + "    " + asString(inds_s.x);
-		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
-	
+		//		catn(mytextfileheader);
+		//		catn(mytextfileinfo);
+		//		
+		//		writeFile(mytextfile, mytextfileheader, append = T);
+		//		writeFile(mytextfile, mytextfileinfo , append = T);
+		//		
+		//		//myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age"+ "    " + "species"+ "    " + "loc_x" + "    " + "loc_y";		
+		//		
+		//		writeFile(myphenotypefile, myphenotypefileheader , append = T);
+		////writing info about the newt "N"		
+		//		myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age)+ "    " + "N"+ "    " + asString(inds_n.x) + "    " + asString(inds_n.x);
+		//		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+		//		//writing info about the snakes "S"
+		//		myphenotypefileinfo = sim.generation + "    "  + asString(inds_s.getValue("pheno"))+ "    " + asString(inds_s.fitnessScaling)+"    "  +asString(inds_s.age)+ "    " + "S"+ "    " + asString(inds_s.x) + "    " + asString(inds_s.x);
+		//		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+	writeFile(mycorfile, mycorfileheader , append = T);
 	}
 }
 
@@ -416,6 +448,12 @@ early() {
 	catn("gen" + "    " + "Newt_m_phneo" + "    " + "Snake_m_pheno");
 
 }
+2 early (){
+	mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
+		
+		
+		writeFile(mycorfile, mycorfileinfo , append = T);
+		}
 early(){ //caculating the selection coefficents
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
@@ -431,27 +469,31 @@ early(){ //caculating the selection coefficents
 2: late() {
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
-	
-	
+	//	
+	//	
+	//	if ((sim.generation % 20) == 0) {
+	//		mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
+	//		//catn(sim.generation + "    "  + mean(inds_n.getValue("pheno")));
+	//		writeFile(mytextfile, mytextfileinfo , append = T);
+	//	
+	//	}
 	if ((sim.generation % 20) == 0) {
-		mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
-		//catn(sim.generation + "    "  + mean(inds_n.getValue("pheno")));
-		writeFile(mytextfile, mytextfileinfo , append = T);
-	
+		mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + 	asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
+		writeFile(mycorfile, mycorfileinfo , append = T);
 	}
 }
 
-2: early(){
-	if ((sim.generation % 1000) == 0) {
-		inds_n = p1.individuals;
-		inds_s = p0.individuals;
-		//writing info about the newt "N"		
-		myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age)+ "    " + "N"+ "    " + asString(inds_n.x) + "    " + asString(inds_n.x);
-		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
-		//writing info about the snakes "S"
-		myphenotypefileinfo = sim.generation + "    "  + asString(inds_s.getValue("pheno"))+ "    " + asString(inds_s.fitnessScaling)+"    "  +asString(inds_s.age)+ "    " + "S"+ "    " + asString(inds_s.x) + "    " + asString(inds_s.x);
-		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
-	}}
+//2: early(){
+//	if ((sim.generation % 10) == 0) {
+//		inds_n = p1.individuals;
+//		inds_s = p0.individuals;
+//		//writing info about the newt "N"		
+//		myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age)+ "    " + "N"+ "    " + asString(inds_n.x) + "    " + asString(inds_n.y);
+//		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+//		//writing info about the snakes "S"
+//		myphenotypefileinfo = sim.generation + "    "  + asString(inds_s.getValue("pheno"))+ "    " + asString(inds_s.fitnessScaling)+"    "  +asString(inds_s.age)+ "    " + "S"+ "    " + asString(inds_s.x) + "    " + asString(inds_s.y);
+//		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+//	}}
 
 
 s99 10 late() {
