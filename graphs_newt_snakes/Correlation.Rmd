@@ -1,0 +1,141 @@
+---
+title: "Correlation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library("reshape")
+```
+
+## Goals
+
+I am starting to investigate what is going on in small scales in my co-evolution simulation. I decided to get newt and snake information and see in they were correlated in 5-5 grids. I collected correlated data from the GA experiments from the 5,000, 20,000, and 100,000 simulations. I also will examine how the correlation values change when the grid has more boxes (smaller area to compare).
+
+GA1 experiment values
+
+- 1e-8*(0.005)^2 = 2.5e-13
+- 1e-9*(0.05)^2 = 2.5e-12
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(5.0)^2 = 2.5e-10
+
+GA2 experiment values
+
+- 1e-8*(0.05)^2 = 2.5e-11
+- 1e-9*(0.1581139)^2 = 2.5e-11
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(1.581139)^2 = 2.5e-11
+- 1e-12*(5)^2 = 2.5e-11
+
+collected info:
+	mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno), c(snake_mean_pheno));
+	num_newts_By_num_snakes = cor(c(newt_sum_ind), c(snake_sum_ind));
+	sum_newt_pheno_By_num_snake = cor(c(newt_sum_pheno), c(snake_sum_ind));
+	sum_snake_pheno_By_num_newt = cor(c(snake_sum_pheno), c(newt_sum_ind));
+	sum_newt_pheno_By_num_newt = cor(c(newt_sum_pheno), c(newt_sum_ind));
+	sum_snake_pheno_By_snake_newt = cor(c(snake_sum_pheno), c(snake_sum_ind));
+	
+Tested Grids
+
+- (5, 5)
+- (8, 8)
+- (10, 10)
+- (20, 20)
+
+	
+	
+	
+	
+```{r, Cor data gather}
+
+lit_files <- list.files(path="~/Desktop/cor/text_files", pattern="_lit_", full.names=TRUE, recursive=FALSE)
+
+cor_files <- list.files(path="~/Desktop/cor/text_files", pattern="_cor_", full.names=TRUE, recursive=FALSE)
+
+#files <- list.files(path="~/Desktop/GA_lt/doover/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
+
+number=1
+cor_file <- read.table(cor_files[number], header = TRUE)
+GA_file <- read.table(lit_files[number], header = TRUE)
+
+
+GA_file$sim <-"A"
+cor_file$sim <-"A"
+
+
+for(i in seq(1, length(lit_files), 1)){
+  lit_temp_file <- read.table(lit_files[i], header = TRUE)
+  lit_temp_file$sim <-LETTERS[i]
+  cor_temp_file <- read.table(cor_files[i], header = TRUE)
+  cor_temp_file$sim <-LETTERS[i]
+  cor_file <- rbind(cor_file, cor_temp_file)
+  GA_file <- rbind(GA_file, lit_temp_file)
+  myletter <- LETTERS[i]
+  snake_mu_rate <- unlist(str_split(unlist(str_split(lit_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  newt_mu_rate <- unlist(str_split(unlist(str_split(lit_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  print(paste0("Simulation ", LETTERS[i],": Snake mu-rate & effect sd (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt mu-rate & effect sd (", newt_mu_rate, ", ", newt_mu_effect_sd, ")" ))
+  
+}
+GA_file$dif <- GA_file$Snake_mean_Pheno-GA_file$Newt_mean_Pheno
+
+```	
+
+
+```{r, lest see that correlation}
+
+title="Space: Newt VS Snake"
+subt="Grid 5 by 5"
+y_label="Generation"
+x_label="Correlation"
+
+ggplot(cor_file) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "mean_newt_pheno_By_mean_snake_pheno"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(num_newts_By_num_snakes), color = "num_newts_By_num_snakes"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_newt_pheno_By_num_snake), color = "sum_newt_pheno_By_num_snake"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_snake_pheno_By_num_newt), color = "sum_snake_pheno_By_num_newt"))+
+  #geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_newt_pheno_By_num_newt), color = "sum_newt_pheno_By_num_newt"))+
+  #geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_snake_pheno_By_snake_newt), color = "sum_snake_pheno_By_snake_newt"))+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_manual(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+
+ggplot(GA_file) +
+    facet_wrap(~sim)+
+    geom_line(aes(gen, dif, col="dif"))+
+    ggtitle("Phenotpe by Gen For all Sims", subtitle = subt) +
+    geom_line(aes(gen, Snake_mean_Pheno, color="Snake_mean_Pheno"),)+
+    geom_line(aes(gen, Newt_mean_Pheno, color="Newt_mean_Pheno"))+
+    ylim(-5,10)+
+    xlab("Generations") + ylab("Phenotype")+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+```
+
+
+
+
+	

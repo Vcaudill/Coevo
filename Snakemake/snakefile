@@ -29,7 +29,7 @@ s_param = ["0.1","0.2","0.3","0.4","0.5"] #sigma
 m_param = ["0.1","0.2","0.3","0.4","0.5"] #mutation
 g_param = ["5000","50000","100000"] #ending generation
 
-
+# --dry--run
 # Run full pipeline!
 rule all: 
    input: expand( out_pre +".{s_par}.p_ctg.assembly_stats", s_par=s_param)
@@ -41,13 +41,14 @@ rule slim:
     #GA_lit_snake_mu_rate_1.0e-08_newt_mu_rate_1.0e-08_snake_mu_effect_sd_0.005_newt_mu_effect_sd_0.005_sigma_0.5_FN_142783150_ID_2287606229804_interaction_rate_0.05_cost_100_late_5000_.text
     #GA_litbyind_snake_mu_rate_1.0e-08_newt_mu_rate_1.0e-08_snake_mu_effect_sd_0.005_newt_mu_effect_sd_0.005_sigma_0.5_FN_142783150_ID_2287606229804_cost_100_interaction_rate_0.05_late_5000_.text
     #snake_mu_rate1.0e-08newt_mu_rate1.0e-08snake_mu_effect_sd0.005newt_mu_effect_sd0.005_sigma_0.5_FN_142783150_ID_2287606229804_late_500000_.trees
+    #snake_mu_rate1.0e-08newt_mu_rate1.0e-08snake_mu_effect_sd0.005newt_mu_effect_sd0.005_sigma_0.5_FN_142783150_ID_3117457205512_late_5000_.trees
     threads:20
     shell: slim -m -t -d "snake_mu_rate = ${1}" -d "newt_mu_rate = ${2}" -d "snake_mu_effect_sd = ${3}" -d "newt_mu_effect_sd = ${4}" -d "msprime_file = '${5}'" -d "treename = '${6}'" -d "outpath = '${7}'" -d "myFN = '${9}'" -d "NUMGENS = ${10}" '/home/vcaudill/kernlab/coevo/SLiM_script/cost_1on1.slim';
 
 
 
 rule msprime:
-    input: infile
+    #input: dont need infile
     output: out_msprime +".{s_par}.p_ctg.gfa"
     #both_1000_su_1e-08_nu_1e-08_sue_0.05_nue_0.05_GAlitredo_FN_2949665473_.init.trees
     threads:20

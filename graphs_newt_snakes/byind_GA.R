@@ -166,3 +166,7 @@ for (i in 6550555:nrow(myGA_file)){
 }
 making_a_grid
 
+write.csv(myGA_file,"~/Desktop/with_grid_litbyind_snake_mu_rate_1.0e-08_newt_mu_rate_1.0e-08_snake_mu_effect_sd_0.05_newt_mu_effect_sd_0.05_sigma_0.5_FN_2949665473_ID_4086676209290_cost_100_interaction_rate_0.05_late_5000.csv", row.names = FALSE)
+
+
+

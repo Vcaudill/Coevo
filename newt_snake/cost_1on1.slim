@@ -331,7 +331,7 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(5, 5);
+	grid_res = c(20, 20);
 	
 	
 	// cov in the early and not late part of slim (ind die between early and late)
@@ -399,12 +399,12 @@ early() {
 	//mytextfile="~/Desktop/data/longcosttest_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_interaction_rate_" + interaction_rate + "_cost_" + setCOST + "_late_" + NUMGENS + "_.text"; //file name
 	
 	//	myphenotypefile="~/Desktop/data/longcostbyind_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_cost_" + setCOST + "_interaction_rate_" + interaction_rate + "_late_" + NUMGENS + "_.text"; //file name
-	mycorfile="~/Desktop/data/cortest_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_interaction_rate_" + interaction_rate + "_cost_" + setCOST + "_late_" + NUMGENS + "_.text"; //file name
+	//mycorfile="~/Desktop/data/cortest_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_FN_"+myFN+ "_ID_"+simID + "_interaction_rate_" + interaction_rate + "_cost_" + setCOST + "_late_" + NUMGENS + "_.text"; //file name
 	
 	// making the name into global varables
 	//defineGlobal("mytextfile", mytextfile);
 	//defineGlobal("myphenotypefile", myphenotypefile);
-	defineGlobal("mycorfile", mycorfile);
+	//defineGlobal("mycorfile", mycorfile);
 	
 	beta_n = cor(inds_n.getValue('pheno'), inds_n.fitnessScaling);
 	beta_s = cor(inds_s.getValue('pheno'), inds_s.fitnessScaling);
@@ -413,7 +413,7 @@ early() {
 	//		"    " +"Snake_pop_size"+"    "+ "mean_newts_eaten"+"    "+ "sd_newts_eaten"+"    "+ "mean_snakes_eaten"+"    "+ "sd_snakes_eaten" +"    "+ "beta_n" + "    " + "beta_s" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "time";
 	
 	//	myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age"+ "    " + "species"+ "    " + "loc_x" + "    " + "loc_y";
-	mycorfileheader="gen" + "    " + "mean_newt_pheno_By_mean_snake_pheno" + "    " + "num_newts_By_num_snakes"+ "    " + "sum_newt_pheno_By_num_snake"+ "    " + "sum_snake_pheno_By_num_newt"+ "    " + "sum_newt_pheno_By_num_newt" + "    " + "sum_snake_pheno_By_snake_newt";
+	//mycorfileheader="gen" + "    " + "mean_newt_pheno_By_mean_snake_pheno" + "    " + "num_newts_By_num_snakes"+ "    " + "sum_newt_pheno_By_num_snake"+ "    " + "sum_snake_pheno_By_num_newt"+ "    " + "sum_newt_pheno_By_num_newt" + "    " + "sum_snake_pheno_By_snake_newt";
 	
 	//	mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
 	
@@ -436,7 +436,7 @@ early() {
 		//		//writing info about the snakes "S"
 		//		myphenotypefileinfo = sim.generation + "    "  + asString(inds_s.getValue("pheno"))+ "    " + asString(inds_s.fitnessScaling)+"    "  +asString(inds_s.age)+ "    " + "S"+ "    " + asString(inds_s.x) + "    " + asString(inds_s.x);
 		//		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
-	writeFile(mycorfile, mycorfileheader , append = T);
+	//writeFile(mycorfile, mycorfileheader , append = T);
 	}
 }
 
@@ -449,10 +449,10 @@ early() {
 
 }
 2 early (){
-	mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
+	//mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
 		
 		
-		writeFile(mycorfile, mycorfileinfo , append = T);
+		//writeFile(mycorfile, mycorfileinfo , append = T);
 		}
 early(){ //caculating the selection coefficents
 	inds_n = p1.individuals;
@@ -477,9 +477,10 @@ early(){ //caculating the selection coefficents
 	//		writeFile(mytextfile, mytextfileinfo , append = T);
 	//	
 	//	}
-	if ((sim.generation % 20) == 0) {
+	if ((sim.generation % 5) == 0) {
 		mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + 	asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
-		writeFile(mycorfile, mycorfileinfo , append = T);
+		catn(mycorfileinfo);
+		//writeFile(mycorfile, mycorfileinfo , append = T);
 	}
 }
 
