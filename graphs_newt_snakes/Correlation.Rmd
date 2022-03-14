@@ -58,50 +58,145 @@ Tested Grids
 	
 	
 ```{r, Cor data gather}
+#Reading in the names of files to cycle through them
+lit_5000_files <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA6_lit_", full.names=TRUE, recursive=FALSE)
+cor_5000_files <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA6_cor_", full.names=TRUE, recursive=FALSE)
 
-lit_files <- list.files(path="~/Desktop/cor/text_files", pattern="_lit_", full.names=TRUE, recursive=FALSE)
+lit_20000_files <- list.files(path="~/Desktop/cor_20000/text_files", pattern="GA6_lit_", full.names=TRUE, recursive=FALSE)
+cor_20000_files <- list.files(path="~/Desktop/cor_20000/text_files", pattern="GA6_cor_", full.names=TRUE, recursive=FALSE)
 
-cor_files <- list.files(path="~/Desktop/cor/text_files", pattern="_cor_", full.names=TRUE, recursive=FALSE)
+lit_100000_files <- list.files(path="~/Desktop/cor_20000/text_files", pattern="GA6_lit_", full.names=TRUE, recursive=FALSE)
+cor_100000_files <- list.files(path="~/Desktop/cor_20000/text_files", pattern="GA6_cor_", full.names=TRUE, recursive=FALSE)
+
+lit_5000_files_88 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA88_lit_", full.names=TRUE, recursive=FALSE)
+cor_5000_files_88 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA88_cor_", full.names=TRUE, recursive=FALSE)
+
+lit_5000_files_1010 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA1010_lit_", full.names=TRUE, recursive=FALSE)
+cor_5000_files_1010 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA1010_cor_", full.names=TRUE, recursive=FALSE)
+
+GA2_lit_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
+GA2_cor_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
 
 #files <- list.files(path="~/Desktop/GA_lt/doover/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
-
+# Reading in the first file from the list to add a new column. To compare simulations with different params
 number=1
-cor_file <- read.table(cor_files[number], header = TRUE)
-GA_file <- read.table(lit_files[number], header = TRUE)
+cor_5000_file <- read.table(cor_5000_files[number], header = TRUE)
+GA_5000_file <- read.table(lit_5000_files[number], header = TRUE)
 
+cor_20000_file <- read.table(cor_20000_files[number], header = TRUE)
+GA_20000_file <- read.table(lit_20000_files[number], header = TRUE)
 
-GA_file$sim <-"A"
-cor_file$sim <-"A"
+cor_100000_file <- read.table(cor_100000_files[number], header = TRUE)
+GA_100000_file <- read.table(lit_100000_files[number], header = TRUE)
 
+cor_5000_file_88 <- read.table(cor_5000_files_88[number], header = TRUE)
+GA_5000_file_88 <- read.table(lit_5000_files_88[number], header = TRUE)
 
-for(i in seq(1, length(lit_files), 1)){
-  lit_temp_file <- read.table(lit_files[i], header = TRUE)
-  lit_temp_file$sim <-LETTERS[i]
-  cor_temp_file <- read.table(cor_files[i], header = TRUE)
-  cor_temp_file$sim <-LETTERS[i]
-  cor_file <- rbind(cor_file, cor_temp_file)
-  GA_file <- rbind(GA_file, lit_temp_file)
+cor_5000_file_1010 <- read.table(cor_5000_files_1010[number], header = TRUE)
+GA_5000_file_1010 <- read.table(lit_5000_files_1010[number], header = TRUE)
+
+GA2_cor_5000_file <- read.table(GA2_cor_5000_files[number], header = TRUE)
+GA2_GA_5000_file <- read.table(GA2_lit_5000_files[number], header = TRUE)
+
+GA_5000_file$sim <-"A"
+cor_5000_file$sim <-"A"
+
+GA_20000_file$sim <-"A"
+cor_20000_file$sim <-"A"
+
+GA_100000_file$sim <-"A"
+cor_100000_file$sim <-"A"
+
+GA_5000_file_88$sim <-"A"
+cor_5000_file_88$sim <-"A"
+
+GA_5000_file_1010$sim <-"A"
+cor_5000_file_1010$sim <-"A"
+
+GA2_GA_5000_file$sim <-"A"
+GA2_cor_5000_file$sim <-"A"
+
+#Cycle through the different simulations to make one file. Not recommended for large files, but right now mine are small
+for(i in seq(1, length(GA2_lit_5000_files), 1)){
   myletter <- LETTERS[i]
-  snake_mu_rate <- unlist(str_split(unlist(str_split(lit_files[i],"snake_mu_rate_"))[2], "_"))[1]
-  newt_mu_rate <- unlist(str_split(unlist(str_split(lit_files[i],"newt_mu_rate_"))[2], "_"))[1]
-  snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  
+  GA2_lit_temp_file <- read.table(GA2_lit_5000_files[i], header = TRUE)
+  GA2_lit_temp_file$sim <-LETTERS[i]
+  GA2_cor_temp_file <- read.table(GA2_cor_5000_files[i], header = TRUE)
+  GA2_cor_temp_file$sim <-LETTERS[i]
+  
+  GA2_GA_5000_file <- rbind(GA2_GA_5000_file, GA2_lit_temp_file)
+  GA2_cor_5000_file <- rbind(GA2_cor_5000_file, GA2_cor_temp_file)
+  
+  if (i<=length(lit_5000_files)){
+  lit_temp_file <- read.table(lit_5000_files[i], header = TRUE)
+  lit_temp_file$sim <-LETTERS[i]
+  
+  lit_temp_file_2 <- read.table(lit_20000_files[i], header = TRUE)
+  lit_temp_file_2$sim <-LETTERS[i]
+  
+  lit_temp_file_3 <- read.table(lit_100000_files[i], header = TRUE)
+  lit_temp_file_3$sim <-LETTERS[i]
+  
+  lit_temp_file_4 <- read.table(lit_5000_files_88[i], header = TRUE)
+  lit_temp_file_4$sim <-LETTERS[i]
+  
+  lit_temp_file_5 <- read.table(lit_5000_files_1010[i], header = TRUE)
+  lit_temp_file_5$sim <-LETTERS[i]
+  
+  cor_temp_file <- read.table(cor_5000_files[i], header = TRUE)
+  cor_temp_file$sim <-LETTERS[i]
+  
+  cor_temp_file_2 <- read.table(cor_20000_files[i], header = TRUE)
+  cor_temp_file_2$sim <-LETTERS[i]
+  
+  cor_temp_file_3 <- read.table(cor_100000_files[i], header = TRUE)
+  cor_temp_file_3$sim <-LETTERS[i]
+  
+  cor_temp_file_4 <- read.table(cor_5000_files_88[i], header = TRUE)
+  cor_temp_file_4$sim <-LETTERS[i]
+  
+  cor_temp_file_5 <- read.table(cor_5000_files_1010[i], header = TRUE)
+  cor_temp_file_5$sim <-LETTERS[i]
+  
+  
+  GA_5000_file <- rbind(GA_5000_file, lit_temp_file)
+  GA_20000_file <- rbind(GA_20000_file, lit_temp_file_2)
+  GA_100000_file <- rbind(GA_100000_file, lit_temp_file_3)
+  GA_5000_file_88 <- rbind(GA_5000_file_88, lit_temp_file_4)
+  GA_5000_file_1010 <- rbind(GA_5000_file_1010, lit_temp_file_5)
+  
+  cor_5000_file <- rbind(cor_5000_file, cor_temp_file)
+  cor_20000_file <- rbind(cor_20000_file, cor_temp_file_2)
+  cor_100000_file <- rbind(cor_100000_file, cor_temp_file_3)
+  cor_5000_file_88 <- rbind(cor_5000_file_88, cor_temp_file_4)
+  cor_5000_file_1010 <- rbind(cor_5000_file_1010, cor_temp_file_5)
+  
+  snake_mu_rate <- unlist(str_split(unlist(str_split(lit_5000_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  newt_mu_rate <- unlist(str_split(unlist(str_split(lit_5000_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_5000_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_5000_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
   print(paste0("Simulation ", LETTERS[i],": Snake mu-rate & effect sd (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt mu-rate & effect sd (", newt_mu_rate, ", ", newt_mu_effect_sd, ")" ))
+  }
   
 }
-GA_file$dif <- GA_file$Snake_mean_Pheno-GA_file$Newt_mean_Pheno
 
+# Calculating the difference between mean snake pheno and mean newt pheno
+
+GA_5000_file$dif <- GA_5000_file$Snake_mean_Pheno-GA_5000_file$Newt_mean_Pheno
+GA_20000_file$dif <- GA_20000_file$Snake_mean_Pheno-GA_20000_file$Newt_mean_Pheno
+GA_100000_file$dif <- GA_100000_file$Snake_mean_Pheno-GA_100000_file$Newt_mean_Pheno
+GA_5000_file_88$dif <- GA_5000_file_88$Snake_mean_Pheno-GA_5000_file_88$Newt_mean_Pheno
+GA_5000_file_1010$dif <- GA_5000_file_1010$Snake_mean_Pheno-GA_5000_file_1010$Newt_mean_Pheno
+GA2_GA_5000_file$dif <- GA2_GA_5000_file$Snake_mean_Pheno-GA2_GA_5000_file$Newt_mean_Pheno
+GA2_GA_5000_file$dif <- GA2_GA_5000_file$Snake_mean_Pheno-GA2_GA_5000_file$Newt_mean_Pheno
 ```	
 
+```{r, reusable figures, results='hide', message=FALSE, warning=FALSE}
 
-```{r, lest see that correlation}
-
-title="Space: Newt VS Snake"
-subt="Grid 5 by 5"
-y_label="Generation"
-x_label="Correlation"
-
-ggplot(cor_file) +
+cors_by_gen <- function(file, title, subt, x_label, y_label){
+  
+plot <- ggplot(file) +
   #xlim(0, 1000)+
   ggtitle(title, subtitle = subt) +
   xlab(x_label) + ylab(y_label)+
@@ -109,28 +204,60 @@ ggplot(cor_file) +
   geom_line(aes(x=as.numeric(gen), y=as.numeric(num_newts_By_num_snakes), color = "num_newts_By_num_snakes"))+
   geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_newt_pheno_By_num_snake), color = "sum_newt_pheno_By_num_snake"))+
   geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_snake_pheno_By_num_newt), color = "sum_snake_pheno_By_num_newt"))+
-  #geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_newt_pheno_By_num_newt), color = "sum_newt_pheno_By_num_newt"))+
-  #geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_snake_pheno_By_snake_newt), color = "sum_snake_pheno_By_snake_newt"))+
   theme(plot.title = element_text(size=5)) +
-  #scale_colour_manual(high = "steelblue", mid = "beige", low = "darkred")+
-  #labs(colour = color_label) +
+
   facet_wrap(~sim)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
-
-
-
-ggplot(GA_file) +
+  
+  return(plot)
+}
+trends_by_gen <- function(file, title, subt, x_label, y_label){
+  plot <- ggplot(file) +
     facet_wrap(~sim)+
     geom_line(aes(gen, dif, col="dif"))+
-    ggtitle("Phenotpe by Gen For all Sims", subtitle = subt) +
+    ggtitle(title, subtitle = subt) +
     geom_line(aes(gen, Snake_mean_Pheno, color="Snake_mean_Pheno"),)+
     geom_line(aes(gen, Newt_mean_Pheno, color="Newt_mean_Pheno"))+
     ylim(-5,10)+
-    xlab("Generations") + ylab("Phenotype")+
+    xlab(x_label) + ylab(y_label)+
     scale_color_manual(name = "Type",
 values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
 labels = c("Snake", "Newt", "Dif"))+
     theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  return(plot)
+}
+
+```
+
+```{r, lest see that correlation}
+
+title="Space: Newt VS Snake"
+subt="5,000 Gen Grid 5 by 5"
+y_label="Generation"
+x_label="Correlation"
+cors_by_gen(cor_5000_file, title, subt, x_label, y_label)
+
+y_label="Phenotype"
+title="Phenotpe by Gen For all Sims"
+subt="GA1 5000 Gen"
+trends_by_gen(GA_5000_file, title, subt, x_label, y_label)
+
+
+
+```
+```{r, cor 5000 zooom}
+
+title="ZOOM Space: Newt VS Snake"
+subt="5,000 Gen Grid 5 by 5"
+y_label="Generation"
+x_label="Correlation"
+cors_by_gen(cor_5000_file[ which(cor_5000_file$gen<200),], title, subt, x_label, y_label)
+
+
+title="ZOOM Phenotpe by Gen For all Sims"
+subt="GA1 5000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA_5000_file[ which(GA_5000_file$gen<200),], title, subt, x_label, y_label)
 
 
 ```
@@ -138,4 +265,96 @@ labels = c("Snake", "Newt", "Dif"))+
 
 
 
-	
+```{r, correlation 20000}
+
+title="Space: Newt VS Snake"
+subt="20,000 Gen Grid 5 by 5"
+y_label="Generation"
+x_label="Correlation"
+cors_by_gen(cor_20000_file, title, subt, x_label, y_label)
+
+title="Phenotpe by Gen For all Sims"
+subt="GA1 20000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA_20000_file, title, subt, x_label, y_label)
+
+```
+
+```{r, correlation 100000}
+
+title="Space: Newt VS Snake"
+subt="100,000 Gen Grid 5 by 5"
+y_label="Generation"
+x_label="Correlation"
+cors_by_gen(cor_100000_file, title, subt, x_label, y_label)
+
+title="Phenotpe by Gen For all Sims"
+subt="GA1 100000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA_100000_file, title, subt, x_label, y_label)
+
+
+```
+
+```{r, correlation 5000 88}
+
+title="Space: Newt VS Snake"
+subt="5,000 Gen Grid 8 by 8"
+y_label="Generation"
+x_label="Correlation"
+cors_by_gen(cor_5000_file_88, title, subt, x_label, y_label)
+
+title="Phenotpe by Gen For all Sims"
+subt="GA1 5,000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA_5000_file_88, title, subt, x_label, y_label)
+
+```
+
+```{r, correlation 5000 1010}
+
+title="Space: Newt VS Snake"
+subt="5,000 Gen Grid 10 by 10"
+y_label="Generation"
+x_label="Correlation"
+cors_by_gen(cor_5000_file_1010, title, subt, x_label, y_label)
+
+title="Phenotpe by Gen For all Sims"
+subt="GA1 5,000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA_5000_file_1010, title, subt, x_label, y_label)
+
+```
+
+
+```{r, GA2 correlation}
+
+title="GA2 Space: Newt VS Snake"
+subt="5,000 Gen Grid 5 by 5"
+y_label="Generation"
+x_label="Correlation"
+cors_by_gen(GA2_cor_5000_file, title, subt, x_label, y_label)
+
+title="Phenotpe by Gen For all Sims"
+subt="GA2 5,000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA2_GA_5000_file, title, subt, x_label, y_label)
+
+
+```
+
+
+```{r, cor 5000 GA2 zooom}
+
+title="GA2 ZOOM Space: Newt VS Snake"
+subt="5,000 Gen Grid 5 by 5"
+y_label="Generation"
+x_label="Correlation"
+cors_by_gen(GA2_cor_5000_file[ which(GA2_cor_5000_file$gen<200),], title, subt, x_label, y_label)
+
+title="ZOOM Phenotpe by Gen For all Sims"
+subt="GA2 5,000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA2_GA_5000_file[ which(GA2_GA_5000_file$gen<200),], title, subt, x_label, y_label)
+
+```

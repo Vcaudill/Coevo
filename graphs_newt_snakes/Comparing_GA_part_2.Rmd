@@ -602,6 +602,67 @@ pre
 
 In the plot about predation newt population size in on the x-axis and snake population size is on the y-axis. The shade of the points is the amount of newts eaten by snakes over the newts population size. There is more predation when the population size of snakes is higher and newt populations are smaller. There is less predation when newt population is higher than snake population. It seems like in each of the tiny figures that darker green is seen in mostly the left points and lighter green is seen in the right most points. As a whole figure I do not see a trend between the GA. I wonder if there would be a slight trend seen in replica simulations. 
 
+## Boxplots
+
+I wanted a better way to discern if there was a difference between the simulations that I ran, so I plotted the final results (last 1000 and 100 generations) as a boxplot. I plot the simulation type (letters also GA) on the x-axis and the phenotype and predation on the y-axis. Hopefully, these boxplots will show a relative difference between the predation and phenotype between different GA. More simulations might change the result. 
+
+```{r, boxplotting}
+title="Space: Newt VS Snake Boxplot Color=Mean_predation"
+subt="25sims newt_deaths/Newt_pop_size last 1000gen"
+y_label="Mean_predation"
+x_label="Simulation"
+ggplot(GA_file[ which(GA_file$gen>4000),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(mean_predation)), color="darkolivegreen4")+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+title="Space: Newt VS Snake Boxplot Color=Mean_predation"
+subt="25sims newt_deaths/Newt_pop_size last 100gen"
+y_label="Mean_predation"
+x_label="Simulation"
+ggplot(GA_file[ which(GA_file$gen>4900),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(mean_predation)), color="darkolivegreen4")+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+title="Space: Newt VS Snake Boxplot Phenotype"
+subt="25sims dif last 1000gen"
+y_label="dif"
+x_label="Simulation"
+ggplot(GA_file[ which(GA_file$gen>4000),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(dif)), color="darkorchid4")+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(Newt_mean_Pheno)), color="darkred")+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(Snake_mean_Pheno)), color="steelblue")+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+title="Space: Newt VS Snake Boxplot Phenotype"
+subt="25sims dif last 100gen"
+y_label="dif"
+x_label="Simulation"
+ggplot(GA_file[ which(GA_file$gen>4900),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(dif)), color="darkorchid4")+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(Newt_mean_Pheno)), color="darkred")+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(Snake_mean_Pheno)), color="steelblue")+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+```
+
+
 ## Longer Simulations 
 
 To examined what would happen if I kept running my simulations for longer I repeated the experiment with 20,000 generations and then again with 100,000 generations. Note that all of these simulations 5,000 gen, 20,000 gen and 100,000 gen have the same starting conditions (msprime simulations). Below are the summary figures for these simulations. The first figure presented shows all 25 simulations the x axis is newt population size and the y axis is snake population size. The color of the points is the difference between snake mean phenotype and newt mean phenotype. If the point is blue snakes have a higher phenotype, if the point is beige snakes and newts have a similar, and if the point is red newts have a higher phenotype. 
