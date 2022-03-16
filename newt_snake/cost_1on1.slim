@@ -11,12 +11,12 @@ initialize() {
 	//defineConstant("mu_rate", 1e-8); //just be the snake mu
 	defineConstant("snake_mu_rate", 1e-8); //snake mu/newt mu it will me more or less comman than nake	
 	defineConstant("newt_mu_rate", 1e-8); //newt mu/ snake mu it will me more or less comman than nake
-	defineConstant("snake_mu_effect_sd", 0.5);
-	defineConstant("newt_mu_effect_sd", 0.5);
+	defineConstant("snake_mu_effect_sd", 0.05);
+	defineConstant("newt_mu_effect_sd", 0.05);
 	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01	
 	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");
-	defineConstant("msprime_file", "newt_snake/data/test_1000_su_1e-10_nu_1e-10_sue_0.1_nue_0.1_.init.trees");
-	
+	//defineConstant("msprime_file", "newt_snake/data/test_1000_su_1e-10_nu_1e-10_sue_0.1_nue_0.1_.init.trees");
+	defineConstant("msprime_file", "newt_snake/data/both_1000_su_1e-08_nu_1e-08_sue_0.005_nue_0.005_GAlit_FN_142783150_.init.trees");
 	
 	total_mut_rate = newt_mu_rate + snake_mu_rate;
 	
@@ -31,7 +31,7 @@ initialize() {
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.07);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.15);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
@@ -140,7 +140,41 @@ reproduction(p0) {//snakes
 	for (ind in p3.individuals) {
 		ind.setSpatialPosition(c(W/2, W/2));
 	}
-	i1.evaluate();
+
+grid_res = c(12, 12);
+	
+//snake
+	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else 0.0; ", empty=0.0);
+	
+	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else 0.0; ", empty=0.0);
+	
+	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else 0.0; ", empty=0.0);
+	
+	
+	//newt
+
+	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else 0.0; ", empty=0.0);
+	
+	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
+	
+	
+	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0);
+	
+	//correlations 	
+	
+	
+	mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno), c(snake_mean_pheno));
+	num_newts_By_num_snakes = cor(c(snake_sum_ind), c(newt_sum_ind));
+	sum_newt_pheno_By_num_snake = cor(c(newt_sum_pheno), c(snake_sum_ind));
+	sum_snake_pheno_By_num_newt = cor(c(snake_sum_pheno), c(newt_sum_ind));
+	sum_newt_pheno_By_num_newt = cor(c(newt_sum_pheno), c(newt_sum_ind));
+	sum_snake_pheno_By_snake_newt = cor(c(snake_sum_pheno), c(snake_sum_ind));	
+	
+			mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + 	asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
+		catn(mycorfileinfo);
+
+i1.evaluate();
+
 }
 
 
@@ -331,7 +365,7 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(20, 20);
+	grid_res = c(12, 12);
 	
 	
 	// cov in the early and not late part of slim (ind die between early and late)
@@ -341,28 +375,28 @@ early() {
 	//snake_num=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="length(individuals);", empty=0.0);
 	//catn(snake_num);
 	//catn(snake_cov);
-	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals)*0.0; ", empty=0.0);
+	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
 	
-	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals)*0.0; ", empty=0.0);
+	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
 	
-	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals)*0.0; ", empty=0.0);
+	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0);
 	
 	
 	//newt
 	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*0.0;", empty=0.0);
 	
-	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals)*0.0; ", empty=0.0);
+	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
 	
-	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals)*0.0; ", empty=0.0);
+	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
 	
 	
-	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals)*0.0; ", empty=0.0);
+	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0);
 	
 	//correlations 	
 	
 	
 	mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno), c(snake_mean_pheno));
-	num_newts_By_num_snakes = cor(c(newt_sum_ind), c(snake_sum_ind));
+	num_newts_By_num_snakes = cor(c(snake_sum_ind), c(newt_sum_ind));
 	sum_newt_pheno_By_num_snake = cor(c(newt_sum_pheno), c(snake_sum_ind));
 	sum_snake_pheno_By_num_newt = cor(c(snake_sum_pheno), c(newt_sum_ind));
 	sum_newt_pheno_By_num_newt = cor(c(newt_sum_pheno), c(newt_sum_ind));
@@ -444,8 +478,8 @@ early() {
 // The varabales that I want to collect from slim 
 
 1 early(){
-	// header info
-	catn("gen" + "    " + "Newt_m_phneo" + "    " + "Snake_m_pheno");
+	// header info asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + 	asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt)
+	catn("gen" + "    " + "mean_newt_pheno_By_mean_snake_pheno" + "    " + "num_newts_By_num_snakes"+ "    " + "sum_newt_pheno_By_num_snake"+ "    " + "sum_snake_pheno_By_num_newt"+ "    " + "sum_newt_pheno_By_num_newt" + "    " + "sum_snake_pheno_By_snake_newt" );
 
 }
 2 early (){

@@ -74,6 +74,9 @@ cor_5000_files_88 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="G
 lit_5000_files_1010 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA1010_lit_", full.names=TRUE, recursive=FALSE)
 cor_5000_files_1010 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA1010_cor_", full.names=TRUE, recursive=FALSE)
 
+lit_5000_files_2020 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA2020_lit_", full.names=TRUE, recursive=FALSE)
+cor_5000_files_2020 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA2020_cor_", full.names=TRUE, recursive=FALSE)
+
 GA2_lit_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
 GA2_cor_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
 
@@ -95,6 +98,9 @@ GA_5000_file_88 <- read.table(lit_5000_files_88[number], header = TRUE)
 cor_5000_file_1010 <- read.table(cor_5000_files_1010[number], header = TRUE)
 GA_5000_file_1010 <- read.table(lit_5000_files_1010[number], header = TRUE)
 
+cor_5000_file_2020 <- read.table(cor_5000_files_2020[number], header = TRUE)
+GA_5000_file_2020 <- read.table(lit_5000_files_2020[number], header = TRUE)
+
 GA2_cor_5000_file <- read.table(GA2_cor_5000_files[number], header = TRUE)
 GA2_GA_5000_file <- read.table(GA2_lit_5000_files[number], header = TRUE)
 
@@ -112,6 +118,9 @@ cor_5000_file_88$sim <-"A"
 
 GA_5000_file_1010$sim <-"A"
 cor_5000_file_1010$sim <-"A"
+
+GA_5000_file_2020$sim <-"A"
+cor_5000_file_2020$sim <-"A"
 
 GA2_GA_5000_file$sim <-"A"
 GA2_cor_5000_file$sim <-"A"
@@ -144,6 +153,9 @@ for(i in seq(1, length(GA2_lit_5000_files), 1)){
   lit_temp_file_5 <- read.table(lit_5000_files_1010[i], header = TRUE)
   lit_temp_file_5$sim <-LETTERS[i]
   
+  lit_temp_file_6 <- read.table(lit_5000_files_2020[i], header = TRUE)
+  lit_temp_file_6$sim <-LETTERS[i]
+  
   cor_temp_file <- read.table(cor_5000_files[i], header = TRUE)
   cor_temp_file$sim <-LETTERS[i]
   
@@ -159,18 +171,23 @@ for(i in seq(1, length(GA2_lit_5000_files), 1)){
   cor_temp_file_5 <- read.table(cor_5000_files_1010[i], header = TRUE)
   cor_temp_file_5$sim <-LETTERS[i]
   
+  cor_temp_file_6 <- read.table(cor_5000_files_2020[i], header = TRUE)
+  cor_temp_file_6$sim <-LETTERS[i]
+  
   
   GA_5000_file <- rbind(GA_5000_file, lit_temp_file)
   GA_20000_file <- rbind(GA_20000_file, lit_temp_file_2)
   GA_100000_file <- rbind(GA_100000_file, lit_temp_file_3)
   GA_5000_file_88 <- rbind(GA_5000_file_88, lit_temp_file_4)
   GA_5000_file_1010 <- rbind(GA_5000_file_1010, lit_temp_file_5)
+  GA_5000_file_2020 <- rbind(GA_5000_file_2020, lit_temp_file_6)
   
   cor_5000_file <- rbind(cor_5000_file, cor_temp_file)
   cor_20000_file <- rbind(cor_20000_file, cor_temp_file_2)
   cor_100000_file <- rbind(cor_100000_file, cor_temp_file_3)
   cor_5000_file_88 <- rbind(cor_5000_file_88, cor_temp_file_4)
   cor_5000_file_1010 <- rbind(cor_5000_file_1010, cor_temp_file_5)
+  cor_5000_file_2020 <- rbind(cor_5000_file_2020, cor_temp_file_6)
   
   snake_mu_rate <- unlist(str_split(unlist(str_split(lit_5000_files[i],"snake_mu_rate_"))[2], "_"))[1]
   newt_mu_rate <- unlist(str_split(unlist(str_split(lit_5000_files[i],"newt_mu_rate_"))[2], "_"))[1]
@@ -188,6 +205,7 @@ GA_20000_file$dif <- GA_20000_file$Snake_mean_Pheno-GA_20000_file$Newt_mean_Phen
 GA_100000_file$dif <- GA_100000_file$Snake_mean_Pheno-GA_100000_file$Newt_mean_Pheno
 GA_5000_file_88$dif <- GA_5000_file_88$Snake_mean_Pheno-GA_5000_file_88$Newt_mean_Pheno
 GA_5000_file_1010$dif <- GA_5000_file_1010$Snake_mean_Pheno-GA_5000_file_1010$Newt_mean_Pheno
+GA_5000_file_2020$dif <- GA_5000_file_2020$Snake_mean_Pheno-GA_5000_file_2020$Newt_mean_Pheno
 GA2_GA_5000_file$dif <- GA2_GA_5000_file$Snake_mean_Pheno-GA2_GA_5000_file$Newt_mean_Pheno
 GA2_GA_5000_file$dif <- GA2_GA_5000_file$Snake_mean_Pheno-GA2_GA_5000_file$Newt_mean_Pheno
 ```	
@@ -326,6 +344,20 @@ trends_by_gen(GA_5000_file_1010, title, subt, x_label, y_label)
 
 ```
 
+```{r, correlation 5000 2020}
+
+title="Space: Newt VS Snake"
+subt="5,000 Gen Grid 20 by 20"
+y_label="Generation"
+x_label="Correlation"
+cors_by_gen(cor_5000_file_2020, title, subt, x_label, y_label)
+
+title="Phenotpe by Gen For all Sims"
+subt="GA1 5,000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA_5000_file_2020, title, subt, x_label, y_label)
+
+```
 
 ```{r, GA2 correlation}
 
