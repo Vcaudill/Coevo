@@ -798,6 +798,9 @@ subt="25sims 100000gen newt_deaths/Newt_pop_size last 1000gen"
 y_label="Mean_predation"
 x_label="Simulation"
 
+GA_file_100$mean_predation <- GA_file_100$newt_deaths/GA_file_100$Newt_pop_size
+
+
 data_subset1 <- GA_file_100[which(GA_file_100$gen>4000 & GA_file_100$gen<=5000),]
 data_subset1$group <- "A 5000"
 data_subset2 <- GA_file_100[which(GA_file_100$gen>19000 & GA_file_100$gen<=20000),]
@@ -836,13 +839,26 @@ ggplot(data_subset_small) +
   geom_boxplot(aes(x=factor(sim), y=as.numeric(mean_predation), fill=group), color="black")+
   theme(plot.title = element_text(size=5)) +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+title="Space: Newt VS Snake Mean_predation"
+subt="Sim A 100000gen newt_deaths/Newt_pop_size "
+y_label="Mean_predation"
+x_label="Generation"
+ggplot(GA_file_100[which(GA_file_100$sim=="A"), ]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_line(aes(x=gen, y=as.numeric(mean_predation)), color="black")+
+  
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
 ```
 
 These figures show the predation level for the last 1000 and 100 generations (for 5000, 20000, and 100000, generation within the same simulation) on the y-axis. The x-axis has the simulations that I ran with different parameters. For every chunk of five letters the snakes GA stays the same while the newts GA decreases mutation rate and increases effect size. Every fifth letter the newts GA stays the same while the snakes GA decreases mutation rate and increases effect size. These values seem to differ by simulation, F and H are specifically larger than the others. The predation figures match the phenotypes in the next figure set.
 
 ```{r, boxplotting the phenotype}
 
-title="Space: Newt VS Snake Boxplot Phenotype"
+title="Space: Snake-Newt Mean Phenotype Boxplot"
 subt="25sims dif last 1000gen"
 y_label="dif"
 x_label="Simulation"
@@ -856,7 +872,7 @@ ggplot(data_subset) +
   theme(plot.title = element_text(size=5)) +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
 
-title="Space: Newt VS Snake Boxplot Phenotype"
+title="Space: Snake-Newt Mean Phenotype Boxplot"
 subt="25sims dif last 100gen"
 y_label="dif"
 x_label="Simulation"
@@ -867,6 +883,19 @@ ggplot(data_subset_small) +
   geom_boxplot(aes(x=factor(sim), y=as.numeric(dif), fill=group), color="darkorchid4")+
   #geom_boxplot(aes(x=factor(sim), y=as.numeric(Newt_mean_Pheno), fill=group), color="darkred")+
   #geom_boxplot(aes(x=factor(sim), y=as.numeric(Snake_mean_Pheno), fill=group), color="steelblue")+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+title="Space: Snake-Newt Mean Phenotype"
+subt="Sim A 100000 gen newt_mean_pheno "
+y_label="Mean_predation"
+x_label="Generation"
+ggplot(GA_file_100[which(GA_file_100$sim=="A"), ]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_line(aes(x=gen, y=as.numeric(dif)), color="darkorchid4")+
+  
   theme(plot.title = element_text(size=5)) +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
 
