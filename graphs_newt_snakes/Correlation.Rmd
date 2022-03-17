@@ -21,7 +21,11 @@ library("reshape")
 
 ## Goals
 
-I am starting to investigate what is going on in small scales in my co-evolution simulation. I decided to get newt and snake information and see in they were correlated in 5-5 grids. I collected correlated data from the GA experiments from the 5,000, 20,000, and 100,000 simulations. I also will examine how the correlation values change when the grid has more boxes (smaller area to compare).
+I am starting to investigate what is going on in small scales in my co-evolution simulation. I decided to get newt and snake information and see in they were correlated in n-n grids. I collected correlated data from the GA experiments from the 5,000, 20,000, and 100,000 simulations. (I also tested the correlations with and without perUnitArea=T. It turns out when you don't have perUnitArea=T the edge of the simulation has a greater effect on the calculations turning the correlation positive.) I also will examine how the correlation values change when the grid has more boxes (smaller area to compare). I will specifically, test 5 by 5, 8 by 8, 10 by 10 and 20 by 20 grids
+
+#Simulation Background
+
+My simulation has newts and snakes coevolving in an arms race! The newts are toxic and interact with resistant snakes. Snakes are attacking and eating the newts, and in order to eat more newts they are becoming more resistant. However, if a snake eats a newt that is more toxic the snake dies. As snakes become more resistant, less toxic newts are being devoured, leaving only the most toxic newts. These toxic newts reproduce and create even more toxic newts. The cycle contentiously repeats. My simulation is run in a two-dimensional space with a x and y axis. 
 
 GA1 experiment values
 
@@ -53,7 +57,7 @@ Tested Grids
 - (10, 10)
 - (20, 20)
 
-	
+Something I noticed when playing around with different variables in my simulation was that there was a large effect when I was changing interaction rate. So I will also look at that here. Special note when interaction rate is increased newts and snake may avoid each other. 
 	
 	
 	

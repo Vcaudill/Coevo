@@ -31,7 +31,7 @@ initialize() {
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.15);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.10);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
@@ -144,22 +144,33 @@ reproduction(p0) {//snakes
 grid_res = c(12, 12);
 	
 //snake
-	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else 0.0; ", empty=0.0);
+	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else 0.0; ", empty=0.0, perUnitArea=T);
 	
-	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else 0.0; ", empty=0.0);
+	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else 0.0; ", empty=0.0, perUnitArea=T);
 	
-	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else 0.0; ", empty=0.0);
+	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else 0.0; ", empty=0.0, perUnitArea=T);
+
+	snake_sum_pheno_p=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else 0.0; ", empty=0.0);
 	
+	snake_mean_pheno_p=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else 0.0; ", empty=0.0);
+	
+	snake_sum_ind_p=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else 0.0; ", empty=0.0);	
 	
 	//newt
 
-	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else 0.0; ", empty=0.0);
+	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else 0.0; ", empty=0.0, perUnitArea=T);
 	
-	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
+	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
 	
-	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0);
+	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
+	newt_sum_pheno_p=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else 0.0; ", empty=0.0);
+	
+	newt_mean_pheno_p=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
+	
+	
+	newt_sum_ind_p=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0);
 	//correlations 	
 	
 	
@@ -167,11 +178,27 @@ grid_res = c(12, 12);
 	num_newts_By_num_snakes = cor(c(snake_sum_ind), c(newt_sum_ind));
 	sum_newt_pheno_By_num_snake = cor(c(newt_sum_pheno), c(snake_sum_ind));
 	sum_snake_pheno_By_num_newt = cor(c(snake_sum_pheno), c(newt_sum_ind));
+	
+	//Something I check
 	sum_newt_pheno_By_num_newt = cor(c(newt_sum_pheno), c(newt_sum_ind));
 	sum_snake_pheno_By_snake_newt = cor(c(snake_sum_pheno), c(snake_sum_ind));	
 	
+	//no perUnitarea
+	mean_newt_pheno_By_mean_snake_pheno_p = cor(c(newt_mean_pheno_p), c(snake_mean_pheno_p));
+	num_newts_By_num_snakes_p = cor(c(snake_sum_ind_p), c(newt_sum_ind_p));
+	sum_newt_pheno_By_num_snake_p = cor(c(newt_sum_pheno_p), c(snake_sum_ind_p));
+	sum_snake_pheno_By_num_newt_p = cor(c(snake_sum_pheno_p), c(newt_sum_ind_p));
+	
+	//Something I check
+	sum_newt_pheno_By_num_newt_p = cor(c(newt_sum_pheno_p), c(newt_sum_ind_p));
+	sum_snake_pheno_By_snake_newt_p = cor(c(snake_sum_pheno_p), c(snake_sum_ind_p));	
+		
+	
 			mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + 	asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
 		catn(mycorfileinfo);
+		catn("no PerUnitArea");
+		mycorfileinfo_p=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno_p) + "    " + 	asString(num_newts_By_num_snakes_p) + "    " + asString(sum_newt_pheno_By_num_snake_p)+ "    " + asString(sum_snake_pheno_By_num_newt_p)+ "    " + asString(sum_newt_pheno_By_num_newt_p) + "    " + asString(sum_snake_pheno_By_snake_newt_p);
+		catn(mycorfileinfo_p);
 
 i1.evaluate();
 
@@ -375,22 +402,22 @@ early() {
 	//snake_num=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="length(individuals);", empty=0.0);
 	//catn(snake_num);
 	//catn(snake_cov);
-	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
+	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
-	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
+	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
-	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0);
+	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
 	
 	//newt
-	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*0.0;", empty=0.0);
+	newt_cov=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)cov(individuals.getValue('pheno'), individuals.fitnessScaling); else length(individuals)*0.0;", empty=0.0, perUnitArea=T);
 	
-	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
+	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
-	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);
+	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
 	
-	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0);
+	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
 	//correlations 	
 	
@@ -417,10 +444,22 @@ early() {
 		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
 	//p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
 	//valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
+
+	snake_mean_pheno_calc = summarizeIndividuals(p0.individuals, grid_res, bounds,
+            operation="individuals.size();", empty=0.0, perUnitArea=T);
+         snake_mean_pheno_calc = snake_mean_pheno_calc / max(snake_mean_pheno_calc);
+   p2.defineSpatialMap("snake_mean_pheno_calc", "xy", snake_mean_pheno_calc, F,
+            range(snake_mean_pheno_calc), c("black", "orange", "red")); //looking at snake mean phenotype by section
 	
-	p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, c(-0.1,0.1), colors=c("red", "white", "blue")); // showing the cov of snakes the range can make the colors lighter and darker depending on the cor values
+	newt_mean_pheno_calc = summarizeIndividuals(p1.individuals, grid_res, bounds,
+            operation="individuals.size();", empty=0.0, perUnitArea=T);
+         newt_mean_pheno_calc = newt_mean_pheno_calc / max(newt_mean_pheno_calc);
+   p3.defineSpatialMap("newt_mean_pheno_calc", "xy", newt_mean_pheno_calc, F,
+            range(newt_mean_pheno_calc), c("black", "orange", "red")); //looking at newt mean phenotype by section
 	
-	p3.defineSpatialMap("newt_cov", "xy", newt_cov, F, c(-0.1,0.1), c("red", "white", "blue")); // showing the cov of newts
+	//p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, c(-0.1,0.1), colors=c("red", "white", "blue")); // showing the cov of snakes the range can make the colors lighter and darker depending on the cor values
+	
+	//p3.defineSpatialMap("newt_cov", "xy", newt_cov, F, c(-0.1,0.1), c("red", "white", "blue")); // showing the cov of newts
 }
 
 
