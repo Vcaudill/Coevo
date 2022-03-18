@@ -63,26 +63,29 @@ Something I noticed when playing around with different variables in my simulatio
 	
 ```{r, Cor data gather}
 #Reading in the names of files to cycle through them
-lit_5000_files <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA6_lit_", full.names=TRUE, recursive=FALSE)
-cor_5000_files <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA6_cor_", full.names=TRUE, recursive=FALSE)
+lit_5000_files <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA5_lit_", full.names=TRUE, recursive=FALSE)
+cor_5000_files <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA5_cor_", full.names=TRUE, recursive=FALSE)
 
-lit_20000_files <- list.files(path="~/Desktop/cor_20000/text_files", pattern="GA6_lit_", full.names=TRUE, recursive=FALSE)
-cor_20000_files <- list.files(path="~/Desktop/cor_20000/text_files", pattern="GA6_cor_", full.names=TRUE, recursive=FALSE)
+lit_5000_files_HI <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
+cor_5000_files_HI <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
 
-lit_100000_files <- list.files(path="~/Desktop/cor_20000/text_files", pattern="GA6_lit_", full.names=TRUE, recursive=FALSE)
-cor_100000_files <- list.files(path="~/Desktop/cor_20000/text_files", pattern="GA6_cor_", full.names=TRUE, recursive=FALSE)
+lit_20000_files <- list.files(path="~/Desktop/cor_20000/cor_byUnit/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
+cor_20000_files <- list.files(path="~/Desktop/cor_20000/cor_byUnit/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
 
-lit_5000_files_88 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA88_lit_", full.names=TRUE, recursive=FALSE)
-cor_5000_files_88 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA88_cor_", full.names=TRUE, recursive=FALSE)
+lit_100000_files <- list.files(path="~/Desktop/cor_20000/cor_byUnit/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
+cor_100000_files <- list.files(path="~/Desktop/cor_20000/cor_byUnit/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
 
-lit_5000_files_1010 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA1010_lit_", full.names=TRUE, recursive=FALSE)
-cor_5000_files_1010 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA1010_cor_", full.names=TRUE, recursive=FALSE)
+lit_5000_files_88 <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA88_lit_", full.names=TRUE, recursive=FALSE)
+cor_5000_files_88 <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA88_cor_", full.names=TRUE, recursive=FALSE)
 
-lit_5000_files_2020 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA2020_lit_", full.names=TRUE, recursive=FALSE)
-cor_5000_files_2020 <- list.files(path="~/Desktop/cor_5000/text_files", pattern="GA2020_cor_", full.names=TRUE, recursive=FALSE)
+lit_5000_files_1010 <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA1010_lit_", full.names=TRUE, recursive=FALSE)
+cor_5000_files_1010 <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA1010_cor_", full.names=TRUE, recursive=FALSE)
 
-GA2_lit_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
-GA2_cor_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
+lit_5000_files_2020 <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA2020_lit_", full.names=TRUE, recursive=FALSE)
+cor_5000_files_2020 <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA2020_cor_", full.names=TRUE, recursive=FALSE)
+
+GA2_lit_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/cor_byUnit/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
+GA2_cor_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/cor_byUnit/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
 
 #files <- list.files(path="~/Desktop/GA_lt/doover/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
 # Reading in the first file from the list to add a new column. To compare simulations with different params

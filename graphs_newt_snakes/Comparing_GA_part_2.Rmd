@@ -634,7 +634,7 @@ ggplot(GA_file[ which(GA_file$gen>4900),]) +
 
 These figures show the predation level for the last 1000 and 100 generations on the y-axis. The x-axis has the simulations that I ran with different parameters. For every chunk of five letters the snakes GA stays the same while the newts GA decreases mutation rate and increases effect size. Every fifth letter the newts GA stays the same while the snakes GA decreases mutation rate and increases effect size. The first thing that I noticed is that there is more variation in predation in the 1000 gen figures than in the 100 gen figure. This is probably due to more generations being considered. I noticed that higher predation matches up to a higher phenotype, but not in all of the cases
 
-```{r, boxplotting the phenotype}
+```{r, boxplotting the phenotype duo}
 
 title="Space: Newt VS Snake Boxplot Phenotype"
 subt="25sims dif last 1000gen"
@@ -854,13 +854,13 @@ ggplot(GA_file_100[which(GA_file_100$sim=="A"), ]) +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
 ```
 
-These figures show the predation level for the last 1000 and 100 generations (for 5000, 20000, and 100000, generation within the same simulation) on the y-axis. The x-axis has the simulations that I ran with different parameters. For every chunk of five letters the snakes GA stays the same while the newts GA decreases mutation rate and increases effect size. Every fifth letter the newts GA stays the same while the snakes GA decreases mutation rate and increases effect size. These values seem to differ by simulation, F and H are specifically larger than the others. The predation figures match the phenotypes in the next figure set.
+These figures show the predation level for the last 1000 and 100 generations (for 5000, 20000, and 100000, generation within the same simulation) on the y-axis. The x-axis has the simulations that I ran with different parameters. For every chunk of five letters the snakes GA stays the same while the newts GA decreases mutation rate and increases effect size. Every fifth letter the newts GA stays the same while the snakes GA decreases mutation rate and increases effect size. These values seem to differ by simulation, F and H are specifically larger than the others. The predation figures match the phenotypes in the next figure set. I also looked at the predation for one simulation (A) for all 100,000 generations. It seems to have periods where it is high and other periods when it is low.
 
 ```{r, boxplotting the phenotype}
 
 title="Space: Snake-Newt Mean Phenotype Boxplot"
 subt="25sims dif last 1000gen"
-y_label="dif"
+y_label="Mean Phenotype Difference"
 x_label="Simulation"
 ggplot(data_subset) +
   #xlim(0, 1000)+
@@ -874,7 +874,7 @@ ggplot(data_subset) +
 
 title="Space: Snake-Newt Mean Phenotype Boxplot"
 subt="25sims dif last 100gen"
-y_label="dif"
+y_label="Mean Phenotype Difference"
 x_label="Simulation"
 ggplot(data_subset_small) +
   #xlim(0, 1000)+
@@ -888,7 +888,7 @@ ggplot(data_subset_small) +
 
 title="Space: Snake-Newt Mean Phenotype"
 subt="Sim A 100000 gen newt_mean_pheno "
-y_label="Mean_predation"
+y_label="Mean Phenotype Difference"
 x_label="Generation"
 ggplot(GA_file_100[which(GA_file_100$sim=="A"), ]) +
   #xlim(0, 1000)+
@@ -900,7 +900,38 @@ ggplot(GA_file_100[which(GA_file_100$sim=="A"), ]) +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
 
 ```
-These figures show the mean newt phenotype, mean snake phenotype, and the difference between snake and newt mean phenotype (red, blue, and purple) for the last 1000 and 100 generations on the y-axis. The x-axis has the simulations that I ran with different parameters with three groups (5000, 20,000, and 100,000). For every chunk of five letters the snakes GA stays the same while the newts GA decreases mutation rate and increases effect size. Every fifth letter the newts GA stays the same while the snakes GA decreases mutation rate and increases effect size. I see some larger flucations in the mean phenotype difference with in a simulations. There could be cycling 
+These figures show the mean newt phenotype, mean snake phenotype, and the difference between snake and newt mean phenotype (red, blue, and purple) for the last 1000 and 100 generations on the y-axis. The x-axis has the simulations that I ran with different parameters with three groups (5000, 20,000, and 100,000). For every chunk of five letters the snakes GA stays the same while the newts GA decreases mutation rate and increases effect size. Every fifth letter the newts GA stays the same while the snakes GA decreases mutation rate and increases effect size. I see some larger fluctuations in the mean phenotype difference with in a simulations. There could be cycling phenotypes!
+
+I was looking at the mean predation and the mean difference between the phenotypes and wondered if they were related. If they were related my next question would be how? My thought was that if snakes had a higher phenotype more newts would be preyed upon and when newts had a higher phenotype less of them would be preyed upon. However, I didn't know if it would be matched in the same generation or take a few generations to line up. So I decided to overlay the mean predation and mean dif phenotype plots.
+
+
+```{r, graph overlay}
+library(ggpubr)
+title="Space: Newt VS Snake Mean_predation and Mean Phenotype difference"
+y_label="Means"
+x_label="Generation"
+my_letter="U"
+subt=paste0("Sim ",my_letter, " 100000gen")
+ggplot(GA_file_100[which(GA_file_100$sim==my_letter), ]) +
+  #xlim(0, 25000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_line(aes(x=gen, y=as.numeric(mean_predation)*100), color="black")+
+  geom_line(aes(x=gen, y=as.numeric(dif)), color="darkorchid4")+
+  geom_hline(yintercept=mean(as.numeric(GA_file_100[which(GA_file_100$sim==my_letter),]$mean_predation)*100), color = "red")+ # mean predation
+  geom_hline(yintercept=mean(as.numeric(GA_file_100[which(GA_file_100$sim==my_letter),]$dif)), color = "red")+ # mean phenotype dif
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+  stat_cor(aes(x=mean_predation, y=dif), method="pearson", label.y.npc="bottom", label.x.npc = "middle")
+
+#for(i in 1:25){
+  #print(cor(GA_file_100[which(GA_file_100$sim==LETTERS[i]),]$dif, GA_file_100[which(GA_file_100$sim==LETTERS[i]),]$mean_predation)
+#)
+#}
+```
+
+What I observed was not too surprising. When the mean phenotype difference was higher (snakes had a higher mean phenotype) often the mean predation was higher. When the mean phenotype difference was lower (newts had a higher phenotype) the mean predation was lower. I looked at the correlation values between mean phenotype difference and mean predation and saw correlations that ranged between 0.17 to 0.64, where most where between 0.3-0.4. I wonder how to calculate the correlation with phenotype and mean predation values from different years? Or if the correlation goes up or down depending on how close the newts and snake are in phenotype?
+
 
 ## Summarized Data
 
