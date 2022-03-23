@@ -217,23 +217,31 @@ GA2_GA_5000_file$dif <- GA2_GA_5000_file$Snake_mean_Pheno-GA2_GA_5000_file$Newt_
 GA2_GA_5000_file$dif <- GA2_GA_5000_file$Snake_mean_Pheno-GA2_GA_5000_file$Newt_mean_Pheno
 ```	
 
+
+
+
 ```{r, reusable figures, results='hide', message=FALSE, warning=FALSE}
 
 cors_by_gen <- function(file, title, subt, x_label, y_label){
-  
-plot <- ggplot(file) +
+  print("TA = mean_newt_pheno_By_mean_snake_pheno")
+  print("TB = num_newts_By_num_snakes")
+  print("TC = sum_newt_pheno_By_num_snake")
+  print("TD = sum_snake_pheno_By_num_newt")
+
+  plot <- ggplot(file) +
   #xlim(0, 1000)+
   ggtitle(title, subtitle = subt) +
   xlab(x_label) + ylab(y_label)+
-  geom_line(aes(x=as.numeric(gen), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "mean_newt_pheno_By_mean_snake_pheno"))+
-  geom_line(aes(x=as.numeric(gen), y=as.numeric(num_newts_By_num_snakes), color = "num_newts_By_num_snakes"))+
-  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_newt_pheno_By_num_snake), color = "sum_newt_pheno_By_num_snake"))+
-  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_snake_pheno_By_num_newt), color = "sum_snake_pheno_By_num_newt"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "TA"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(num_newts_By_num_snakes), color = "TB"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_newt_pheno_By_num_snake), color = "TC"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_snake_pheno_By_num_newt), color = "TD"))+
   theme(plot.title = element_text(size=5)) +
 
   facet_wrap(~sim)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
-  
+
+
   return(plot)
 }
 trends_by_gen <- function(file, title, subt, x_label, y_label){
@@ -267,6 +275,14 @@ title="Phenotpe by Gen For all Sims"
 subt="GA1 5000 Gen"
 trends_by_gen(GA_5000_file, title, subt, x_label, y_label)
 
+
+title="Space: Newt VS Snake"
+subt="5,000 Gen Grid 5 by 5"
+y_label="Generation"
+x_label="Correlation"
+my_letter="A"
+subt=paste0("Sim ", subt, " ", my_letter)
+cors_by_gen(cor_5000_file[which(cor_5000_file$sim==my_letter), ], title, subt, x_label, y_label)
 
 
 ```

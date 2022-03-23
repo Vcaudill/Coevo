@@ -19,11 +19,10 @@ rng = np.random.default_rng(12345) ## this will help to se the seeds for the msp
 cwd = os.getcwd()
 input_dir = "/home/vcaudill/kernlab/coevo/"
 prefix = "snakemake_test"
-exp_dir = "csv"
-input_pre = input_dir + "/" + exp_dir
+out_csv = input_dir + "/" + prefix + "/csv/"
 out_msprime = input_dir + "/" + prefix + "/msprime/"
 out_slim = input_dir + "/" + prefix + "/slim/"
-
+tag="snakemake_test"
 
 
 #s_param = ["0.1","0.2","0.3","0.4","0.5"] #sigma
@@ -40,17 +39,20 @@ out = [out[i]+f"_FN_{seeds[i]}.ts" for i in range(len(out))]
 rule all: 
    input: out
 
-
 rule slim:
-    input: msprime file
+    input: msp_ts=f"{out_msprime}trees_N_{{N}}_mu_{{mu}}_rep_{{rep}}_seed_{{seed}}.ts"
     output: out_slim +".{s_par}.p_ctg.gfa"
     #threads:20
-    shell: slim -m -t -d "snake_mu_rate = ${1}" -d "newt_mu_rate = ${2}" -d "snake_mu_effect_sd = ${3}" -d "newt_mu_effect_sd = ${4}" -d "msprime_file = '${5}'" -d "treename = '${6}'" -d "outpath = '${7}'" -d "myFN = '${9}'" -d "NUMGENS = ${10}" '/home/vcaudill/kernlab/coevo/SLiM_script/cost_1on1.slim';
-
-
+    shell:
+        ("slim -m -t -d snake_mu_rate={wildcards.s_mus} -d newt_mu_rate={wildcards.n_mus} " +
+        "-d snake_mu_effect_sd={wildcards.s_es} -d newt_mu_effect_sd={wildcards.n_es} " +
+        "-d msprime_file={wildcards.msp_ts} -d treename={wildcards.out_slim} -d outpath={wildcards.out_csv} " +
+        " -d myFN={wildcards.seeds} -d NUMGENS={wildcards.gen_end} -d seed={wildcards.seeds} /home/vcaudill/kernlab/coevo/SLiM_script/cost_1on1.slim")
 
 rule msprime:
     #input: dont need infile
-    output: msp_ts=f"{out_msprime}trees_N_{{N}}_mu_{{mu}}_rep_{{rep}}_seed_{{seed}}.ts"
+    output: msp_ts=f"{out_msprime}{tag}_trees_N_{{N}}_mu_{{mu}}_rep_{{rep}}_seed_{{seed}}.ts"
     #threads:20
-    shell: 'python /home/vcaudill/kernlab/coevo/MSprime_script/snake_newt_gv_.py ${snake_mu_rate} ${newt_mu_rate} ${snake_mu_effect_sd} ${newt_mu_effect_sd} ${datadir} ${tag} ${seed}'
+    shell: 
+        ("python /home/vcaudill/kernlab/coevo/MSprime_script/snake_newt_gv_.py {wildcards.s_mus} {wildcards.n_mus} " +
+        "{wildcards.s_es} {wildcards.n_es} {out_msprime} {tag} {wildcards.seeds}")
