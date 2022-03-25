@@ -30,7 +30,7 @@ myseed = sys.argv[8]
 
 name_of_file = mytag + "_trees_su_" + str(snake_mu_rate) + "_nu_" + str(newt_mu_rate) + \
     "_sue_" + str(snake_mu_effect_sd) + "_nue_" + str(newt_mu_effect_sd) + \
-    _rep_ + str(myrep) +"_seed_" + str(myseed) + ".init.trees"
+    "_rep_" + str(myrep) +"_SLIMseed_" + str(myseed) + ".init.trees"
 print(name_of_file)
 
 

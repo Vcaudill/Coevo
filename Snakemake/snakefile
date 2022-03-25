@@ -7,7 +7,7 @@ slim -m -t -d "snake_mu_rate = ${1}" -d "newt_mu_rate = ${2}" -d "snake_mu_effec
 
 import sys, os, subprocess, glob, pathlib
 import numpy as np
-
+configfile: "sim_params.yaml"
 rng = np.random.default_rng(12345) ## this will help to se the seeds for the msprime and slim sims
 
 # ###############################################################################
@@ -18,41 +18,45 @@ rng = np.random.default_rng(12345) ## this will help to se the seeds for the msp
 
 cwd = os.getcwd()
 input_dir = "/home/vcaudill/kernlab/coevo/"
-prefix = "snakemake_test"
-out_csv = input_dir + "/" + prefix + "/csv/"
-out_msprime = input_dir + "/" + prefix + "/msprime/"
-out_slim = input_dir + "/" + prefix + "/slim/"
+prefix = "snakefolder"
+out_csv = input_dir  + prefix + "/csv/"
+out_msprime = input_dir + prefix + "/msprime/"
+out_slim = input_dir + prefix + "/slim/"
 tag="snakemake_test"
-
+grid_val=10
 
 #s_param = ["0.1","0.2","0.3","0.4","0.5"] #sigma
 #m_param = ["0.1","0.2","0.3","0.4","0.5"] #mutation
 #g_param = ["5000","50000","100000"] #ending generation
 
 ## These are the output files that I expect
-out = expand(f"{out_slim}slim_trees_snake_mu_rate_{{s_mus}}_newt_mu_rate_{{n_mus}}_snake_mu_effect_sd_{{s_es}}_newt_mu_effect_sd_{{n_es}}_sigma_{{sigma}}_rep_{{rep}}_ID_{{seed}}_late_{{gen_end}}", rep=range(2), s_mus=config["s_mus"], n_mus=config["n_mus"], s_es=config["s_es"], n_es=config["n_es"], sigma=config["sigma"], gen_end=config["gen_end"])
+out = expand(f"{out_slim}slim_trees_snake_mu_rate_{{s_murs}}_newt_mu_rate_{{n_murs}}_snake_mu_effect_sd_{{s_es}}_newt_mu_effect_sd_{{n_es}}_sigma_{{sigma}}_rep_{{rep}}_late_{{gen_end}}", rep=range(2), s_murs=config["s_mus"], n_murs=config["n_mus"], s_es=config["s_es"], n_es=config["n_es"], sigma=config["sigma"], gen_end=config["gen_end"])
 seeds = rng.integers(0,2**32, len(out))
-out = [out[i]+f"_FN_{seeds[i]}.ts" for i in range(len(out))]
+out = [out[i]+f"_ID_{seeds[i]}.trees" for i in range(len(out))]
 
 # --dry--run
 # Run full pipeline!
 rule all: 
    input: out
 
-rule slim:
-    input: msp_ts=f"{out_msprime}trees_su_{{s_mus}}_nu_{{n_mus}}_sue_{{s_es}}_nue_{{n_es}}_rep_{{rep}}_seed_{{seed}}.init.trees"
-    output: f"{out_slim}trees_snake_mu_rate_{{s_mus}}_newt_mu_rate_{{n_mus}}_snake_mu_effect_sd_{{s_es}}_newt_mu_effect_sd_{{n_es}}_sigma_{{sigma}}_rep_{{rep}}_ID_{{seed}}_late_{{gen_end}}.trees"
-    #threads:20
-    shell:
-        ("slim -m -t -d snake_mu_rate={wildcards.s_mus} -d newt_mu_rate={wildcards.n_mus} " +
-        "-d snake_mu_effect_sd={wildcards.s_es} -d newt_mu_effect_sd={wildcards.n_es} " +
-        "-d msprime_file={wildcards.msp_ts} -d treename={wildcards.out_slim} -d outpath={wildcards.out_csv} " +
-        " -d rep={wildcards.rep} -d NUMGENS={wildcards.gen_end} -d seed={wildcards.seeds} /home/vcaudill/kernlab/coevo/SLiM_script/cost_1on1_sm.slim")
-
 rule msprime:
     #input: dont need infile
-    output: msp_ts=f"{out_msprime}trees_su_{{s_mus}}_nu_{{n_mus}}_sue_{{s_es}}_nue_{{n_es}}_rep_{{rep}}_seed_{{seed}}.init.trees"
+    output: f"{out_msprime}trees_su_{{s_murs}}_nu_{{n_murs}}_sue_{{s_es}}_nue_{{n_es}}_rep_{{rep}}_SLIMseed_{{seeds}}.init.trees"
     #threads:20
     shell: 
-        ("python /home/vcaudill/kernlab/coevo/MSprime_script/snake_newt_gv_sm.py {wildcards.s_mus} {wildcards.n_mus} " +
+        ("python /home/vcaudill/kernlab/coevo/MSprime_script/snake_newt_gv_sm.py {wildcards.s_murs} {wildcards.n_murs} " +
         "{wildcards.s_es} {wildcards.n_es} {out_msprime} {tag} {wildcards.rep} {wildcards.seeds}")
+
+
+rule slim:
+    input: msp_ts=f"{out_msprime}trees_su_{{s_murs}}_nu_{{n_murs}}_sue_{{s_es}}_nue_{{n_es}}_rep_{{rep}}_SLIMseed_{{seeds}}.init.trees"
+    output: f"{out_slim}slim_trees_snake_mu_rate_{{s_murs}}_newt_mu_rate_{{n_murs}}_snake_mu_effect_sd_{{s_es}}_newt_mu_effect_sd_{{n_es}}_sigma_{{sigma}}_rep_{{rep}}_late_{{gen_end}}_ID_{{seeds}}.trees"
+    #threads:20
+    shell:
+        ("slim -m -t -d snake_mu_rate={wildcards.s_murs} -d newt_mu_rate={wildcards.n_murs} " +
+        "-d snake_mu_effect_sd={wildcards.s_es} -d newt_mu_effect_sd={wildcards.n_es} " +
+        "-d msprime_file={input} -d treename={out_slim} -d outpath={out_csv} " +
+        " -d rep={wildcards.rep} -d NUMGENS={wildcards.gen_end} -d seed={wildcards.seeds} -d grid_val={grid_val} /home/vcaudill/kernlab/coevo/SLiM_script/cost_1on1_sm.slim")
+ 
+
+ 
