@@ -1,0 +1,409 @@
+initialize() {
+	
+	initializeSLiMModelType("nonWF");
+	initializeSLiMOptions(dimensionality="xy");
+	initializeTreeSeq();
+	setSeed(seed);
+	sigma_i = 1; // area for individulas to mate with might condider one for each species (2)
+	recomb=1e-8;
+	sigma_in = 0.5; // i want more of a decrease in fitness when there are too many neighbors!
+	
+	//Testing factors 	
+	//defineConstant("mu_rate", 1e-8); //just be the snake mu
+	//defineConstant("snake_mu_rate", 1e-8); //snake mu/newt mu it will me more or less comman than nake	
+	//defineConstant("newt_mu_rate", 1e-8); //newt mu/ snake mu it will me more or less comman than nake
+	//defineConstant("snake_mu_effect_sd", 0.5);
+	//defineConstant("newt_mu_effect_sd", 0.5);
+	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01	
+	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");
+	//defineConstant("msprime_file", "newt_snake/data/test_1000_su_1e-10_nu_1e-10_sue_0.1_nue_0.1_.init.trees");
+	//defineConstant("grid_val", 5);
+	
+	total_mut_rate = newt_mu_rate + snake_mu_rate;
+	
+	defineConstant("sigma_M", 0.33); // the meeting interaction term
+	defineConstant("K", 1);  // carrying-capacity per unit square (roughly)
+	defineConstant("SD", sigma_in);  // sigma_D, the dispersal distance
+	defineConstant("SI", sigma_in);  // sigma_I, the spatial interaction distance
+	defineConstant("surs", sigma_in);  // surs, the surviver distance
+	defineConstant("SM", SI);  // sigma_M, the mate choice distance
+	defineConstant("L", 4);    // mean lifetime at stationarity (what id the life times are different for each species?)
+	defineConstant("W", 35.0);  // width and height of the simulated area
+	defineConstant("G", 1e8);  // genome length
+	defineConstant("FECUN", 1/(L)); // mean fecundity
+	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
+	//defineConstant("interaction_rate", 0.05);  // how the interation curve is defined  
+	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
+	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
+	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
+	//defineConstant("simID", getSeed()); "seed"
+	//defineConstant("NUMGENS", 100000); // how long to run for
+	defineConstant("setCOST", 100); //phenotype cost for newts and snakes
+	
+	
+	initializeMutationType("m1", 0.5, "n", 0, newt_mu_effect_sd);
+	initializeMutationType("m2", 0.5, "n", 0, snake_mu_effect_sd);
+	initializeGenomicElementType("g1", c(m1, m2), c(newt_mu_rate, snake_mu_rate)); // mutation proportions add the proportion (the target mutation rate)
+	initializeGenomicElement(g1, 0, G-1);
+	initializeMutationRate(total_mut_rate); //times genome * G-1 p*mu (1e-10), when I made this too high slim crashed
+	initializeRecombinationRate(recomb);
+	
+	// TODO MAKE THE INTERACTIONS CONSISTENT
+	initializeInteractionType(1, "xy", reciprocal=T, maxDistance=SI * 3); //Distance
+	i1.setInteractionFunction("n", 1.0/(2*PI*SI^2), SI);
+	
+	// snakes
+	initializeInteractionType(2, "xy", reciprocal=T, maxDistance=SM * 3);
+	i2.setInteractionFunction("n", 1.0/(2*PI*SM^2), SM);
+
+}
+
+// to make the mutions truly neutral, what is this doing?
+fitness(m1) { return 1.0; }
+fitness(m2) { return 1.0; }// when it is gone population size explodes
+
+
+reproduction(p1) {//newts
+	// choose our nearest neighbor as a mate, within the max distance 
+	mate = i2.drawByStrength(individual, 1);
+	if (mate.size()) {
+		nOff = rpois(1, FECUN);
+		for (i in seqLen(nOff)) {
+			pos = individual.spatialPosition + rnorm(2, 0, SD); // add dispersal
+			if (p1.pointInBounds(pos)) {
+				offspring = subpop.addCrossed(individual, mate);
+				offspring.setSpatialPosition(p1.pointReflected(pos));
+				offspring.setValue("snakes_killed",0);
+				offspring.setValue("pheno",exp(offspring.sumOfMutationsOfType(m1)/10));
+			}
+		}
+	}
+	return;
+}
+
+reproduction(p0) {//snakes
+	// choose our nearest neighbor as a mate, within the max distance
+	mate = i2.drawByStrength(individual, 1);
+	if (mate.size()) {
+		nOff = rpois(1, FECUN);
+		for (i in seqLen(nOff)) {
+			pos = individual.spatialPosition + rnorm(2, 0, SD); // add dispersal
+			if (p0.pointInBounds(pos)) {
+				offspring = subpop.addCrossed(individual, mate);
+				offspring.setSpatialPosition(p0.pointReflected(pos));
+				offspring.setValue("newts_killed",0);
+				offspring.setValue("pheno",exp(offspring.sumOfMutationsOfType(m2)/10));
+			}
+		}
+	}
+	return;
+}
+
+// "p2" were repaced with "p0" both are for snakes
+
+1 early() {
+	sim.rescheduleScriptBlock(s99, generations=NUMGENS);
+	
+	//		I will need to use the coalescent simulations for newts and snakes
+	//		Then give the "neutral" mutations a selection coefficent
+	//		I will also add demographic location
+	sim.readFromPopulationFile(msprime_file);
+	// sometimes there is a problem with this line and I need to change my directory
+	//sim.treeSeqRememberIndividuals(p0.individuals);
+	//sim.treeSeqRememberIndividuals(p1.individuals);
+	
+	p1.setSpatialBounds(c(0, 0, W, W)); //newt
+	p0.setSpatialBounds(c(0, 0, W, W)); //snake
+	//	// would it be better to add them on the same plot
+	//	// random initial positions
+	for (ind in p1.individuals) { //newt
+		ind.setSpatialPosition(p1.pointUniform());
+		ind.setValue("snakes_killed",0);
+		ind.setValue("pheno",exp(ind.sumOfMutationsOfType(m1)/10));
+	}
+	for (ind in p0.individuals) { //snake
+		ind.setSpatialPosition(p0.pointUniform());
+		ind.setValue("newts_killed",0);
+		ind.setValue("pheno",exp(ind.sumOfMutationsOfType(m2)/10));
+	
+	}
+	sim.addSubpop("p2", 1);
+	p2.setSpatialBounds(c(0, 0, W, W));
+	sim.addSubpop("p3", 1);
+	p3.setSpatialBounds(c(0, 0, W, W));
+	
+	// random initial positions
+	for (ind in p2.individuals) {
+		ind.setSpatialPosition(c(W/2, W/2));
+	}
+	for (ind in p3.individuals) {
+		ind.setSpatialPosition(c(W/2, W/2));
+	}
+	i1.evaluate();
+}
+
+
+// removing mutations that apear in the wrong population, is this working/helpful 
+//early() {
+//muts1 = sim.mutationsOfType(m1);  // newt mutations
+//muts2 = sim.mutationsOfType(m2); // snake mutations
+//p0.individuals.genomes.removeMutations(muts2);
+//p1.individuals.genomes.removeMutations(muts1);
+//}
+
+
+//competition within and between populations
+early() {
+	// relate the populations posion/resistance levels with individual interactions and do competetion within a population 
+	i1.evaluate(p1);
+	i2.evaluate(p0);
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	
+	newt_competition = i1.totalOfNeighborStrengths(inds_n); // find number of newt neighbors for each newt
+	snake_competition = i2.totalOfNeighborStrengths(inds_s);// find number of snake neighbors for each snake
+	
+	
+	// construct phenotypes and fitness effects from QTLs 
+	inds_n.z = inds_n.getValue('pheno');//phenotypes_n
+	inds_s.z = inds_s.getValue('pheno'); //phenotypes_s
+	
+	cost_n = exp(-(inds_n.getValue('pheno')/setCOST)^2);
+	cost_s = exp(-(inds_s.getValue('pheno')/setCOST)^2);
+	inds_n.fitnessScaling = (pmin(0.95, 1/(1 + RHO * newt_competition)))*cost_n;
+	inds_s.fitnessScaling = (pmin(0.95, 1/(1 + RHO * snake_competition)))*cost_s;
+	
+	
+	// avoid edge effects
+	inds_n.fitnessScaling = inds_n.fitnessScaling * pmin(sqrt(inds_n.x/SI), 1.0) * pmin(sqrt(inds_n.y/SI), 1.0) * pmin(sqrt((W - inds_n.x)/SI), 1.0) * pmin(sqrt((W - inds_n.y)/SI), 1.0); // * effects
+	inds_s.fitnessScaling = inds_s.fitnessScaling * pmin(sqrt(inds_s.x/SI), 1.0) * pmin(sqrt(inds_s.y/SI), 1.0) * pmin(sqrt((W - inds_s.x)/SI), 1.0) * pmin(sqrt((W - inds_s.y)/SI), 1.0);
+	
+	
+	//Snake and Newt 1on1 interaction
+	bounds = p0.spatialBounds;
+	
+	
+	// find number of newts near each snake and choose a random newt from nearby for a potental interaction
+	// uniform dist based on the distance (how close they are) if they are going to interact, stepping through each of the newtneighbor and picking which one to eat. p could be 0.1 like 10% chance of snake running into newt 
+	//want to put a higher chance on sankes encountering a newt if there are a lot of newts near by
+	
+	//How many individual newts and snakes are interacting each year
+	snake_found_newt = 0;
+	newt_found = 0;
+	snake_deaths = 0;
+	newt_deaths = 0;
+	for (ind_snake in p0.individuals){
+		// does a snake meet a newt? 
+		
+		mPoint = c(ind_snake.x,ind_snake.y);
+		newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);// could make count smaller (limit the number of newts nearby)
+		//catn(length(newtNeighbors)); // figuring out the amount of newt neghbors for each snake
+		// sample number based on a combination of how close they are using a uniform distibution 
+		if (length(newtNeighbors) > 0){ //need newt to be nearby to eat
+			snake_found_newt = snake_found_newt + 1;
+			// List of which newts the snake will try to eat. It will take a uniform distribution and a probablity of interacting
+			distance = i1.distanceToPoint(newtNeighbors, mPoint);// vector of distances 
+			probablity = interaction_rate*exp(-(distance^2)/(2*(surs^2))); //curve of the interaction based on the distance of the newt
+			
+			newt_meet_snake = newtNeighbors[runif(length(newtNeighbors)) < probablity] ; //list of newts snake will try to eat
+			
+			
+			// then go one newt at a time and see the outcome of the interaction which is dependent on phenotypes (check to make sure newt is still alive)
+			for(ind_newt in newt_meet_snake){
+				
+				//check to see if newt is alive, newt is not eaten by more than one snake 
+				if(ind_newt.fitnessScaling > 0){
+					newt_found = newt_found + 1;
+					//Could the snake eat the newt?
+					compair_pheno = inds_s.getValue('pheno')[ind_snake.index] - inds_n.getValue('pheno')[ind_newt.index]; // compairing the snake phentype to the newt phenotype
+					
+					//Did the snake eat the newt?
+					//potential outcomes are death for newt or snake, how do we make the survival curve? 
+					prob_of_survive = 1.0/(1+exp(-((compair_pheno-c)/w)));// snakes probablity of survival 
+					//catn(prob_of_survive);
+					survive = runif(1) < prob_of_survive; //did the snake survive? //one will die for sure 
+					
+					//Future more selections where there is a chance that both survive or die???
+					if(survive==T){
+						ind_snake.fitnessScaling = ind_snake.fitnessScaling + PE; //snake with eating newt bonus
+						// counting the amount of newts a snake has killed						
+						ind_snake.setValue("newts_killed",(ind_snake.getValue("newts_killed")+1));
+						
+						ind_newt.fitnessScaling = 0; //newt
+						newt_deaths = newt_deaths + 1;
+					
+					}
+					if(survive==F){
+						ind_snake.fitnessScaling = 0; //snake 
+						// counting the amount of snakes a newt has killed
+						ind_newt.setValue("snakes_killed",(ind_newt.getValue("snakes_killed")+1));
+						snake_deaths = snake_deaths +1;
+						break; //break if snake dies
+					}
+				
+				}
+			}
+			
+			
+			//What is this doing?
+			outcome_n = rep(1.0, p1.individualCount);
+			outcome_s = rep(1.0, p0.individualCount);
+		
+		}
+	}
+	//Global Varables to look at			
+	defineGlobal("snake_found_newt", snake_found_newt);
+	defineGlobal("newt_found", newt_found);
+	defineGlobal("snake_deaths", snake_deaths);
+	defineGlobal("newt_deaths", newt_deaths);
+}
+
+//Create the different selection areas (Future)
+
+
+1: late() {
+	// to be ready for mate choice
+	i2.evaluate(p1);
+	i2.evaluate(p0);
+}
+//COR calc
+2: early() {
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	grid_res = c(grid_val, grid_val);
+
+	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
+	
+	
+	//newt
+	
+	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
+	
+	//correlations 	
+	
+	mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno), c(snake_mean_pheno));
+	num_newts_By_num_snakes = cor(c(newt_sum_ind), c(snake_sum_ind));
+	sum_newt_pheno_By_num_snake = cor(c(newt_sum_pheno), c(snake_sum_ind));
+	sum_snake_pheno_By_num_newt = cor(c(snake_sum_pheno), c(newt_sum_ind));
+	sum_newt_pheno_By_num_newt = cor(c(newt_sum_pheno), c(newt_sum_ind));
+	sum_snake_pheno_By_snake_newt = cor(c(snake_sum_pheno), c(snake_sum_ind));
+	
+	defineGlobal("mean_newt_pheno_By_mean_snake_pheno", mean_newt_pheno_By_mean_snake_pheno);
+	defineGlobal("num_newts_By_num_snakes", num_newts_By_num_snakes);
+	defineGlobal("sum_newt_pheno_By_num_snake", sum_newt_pheno_By_num_snake);
+	defineGlobal("sum_snake_pheno_By_num_newt", sum_snake_pheno_By_num_newt);
+	defineGlobal("sum_newt_pheno_By_num_newt", sum_newt_pheno_By_num_newt);
+	defineGlobal("sum_snake_pheno_By_snake_newt", sum_snake_pheno_By_snake_newt);
+
+}
+
+//files I want to make
+1 early(){
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	
+	//myFN="test1";//should be supplied by msprime slim?
+	
+	mytextfile=outpath+"GA"+grid_val+grid_val+"_lit_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+seed + "_interaction_rate_" + interaction_rate + "_cost_" + setCOST + "_late_" + NUMGENS + "_.text"; //file name
+	
+	myphenotypefile=outpath+"GA"+grid_val+grid_val+"_litbyind_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+seed + "_cost_" + setCOST + "_interaction_rate_" + interaction_rate + "_late_" + NUMGENS + "_.text"; //file name
+	
+	mycorfile=outpath+"GA"+grid_val+grid_val+"_cor_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+seed + "_cost_" + setCOST + "_interaction_rate_" + interaction_rate + "_late_" + NUMGENS + "_.text"; //file name
+
+	// making the name into global varables
+	defineGlobal("mytextfile", mytextfile);
+	defineGlobal("myphenotypefile", myphenotypefile);
+	defineGlobal("mycorfile", mycorfile);
+	
+	beta_n = cor(inds_n.getValue('pheno'), inds_n.fitnessScaling);
+	beta_s = cor(inds_s.getValue('pheno'), inds_s.fitnessScaling);
+	
+	mytextfileheader="gen" + "    " + "Newt_age" + "    " + "Snake_age" + "    " + "Newt_density"+ "    " + "Snake_density" + "    " + "Newt_min_Pheno" + "    " + "Newt_max_Pheno" + "    " + "Newt_mean_Pheno" + "    " + "Newt_sd_Pheno" + "    " + "Snake_min_Pheno" + "    " + "Snake_max_Pheno"+ "    " + "Snake_mean_Pheno" + "    " + "Snake_sd_Pheno" + "    " + "Newt_pop_size" +
+		"    " +"Snake_pop_size"+"    "+ "mean_newts_eaten"+"    "+ "sd_newts_eaten"+"    "+ "mean_snakes_eaten"+"    "+ "sd_snakes_eaten" +"    "+ "beta_n" + "    " + "beta_s" + "    " + "snake_found_newt" + "    "+ "newt_found"+ "    "+ "snake_deaths" + "    "+ "newt_deaths"+ "    " + "time";
+	
+	myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age"+ "    " + "species"+ "    " + "loc_x" + "    " + "loc_y";
+	
+	mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
+	
+	mycorfileheader="gen" + "    " + "mean_newt_pheno_By_mean_snake_pheno" + "    " + "num_newts_By_num_snakes"+ "    " + "sum_newt_pheno_By_num_snake"+ "    " + "sum_snake_pheno_By_num_newt"+ "    " + "sum_newt_pheno_By_num_newt" + "    " + "sum_snake_pheno_By_snake_newt";
+	
+	if (sim.generation == 1) {
+		catn(mytextfileheader);
+		catn(mytextfileinfo);
+		
+		writeFile(mytextfile, mytextfileheader, append = T);
+		writeFile(mytextfile, mytextfileinfo , append = T);
+		writeFile(mycorfile, mycorfileheader , append = T);
+
+		//myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age"+ "    " + "species"+ "    " + "loc_x" + "    " + "loc_y";		
+		
+		writeFile(myphenotypefile, myphenotypefileheader , append = T);
+//writing info about the newt "N"		
+		myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age)+ "    " + "N"+ "    " + asString(inds_n.x) + "    " + asString(inds_n.y);
+		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+		//writing info about the snakes "S"
+		myphenotypefileinfo = sim.generation + "    "  + asString(inds_s.getValue("pheno"))+ "    " + asString(inds_s.fitnessScaling)+"    "  +asString(inds_s.age)+ "    " + "S"+ "    " + asString(inds_s.x) + "    " + asString(inds_s.y);
+		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+	
+	}
+}
+
+
+// The varabales that I want to collect from slim 
+
+early(){ //caculating the selection coefficents
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	
+	
+	beta_n = cor(inds_n.getValue('pheno'), inds_n.fitnessScaling);
+	beta_s = cor(inds_s.getValue('pheno'), inds_s.fitnessScaling);
+	defineGlobal("beta_n", beta_n);
+	defineGlobal("beta_s", beta_s);
+
+}
+2 early (){
+	mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
+	writeFile(mycorfile, mycorfileinfo , append = T);
+		}
+
+2: late() {
+	inds_n = p1.individuals;
+	inds_s = p0.individuals;
+	
+	
+	if ((sim.generation % 20) == 0) {
+		mytextfileinfo = sim.generation + "    "  + mean(p1.individuals.age) + "    " + mean(p0.individuals.age) + "    " + p1.individualCount/W^2 + "    " + p0.individualCount/W^2 + "    " + min(inds_n.getValue("pheno")) + "    " + max(inds_n.getValue("pheno")) + "    " + mean(inds_n.getValue("pheno")) + "    " + sd(inds_n.getValue("pheno")) + "    " + min(inds_s.getValue("pheno")) + "    " + max(inds_s.getValue("pheno")) + "    " + mean(inds_s.getValue("pheno")) + "    " + sd(inds_s.getValue("pheno")) + "    " + size(p1.individuals)+"    "+ size(p0.individuals) + "    " + mean(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + sd(inds_s.getValue("newts_killed")/(inds_s.age +1)) + "    " + mean(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + sd(inds_n.getValue("snakes_killed")/(inds_n.age +1)) + "    " + beta_n + "    "+ beta_s + "    " + snake_found_newt + "    "+ newt_found+ "    "+ snake_deaths + "    "+ newt_deaths + "    " + clock();
+		//catn(sim.generation + "    "  + mean(inds_n.getValue("pheno")));
+		writeFile(mytextfile, mytextfileinfo , append = T);
+	
+	}
+}
+
+2: early(){
+	if ((sim.generation % 10) == 0) {
+		inds_n = p1.individuals;
+		inds_s = p0.individuals;
+		//writing info about the newt "N"		
+		myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age)+ "    " + "N"+ "    " + asString(inds_n.x) + "    " + asString(inds_n.y);
+		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+		//writing info about the snakes "S"
+		myphenotypefileinfo = sim.generation + "    "  + asString(inds_s.getValue("pheno"))+ "    " + asString(inds_s.fitnessScaling)+"    "  +asString(inds_s.age)+ "    " + "S"+ "    " + asString(inds_s.x) + "    " + asString(inds_s.y);
+		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
+		
+		//Witing the cor data
+		mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + 	asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
+		writeFile(mycorfile, mycorfileinfo , append = T);		
+	}}
+
+
+s99 10 late() {
+	// outpath will need to be defined in the slim call so will the varables and ending time
+	sim.treeSeqOutput(treename+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_rep_"+rep + "_late_" + NUMGENS  + "_ID_" + seed + "_.trees");
+	//catn("Done!");
+	sim.simulationFinished();
+}
