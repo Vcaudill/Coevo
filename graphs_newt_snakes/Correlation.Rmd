@@ -21,20 +21,20 @@ library("reshape")
 
 ## Goals
 
-I am starting to investigate what is going on in small scales in my co-evolution simulation. I decided to get newt and snake information and see in they were correlated in n-n grids. I collected correlated data from the GA experiments from the 5,000, 20,000, and 100,000 simulations. (I also tested the correlations with and without perUnitArea=T. It turns out when you don't have perUnitArea=T the edge of the simulation has a greater effect on the calculations turning the correlation positive.) I also will examine how the correlation values change when the grid has more boxes (smaller area to compare). I will specifically, test 5 by 5, 8 by 8, 10 by 10 and 20 by 20 grids
+I am starting to investigate what is going on in small scales in my co-evolution simulation. I decided to get newt and snake information and see in they were correlated in n-n grids. I collected correlated data from the GA experiments from the 5,000, 20,000, and 100,000 simulations. (I also tested the correlations with and without perUnitArea=T. It turns out when you don't have perUnitArea=T the edge of the simulation has a greater effect on the calculations turning the correlations positive.) I also will examine how the correlation values change when the grid has more boxes (smaller area to compare). I will specifically, test 5 by 5, 8 by 8, 10 by 10 and 20 by 20 grids
 
-#Simulation Background
+# Simulation Background
 
 My simulation has newts and snakes coevolving in an arms race! The newts are toxic and interact with resistant snakes. Snakes are attacking and eating the newts, and in order to eat more newts they are becoming more resistant. However, if a snake eats a newt that is more toxic the snake dies. As snakes become more resistant, less toxic newts are being devoured, leaving only the most toxic newts. These toxic newts reproduce and create even more toxic newts. The cycle contentiously repeats. My simulation is run in a two-dimensional space with a x and y axis. 
 
-GA1 experiment values
+GA1 experiment values:
 
 - 1e-8*(0.005)^2 = 2.5e-13
 - 1e-9*(0.05)^2 = 2.5e-12
 - 1e-10*(0.5)^2 = 2.5e-11
 - 1e-11*(5.0)^2 = 2.5e-10
 
-GA2 experiment values
+GA2 experiment values:
 
 - 1e-8*(0.05)^2 = 2.5e-11
 - 1e-9*(0.1581139)^2 = 2.5e-11
@@ -43,12 +43,13 @@ GA2 experiment values
 - 1e-12*(5)^2 = 2.5e-11
 
 collected info:
-	mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno), c(snake_mean_pheno));
-	num_newts_By_num_snakes = cor(c(newt_sum_ind), c(snake_sum_ind));
-	sum_newt_pheno_By_num_snake = cor(c(newt_sum_pheno), c(snake_sum_ind));
-	sum_snake_pheno_By_num_newt = cor(c(snake_sum_pheno), c(newt_sum_ind));
-	sum_newt_pheno_By_num_newt = cor(c(newt_sum_pheno), c(newt_sum_ind));
-	sum_snake_pheno_By_snake_newt = cor(c(snake_sum_pheno), c(snake_sum_ind));
+
+- mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno), c(snake_mean_pheno));
+- num_newts_By_num_snakes = cor(c(newt_sum_ind), c(snake_sum_ind));
+- sum_newt_pheno_By_num_snake = cor(c(newt_sum_pheno), c(snake_sum_ind));
+- sum_snake_pheno_By_num_newt = cor(c(snake_sum_pheno), c(newt_sum_ind));
+- sum_newt_pheno_By_num_newt = cor(c(newt_sum_pheno), c(newt_sum_ind));
+- sum_snake_pheno_By_snake_newt = cor(c(snake_sum_pheno), c(snake_sum_ind));
 	
 Tested Grids
 
@@ -59,7 +60,35 @@ Tested Grids
 
 Something I noticed when playing around with different variables in my simulation was that there was a large effect when I was changing interaction rate. So I will also look at that here. Special note when interaction rate is increased newts and snake may avoid each other. 
 	
+## My Prediction
+
+Before running this experiment, I thought about the possible outcomes. I am looking at relationships between species phenotypes, population size, and resistance and toxicity between different sized regions. I predicted that the number of newts and the amount of toxicity & the number of snakes and the amount of resistance will be very correlated (green line). I also predicted that when newts and snakes are co-evolving then their phenotypes would be positively correlated (blue line). I think that the number of newts will be negativity correlated with the population size of snakes and vice-versa (purple line). For example, if there are more snakes in a specific region (and the amount of snakes are increasing) then there wold be less newts (and the amount of newts would be decreasing). I also predict that the amount of toxin in a region will be negatively correlated with the population size of snakes & that resistance will also be negatively correlated with the population size of newts (red line). For example, if the newts on a specific region become more toxic (increasing the total amount of toxicity) the number of snakes will decrease (as they try to eat a more toxic newt they die). Below is a graphical representation of my predictions.
+
+```{r, cor prediction}
+
+timeline = 0:100
+
+five_six = c(0, .2, .4, .7)
+five_six = c(five_six, rep.int(1, length(timeline)-length(five_six)))
+three_four = c(rep(0,9), -.03, -.1, rep(-.2,5), rep(-.3,4), rep(-.4,3), rep(-.5,3), rep(-.6,2))
+three_four = c(three_four, rep(-.7, length(timeline)-length(three_four)))
+two = c(rep(0,13),rep(-.05,9), rep(-.1,7), rep(-.2,5), rep(-.3,3))
+two = c(two, rep(-.4, length(timeline)-length(two)))
+one = c(rep(0,8), rep(0.2,5), rep(0.3,4), rep(0.4,9), rep(0.5,8), rep(0.6,7))
+one = c(one, rep(0.7, length(timeline)-length(one)))
+
+plot(timeline, one, type="l", col="blue", ylim=c(-1, 1),)
+lines(timeline, two, col="purple")
+lines(timeline, three_four, col="red")
+lines(timeline, five_six, col="green")
+legend(35, 0.5, legend=c("newt by snake pheno", "#newts by #snakes", "toxin by #snakes & resistance by #newts", "#newts by toxin & #snakes by resitance"), col=c("blue","purple", "red", "green"), lty=1, cex=0.8)
+```
+
+After, plotting the results number of newts by the amount toxin and the number of snakes by the amount of resistance was very close to 1. It is not plotted in my main results. 
 	
+## Data collection
+
+First, I process the data that I collected from the cost 1on1 slim simulations. There are 16 different simulations in the GA1 experiment and 25 different simulations in the GA2 experiment (I will refer to these simulations as groups). Here I will output the groups simulation letter along with the mutation rate and effect size of both newts and snakes. I collected data from 8 different simulations groups testing what happens as the length of the simulation increases as and testing how the size of the measured area effects the correlation calculations. 
 	
 ```{r, Cor data gather}
 #Reading in the names of files to cycle through them
@@ -72,8 +101,8 @@ cor_5000_files_HI <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files",
 lit_20000_files <- list.files(path="~/Desktop/cor_20000/cor_byUnit/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
 cor_20000_files <- list.files(path="~/Desktop/cor_20000/cor_byUnit/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
 
-lit_100000_files <- list.files(path="~/Desktop/cor_20000/cor_byUnit/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
-cor_100000_files <- list.files(path="~/Desktop/cor_20000/cor_byUnit/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
+lit_100000_files <- list.files(path="~/Desktop/cor_100000/cor_byUnit/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
+cor_100000_files <- list.files(path="~/Desktop/cor_100000/cor_byUnit/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
 
 lit_5000_files_88 <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA88_lit_", full.names=TRUE, recursive=FALSE)
 cor_5000_files_88 <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA88_cor_", full.names=TRUE, recursive=FALSE)
@@ -223,19 +252,19 @@ GA2_GA_5000_file$dif <- GA2_GA_5000_file$Snake_mean_Pheno-GA2_GA_5000_file$Newt_
 ```{r, reusable figures, results='hide', message=FALSE, warning=FALSE}
 
 cors_by_gen <- function(file, title, subt, x_label, y_label){
-  print("TA = mean_newt_pheno_By_mean_snake_pheno")
-  print("TB = num_newts_By_num_snakes")
-  print("TC = sum_newt_pheno_By_num_snake")
-  print("TD = sum_snake_pheno_By_num_newt")
+  print("CA = mean_newt_pheno_By_mean_snake_pheno")
+  print("CB = num_newts_By_num_snakes")
+  print("CC = sum_newt_pheno_By_num_snake")
+  print("CD = sum_snake_pheno_By_num_newt")
 
   plot <- ggplot(file) +
   #xlim(0, 1000)+
   ggtitle(title, subtitle = subt) +
   xlab(x_label) + ylab(y_label)+
-  geom_line(aes(x=as.numeric(gen), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "TA"))+
-  geom_line(aes(x=as.numeric(gen), y=as.numeric(num_newts_By_num_snakes), color = "TB"))+
-  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_newt_pheno_By_num_snake), color = "TC"))+
-  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_snake_pheno_By_num_newt), color = "TD"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "CA"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  geom_line(aes(x=as.numeric(gen), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
 
   facet_wrap(~sim)+
@@ -262,36 +291,46 @@ labels = c("Snake", "Newt", "Dif"))+
 
 ```
 
+## Correlation Caculations for 5 by 5 grid
+
+Correlation values were collected every 10th generation with the exception of the 1st generation (calculations started gen 2). The first figure presented is the correlation calculations for simulation A up to 5,000 generations with a 5 by 5 grid. The red line represents calculation A which is the correlation between mean newt phenotype and mean snake phenotype (I predict this would be positive). The green line (CB) is the correlation between the number of newts and the number of snakes (I predicted this would be negative). The blue line is (CC) and represents the correlation between the sum of toxicity and the number of snakes. The purple line (CD) is the correlation between the amount of resistance and the number of newt (predicted to be negative). The second figure shows the correlation calculations for all 16 simulations. The third figure shows the mean newt phenotype (red) the snake mean phenotype (blue) and the difference between the snake mean phenotype and the newt mean phenotype (black). I want to use the third figure which is a whole population calculation to the second figure which has a more localized calculation. 
+
 ```{r, lest see that correlation}
 
 title="Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
-y_label="Generation"
-x_label="Correlation"
+x_label="Generation"
+y_label="Correlation"
+my_letter="A"
+subt=paste0("Sim ", my_letter, " ", subt)
+cors_by_gen(cor_5000_file[which(cor_5000_file$sim==my_letter), ], title, subt, x_label, y_label)
+
+
+title="Space: Newt VS Snake"
+subt="5,000 Gen Grid 5 by 5"
+x_label="Generation"
+y_label="Correlation"
 cors_by_gen(cor_5000_file, title, subt, x_label, y_label)
 
 y_label="Phenotype"
+x_label="Generation"
 title="Phenotpe by Gen For all Sims"
 subt="GA1 5000 Gen"
 trends_by_gen(GA_5000_file, title, subt, x_label, y_label)
 
 
-title="Space: Newt VS Snake"
-subt="5,000 Gen Grid 5 by 5"
-y_label="Generation"
-x_label="Correlation"
-my_letter="A"
-subt=paste0("Sim ", subt, " ", my_letter)
-cors_by_gen(cor_5000_file[which(cor_5000_file$sim==my_letter), ], title, subt, x_label, y_label)
 
 
 ```
+
+loooking at the figures 
+
 ```{r, cor 5000 zooom}
 
 title="ZOOM Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
-y_label="Generation"
-x_label="Correlation"
+x_label="Generation"
+y_label="Correlation"
 cors_by_gen(cor_5000_file[ which(cor_5000_file$gen<200),], title, subt, x_label, y_label)
 
 
@@ -310,8 +349,8 @@ trends_by_gen(GA_5000_file[ which(GA_5000_file$gen<200),], title, subt, x_label,
 
 title="Space: Newt VS Snake"
 subt="20,000 Gen Grid 5 by 5"
-y_label="Generation"
-x_label="Correlation"
+x_label="Generation"
+y_label="Correlation"
 cors_by_gen(cor_20000_file, title, subt, x_label, y_label)
 
 title="Phenotpe by Gen For all Sims"
@@ -325,8 +364,8 @@ trends_by_gen(GA_20000_file, title, subt, x_label, y_label)
 
 title="Space: Newt VS Snake"
 subt="100,000 Gen Grid 5 by 5"
-y_label="Generation"
-x_label="Correlation"
+x_label="Generation"
+y_label="Correlation"
 cors_by_gen(cor_100000_file, title, subt, x_label, y_label)
 
 title="Phenotpe by Gen For all Sims"
@@ -341,8 +380,8 @@ trends_by_gen(GA_100000_file, title, subt, x_label, y_label)
 
 title="Space: Newt VS Snake"
 subt="5,000 Gen Grid 8 by 8"
-y_label="Generation"
-x_label="Correlation"
+x_label="Generation"
+y_label="Correlation"
 cors_by_gen(cor_5000_file_88, title, subt, x_label, y_label)
 
 title="Phenotpe by Gen For all Sims"
@@ -356,8 +395,8 @@ trends_by_gen(GA_5000_file_88, title, subt, x_label, y_label)
 
 title="Space: Newt VS Snake"
 subt="5,000 Gen Grid 10 by 10"
-y_label="Generation"
-x_label="Correlation"
+x_label="Generation"
+y_label="Correlation"
 cors_by_gen(cor_5000_file_1010, title, subt, x_label, y_label)
 
 title="Phenotpe by Gen For all Sims"
@@ -371,8 +410,8 @@ trends_by_gen(GA_5000_file_1010, title, subt, x_label, y_label)
 
 title="Space: Newt VS Snake"
 subt="5,000 Gen Grid 20 by 20"
-y_label="Generation"
-x_label="Correlation"
+x_label="Generation"
+y_label="Correlation"
 cors_by_gen(cor_5000_file_2020, title, subt, x_label, y_label)
 
 title="Phenotpe by Gen For all Sims"
@@ -382,12 +421,29 @@ trends_by_gen(GA_5000_file_2020, title, subt, x_label, y_label)
 
 ```
 
+## GA2 Simulations
+
+```{r ga2 values}
+
+for(i in seq(1, length(GA2_lit_5000_files), 1)){
+  myletter <- LETTERS[i]
+
+  snake_mu_rate <- unlist(str_split(unlist(str_split(GA2_lit_5000_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  newt_mu_rate <- unlist(str_split(unlist(str_split(GA2_lit_5000_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA2_lit_5000_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA2_lit_5000_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  print(paste0("Simulation ", LETTERS[i],": Snake mu-rate & effect sd (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt mu-rate & effect sd (", newt_mu_rate, ", ", newt_mu_effect_sd, ")" ))
+  }
+
+
+```
+
 ```{r, GA2 correlation}
 
 title="GA2 Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
-y_label="Generation"
-x_label="Correlation"
+x_label="Generation"
+y_label="Correlation"
 cors_by_gen(GA2_cor_5000_file, title, subt, x_label, y_label)
 
 title="Phenotpe by Gen For all Sims"
@@ -403,8 +459,8 @@ trends_by_gen(GA2_GA_5000_file, title, subt, x_label, y_label)
 
 title="GA2 ZOOM Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
-y_label="Generation"
-x_label="Correlation"
+x_label="Generation"
+y_label="Correlation"
 cors_by_gen(GA2_cor_5000_file[ which(GA2_cor_5000_file$gen<200),], title, subt, x_label, y_label)
 
 title="ZOOM Phenotpe by Gen For all Sims"
