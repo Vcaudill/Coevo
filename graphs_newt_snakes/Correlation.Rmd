@@ -116,6 +116,9 @@ cor_5000_files_2020 <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files
 GA2_lit_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/cor_byUnit/text_files", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
 GA2_cor_5000_files <- list.files(path="~/Desktop/cor_GA2_5000/cor_byUnit/text_files", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
 
+GA2_lit_30000_files <- list.files(path="~/Desktop/cor_GA2_30000", pattern="GA55_lit_", full.names=TRUE, recursive=FALSE)
+GA2_cor_30000_files <- list.files(path="~/Desktop/cor_GA2_30000/", pattern="GA55_cor_", full.names=TRUE, recursive=FALSE)
+
 #files <- list.files(path="~/Desktop/GA_lt/doover/text_files", pattern="GA_lit_", full.names=TRUE, recursive=FALSE)
 # Reading in the first file from the list to add a new column. To compare simulations with different params
 number=1
@@ -140,6 +143,9 @@ GA_5000_file_2020 <- read.table(lit_5000_files_2020[number], header = TRUE)
 GA2_cor_5000_file <- read.table(GA2_cor_5000_files[number], header = TRUE)
 GA2_GA_5000_file <- read.table(GA2_lit_5000_files[number], header = TRUE)
 
+GA2_cor_30000_file <- read.table(GA2_cor_30000_files[number], header = TRUE)
+GA2_GA_30000_file <- read.table(GA2_lit_30000_files[number], header = TRUE)
+
 GA_5000_file$sim <-"A"
 cor_5000_file$sim <-"A"
 
@@ -161,6 +167,9 @@ cor_5000_file_2020$sim <-"A"
 GA2_GA_5000_file$sim <-"A"
 GA2_cor_5000_file$sim <-"A"
 
+GA2_GA_30000_file$sim <-"A"
+GA2_cor_30000_file$sim <-"A"
+
 #Cycle through the different simulations to make one file. Not recommended for large files, but right now mine are small
 for(i in seq(1, length(GA2_lit_5000_files), 1)){
   myletter <- LETTERS[i]
@@ -170,8 +179,16 @@ for(i in seq(1, length(GA2_lit_5000_files), 1)){
   GA2_cor_temp_file <- read.table(GA2_cor_5000_files[i], header = TRUE)
   GA2_cor_temp_file$sim <-LETTERS[i]
   
+  GA2_lit_30_temp_file <- read.table(GA2_lit_30000_files[i], header = TRUE)
+  GA2_lit_30_temp_file$sim <-LETTERS[i]
+  GA2_cor_30_temp_file <- read.table(GA2_cor_30000_files[i], header = TRUE)
+  GA2_cor_30_temp_file$sim <-LETTERS[i]
+  
   GA2_GA_5000_file <- rbind(GA2_GA_5000_file, GA2_lit_temp_file)
   GA2_cor_5000_file <- rbind(GA2_cor_5000_file, GA2_cor_temp_file)
+  
+  GA2_GA_30000_file <- rbind(GA2_GA_30000_file, GA2_lit_30_temp_file)
+  GA2_cor_30000_file <- rbind(GA2_cor_30000_file, GA2_cor_30_temp_file)
   
   if (i<=length(lit_5000_files)){
   lit_temp_file <- read.table(lit_5000_files[i], header = TRUE)
@@ -244,6 +261,7 @@ GA_5000_file_1010$dif <- GA_5000_file_1010$Snake_mean_Pheno-GA_5000_file_1010$Ne
 GA_5000_file_2020$dif <- GA_5000_file_2020$Snake_mean_Pheno-GA_5000_file_2020$Newt_mean_Pheno
 GA2_GA_5000_file$dif <- GA2_GA_5000_file$Snake_mean_Pheno-GA2_GA_5000_file$Newt_mean_Pheno
 GA2_GA_5000_file$dif <- GA2_GA_5000_file$Snake_mean_Pheno-GA2_GA_5000_file$Newt_mean_Pheno
+GA2_GA_30000_file$dif <- GA2_GA_30000_file$Snake_mean_Pheno-GA2_GA_30000_file$Newt_mean_Pheno
 ```	
 
 
@@ -323,7 +341,17 @@ trends_by_gen(GA_5000_file, title, subt, x_label, y_label)
 
 ```
 
-loooking at the figures 
+Looking at the figures, can I really tell what is going on? 
+
+In the first figure of the correlation calculations in simulation A my answer would be "no". There are some concerns that I have. My first concern is why is CA starting out a **perfect** correlation. The second concern is the variability between each measurement. The points seem to jump around a lot, sometime being negative to being positive in 10 or so generations. These correlation values look like they are running through a cycle. I do not know if this is concerning but the blue, green, and purple lines are practically on top of each other. Is this due to both newts and snakes having the same GA or is the amount of newts (population size or phenotype) have similar trends to snakes?
+
+In the second figure my answer would be "maybe". There is definitely a difference between the correlation values between these simulations, seen especially in the red line. Sometimes the red line is very high (correlation of 1) and sometimes it is lower or sometimes negative. For the most part the green, blue, and purple lines are close to each other. However, these three lines do differ in some of the simulations particularly when one of the species has a larger effect size. 
+
+In the third figure I would say there is something going on, but is it coevolution "IDK". I have plotted this figure before and talked about its implications in Comparing GA. But now I want to combine what we see here with the figure above it. Let's first look at what the correlation lines are doing when the mean newt phenotypes of newts and snakes are similar/close or cross (A, B, D, E, F, G, M, N). In about half of these there is a high correlation between newt and snake phenotype, but in the other half the correlation is low or a bit negative. If we look at the correlations for the when the mean newt and snake phenotypes are further apart (C, H, I, J, K, L, O, P) the correlation between mean newt phenotype and mean snake phenotype is smaller. However, there might be an increase in the mean newt and mean snake correlation when the newt phenotype is (significantly) higher than the snake phenotype (C, O, P). I wonder if there is any avoiding occurring? Simulation N is a particular interesting case to look at.
+
+#### Zooming in on Correlation Caculations for 5 by 5 grid
+
+This subsection is looking at the above figures, but at a zoomed in section. I only look at the first 200 generations. The goal is to see where the correlation calculations begin and see how they change on a smaller, easier to see time scale.
 
 ```{r, cor 5000 zooom}
 
@@ -331,18 +359,18 @@ title="ZOOM Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
 x_label="Generation"
 y_label="Correlation"
-cors_by_gen(cor_5000_file[ which(cor_5000_file$gen<200),], title, subt, x_label, y_label)
+cors_by_gen(cor_5000_file[ which(cor_5000_file$gen<201),], title, subt, x_label, y_label)
 
 
 title="ZOOM Phenotpe by Gen For all Sims"
 subt="GA1 5000 Gen"
 y_label="Phenotype"
-trends_by_gen(GA_5000_file[ which(GA_5000_file$gen<200),], title, subt, x_label, y_label)
+trends_by_gen(GA_5000_file[ which(GA_5000_file$gen<201),], title, subt, x_label, y_label)
 
 
 ```
 
-
+Here the four correlations are calculated and collected every 10 generations. The mean phenotype of newts and snakes are collected every 20 generations. The difference in collect times might lead to more smoothness in one plot vs the other (in this case I don't think that is happening). In the first graph I noticed that the red line (correlation of mean newt phenotype with mean snake phenotype) starts out very positively correlated in some of the simulations. Is this high positive correlation normal or random? When looking at both figures its weird how differently the correlation look when it seems like the mean phenotype of newts and snakes are unchanging. By looking at the correlation plot I wonder what is occurring to create some positive and negative correlations especially for CB, CC, and CD? Because nothing seems dramatic from the total population phenotype mean. What other information might be useful? 
 
 
 ```{r, correlation 20000}
@@ -461,11 +489,46 @@ title="GA2 ZOOM Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
 x_label="Generation"
 y_label="Correlation"
-cors_by_gen(GA2_cor_5000_file[ which(GA2_cor_5000_file$gen<200),], title, subt, x_label, y_label)
+cors_by_gen(GA2_cor_5000_file[ which(GA2_cor_5000_file$gen<210),], title, subt, x_label, y_label)
 
 title="ZOOM Phenotpe by Gen For all Sims"
 subt="GA2 5,000 Gen"
 y_label="Phenotype"
-trends_by_gen(GA2_GA_5000_file[ which(GA2_GA_5000_file$gen<200),], title, subt, x_label, y_label)
+trends_by_gen(GA2_GA_5000_file[ which(GA2_GA_5000_file$gen<210),], title, subt, x_label, y_label)
+
+```
+
+
+
+
+```{r, GA2 30000 correlation}
+
+title="GA2 Space: Newt VS Snake"
+subt="30,000 Gen Grid 5 by 5"
+x_label="Generation"
+y_label="Correlation"
+cors_by_gen(GA2_cor_30000_file, title, subt, x_label, y_label)
+
+title="Phenotpe by Gen For all Sims"
+subt="GA2 30,000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA2_GA_30000_file, title, subt, x_label, y_label)
+
+
+```
+
+
+```{r, cor 30000 GA2 mid zooom}
+
+title="GA2 ZOOM Space: Newt VS Snake"
+subt="30,000 Gen Grid 5 by 5"
+x_label="Generation"
+y_label="Correlation"
+cors_by_gen(GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=10000 & GA2_cor_30000_file$gen<11010),], title, subt, x_label, y_label)
+
+title="ZOOM Phenotpe by Gen For all Sims"
+subt="GA2 30,000 Gen"
+y_label="Phenotype"
+trends_by_gen(GA2_GA_30000_file[ which(GA2_GA_30000_file$gen>=10000 & GA2_GA_30000_file$gen<11010),], title, subt, x_label, y_label)
 
 ```
