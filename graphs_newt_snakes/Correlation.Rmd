@@ -291,6 +291,30 @@ cors_by_gen <- function(file, title, subt, x_label, y_label){
 
   return(plot)
 }
+
+boxplot_cors_by_gen <- function(file, subt, x_label, y_label){
+
+  plot <- ggplot(file) +
+  ylim(-1.1, 1.1)+
+  ggtitle(subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor("CA"), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "CA"))+
+  geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
+  theme(plot.title = element_text(size=5)) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+
+  return(plot)
+}
+
+#boxplot_cors_by_gen(cor_5000_file[which(cor_5000_file$gen>4000),], subt, x_label, y_label)
+
 trends_by_gen <- function(file, title, subt, x_label, y_label){
   plot <- ggplot(file) +
     facet_wrap(~sim)+
@@ -372,6 +396,10 @@ trends_by_gen(GA_5000_file[ which(GA_5000_file$gen<201),], title, subt, x_label,
 
 Here the four correlations are calculated and collected every 10 generations. The mean phenotype of newts and snakes are collected every 20 generations. The difference in collect times might lead to more smoothness in one plot vs the other (in this case I don't think that is happening). In the first graph I noticed that the red line (correlation of mean newt phenotype with mean snake phenotype) starts out very positively correlated in some of the simulations. Is this high positive correlation normal or random? When looking at both figures its weird how differently the correlation look when it seems like the mean phenotype of newts and snakes are unchanging. By looking at the correlation plot I wonder what is occurring to create some positive and negative correlations especially for CB, CC, and CD? Because nothing seems dramatic from the total population phenotype mean. What other information might be useful? 
 
+## Running the experiment for longer
+
+The next section I run the GA1 simulations for 20,000 generations and 100,000 generations. To see if there are any major correlation changes that might occur when running my simulation for longer.
+
 
 ```{r, correlation 20000}
 
@@ -387,6 +415,8 @@ y_label="Phenotype"
 trends_by_gen(GA_20000_file, title, subt, x_label, y_label)
 
 ```
+
+The 20,000 generation plots looks very similar to the 5,000 generation plots. It does not look like anything dramatically changes.
 
 ```{r, correlation 100000}
 
@@ -404,6 +434,47 @@ trends_by_gen(GA_100000_file, title, subt, x_label, y_label)
 
 ```
 
+Wow, it is extremely hard to tell what is going on when you plot all 100,000 generations at the same time! Something is going on that differentiates these simulations from each other. Some of the simulations have a lower CA or higher CD. Overall, it does not look like increasing the amount of generations has an effect of the correlation values (after a certain amount of generations nothing really changes, but maybe it cycles). It is difficult to determine what is going on in the simulation by looking at correlations alone. Take F and H from the 100,000  generation for an example. Both F and H have a higher CA throughout the simulation CB, CC, and CD are all about the same, but the average mean phenotype for the simulation looks very different. Maybe looking at the variance between different simulations peaks and valleys will give me a better idea of what is happening?
+
+## Camparing Corrilations at Different Simulation Lengths
+
+Here I am going to condense the data down to 1 box plot per calculation per simulation over the last 1,000 generations (of the 5,000, 20,000, and 100,000 generation simulations). This will hopefully be an easier plot to read and compare results between different simulation lengths. There will be three plots the first plot (top left) will be the results for the last 1,000 generations of the 5,000 generation simulation. The second plot (top right) will be the results for the last 1,000 generation of the 20,000 generation plot. The third plot (bottom left) will be the results of the last 1,000 generations of the 100,000 generation simulation. All plots will show the 16 genetic architecture experiments (in this case they are unlabeled due to space, but each starts with A and continues left to right then down to the next line). The x-axis and y-axis are also unlabeled (due to space), but represents which correlation was calculated and its value respectively. The four correlation calculations see printed below:
+
+
+```{r, boxplotting 5000}
+  print("CA = mean_newt_pheno_By_mean_snake_pheno")
+  print("CB = num_newts_By_num_snakes")
+  print("CC = sum_newt_pheno_By_num_snake")
+  print("CD = sum_snake_pheno_By_num_newt")
+
+title="Space: Newt VS Snake"
+subt="16sims last 1000Gen 5000, Grid 5 by 5"
+x_label="Type"
+y_label="Correlation"
+G1<-boxplot_cors_by_gen(cor_5000_file[which(cor_5000_file$gen>4000),], subt, x_label, y_label)
+title="Space: Newt VS Snake"
+subt="16sims last 1000Gen 20000, Grid 5 by 5"
+x_label="Type"
+y_label="Correlation"
+G2<-boxplot_cors_by_gen(cor_20000_file[which(cor_20000_file$gen>19000),], subt, x_label, y_label)
+title="Space: Newt VS Snake"
+subt="16sims last 1000Gen 100000, Grid 5 by 5"
+x_label="Type"
+y_label="Correlation"
+G3<-boxplot_cors_by_gen(cor_100000_file[which(cor_100000_file$gen>99000),], subt, x_label, y_label)
+
+print("Difference in simulation length")
+grid.arrange(G1, G2, G3, nrow=2)
+
+
+```
+
+The box plots differ between each of the 16 simulations, but are relatively similar between the different simulation lengths (when only looking at 1,000 generations). I was surprised that the box plots had similar lengths between the different simulation times. The correlation between newt phenotype and snake phenotype (CA red) is mostly positive, but can be negative or zero. The correlation between number of newts (newt density) and number of snakes (snake density) (CB green), the correlation between the amount of toxin and the number of snakes (CC blue), and the correlation between the amount of resistance and the number of snakes (CD purple) is mostly negative. These values are negative and do not get past -0.5.
+
+## Corrilation Values as the Number of Boxes Increases
+
+I re-ran the 5,000 generation simulation, but changed the grid size by decreasing the area where the correlation could be calculated. In this case I tried to divide an 35 by 35 area by 8, 10, and 20 boxes. As the number of boxes increase the area in which things may be calculated decreases. The goal is to get close to finding a good amount of area to calculation local adaptation, while not being too large or too small. I will compare the results of the following simulations. Note: I ran 16 slim simulations 4 times (setting the grid at 5, 8, 10, 20) with the same msprime files
+
 ```{r, correlation 5000 88}
 
 title="Space: Newt VS Snake"
@@ -418,6 +489,8 @@ y_label="Phenotype"
 trends_by_gen(GA_5000_file_88, title, subt, x_label, y_label)
 
 ```
+
+When I increased the number of grids to 8 by 8, the correlation values got lower. The different correlation calculations that I made were less correlated and do not fluctuate between measurements as much as they did when the grid was 5 by 5.
 
 ```{r, correlation 5000 1010}
 
@@ -434,6 +507,8 @@ trends_by_gen(GA_5000_file_1010, title, subt, x_label, y_label)
 
 ```
 
+When I increased the number of grids to 10 by 10, the correlation values looked very similar to the 8 by 8 grid. The 10 by 10 grid had less correlated vales when compared to the 5 by 5 grid. These  correlation calculations were less correlated and do not fluctuate between measurements as much as they did when the grid was 5 by 5. It is also possible that the 10 by 10 grid was just a little bit less correlated than the 8 by 8, but it is a bit difficult to tell. 
+
 ```{r, correlation 5000 2020}
 
 title="Space: Newt VS Snake"
@@ -448,8 +523,47 @@ y_label="Phenotype"
 trends_by_gen(GA_5000_file_2020, title, subt, x_label, y_label)
 
 ```
+When I change the grid to a 20 by 20 everything was negatively correlated and the correlations did not jump around. 
+
+## Camparing Corrilations at Different Grid
+
+Similar to what I did before, I made box plots of the last 1,000 generation of the 5,000 generation simulations. Here, I will visually compare how changing the amount of area where the correlation calculations took place effect the correlation output. In the top left will be the box plots of the correlations from the 5 by 5 grid to the right is the 8 by 8 grid. Under the 5 by 5 grind will be the 10 by 10 grid and next to it will be the 20 by 20 grid box plots. To save space and see the results there are no labels on the x-axis (correlation calculation), the y-axis (correlation values), or the simulation letter (A starts on the top left and continues right and then to the next line). The four correlation calculations are printed below:
+
+```{r, boxplotting 5000 dif size}
+  print("CA = mean_newt_pheno_By_mean_snake_pheno")
+  print("CB = num_newts_By_num_snakes")
+  print("CC = sum_newt_pheno_By_num_snake")
+  print("CD = sum_snake_pheno_By_num_newt")
+
+
+title="Space: Newt VS Snake"
+subt="16sims last 1000Gen 5000, Grid 8 by 8"
+x_label="Type"
+y_label="Correlation"
+G4<-boxplot_cors_by_gen(cor_5000_file_88[which(cor_5000_file_88$gen>4000),], subt, x_label, y_label)
+
+title="Space: Newt VS Snake"
+subt="16sims last 1000Gen 5000, Grid 10 by 10"
+x_label="Type"
+y_label="Correlation"
+G5<-boxplot_cors_by_gen(cor_5000_file_1010[which(cor_5000_file_1010$gen>4000),], subt, x_label, y_label)
+
+title="Space: Newt VS Snake"
+subt="16sims last 1000Gen 5000, Grid 20 by 20"
+x_label="Type"
+y_label="Correlation"
+G6<-boxplot_cors_by_gen(cor_5000_file_2020[which(cor_5000_file_2020$gen>4000),], subt, x_label, y_label)
+
+print("Difference in amount of grids")
+grid.arrange(G1, G4, G5, G6, nrow=2)
+
+```
+
+At the number or grids increases the area in which individuals (phenotype or count) shrinks. This area shrinkage can lead to area where few individuals are which could have an effect on the correlation calculations. By decreasing the size of the measured area the variance between data collect points decreases (easily spotted with the red box plot newt phenotype by snake phenotype). When I increased the grid number there was less correlation both in the positive and negative directions. When the grid value was very high (20) everything became centered around 0. What is the best method for choosing the grid size? Is the correlation between the things I measure proof of co-evolution (especially when some of the values started of at 1)?
 
 ## GA2 Simulations
+
+Now, I am going to look at the correlations that I calculated for the GA2 experiment. In this experiment the variance for mutations is equal between the species (mu*(effect_size^2)). Below, is the simulation letter and its associated mutation rate and effect size.  
 
 ```{r ga2 values}
 
