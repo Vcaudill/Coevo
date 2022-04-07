@@ -90,7 +90,7 @@ After, plotting the results number of newts by the amount toxin and the number o
 
 First, I process the data that I collected from the cost 1on1 slim simulations. There are 16 different simulations in the GA1 experiment and 25 different simulations in the GA2 experiment (I will refer to these simulations as groups). Here I will output the groups simulation letter along with the mutation rate and effect size of both newts and snakes. I collected data from 8 different simulations groups testing what happens as the length of the simulation increases as and testing how the size of the measured area effects the correlation calculations. 
 	
-```{r, Cor data gather}
+```{r, Cor data gather, cache=TRUE}
 #Reading in the names of files to cycle through them
 lit_5000_files <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA5_lit_", full.names=TRUE, recursive=FALSE)
 cor_5000_files <- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA5_cor_", full.names=TRUE, recursive=FALSE)
@@ -267,7 +267,7 @@ GA2_GA_30000_file$dif <- GA2_GA_30000_file$Snake_mean_Pheno-GA2_GA_30000_file$Ne
 
 
 
-```{r, reusable figures, results='hide', message=FALSE, warning=FALSE}
+```{r, reusable figures, results='hide', message=FALSE, warning=FALSE, cache=TRUE}
 
 cors_by_gen <- function(file, title, subt, x_label, y_label){
   print("CA = mean_newt_pheno_By_mean_snake_pheno")
@@ -313,7 +313,29 @@ boxplot_cors_by_gen <- function(file, subt, x_label, y_label){
   return(plot)
 }
 
+
 #boxplot_cors_by_gen(cor_5000_file[which(cor_5000_file$gen>4000),], subt, x_label, y_label)
+
+boxplot_cors_by_type_gen <- function(file, subt, x_label, y_label, mycolor){
+
+  plot <- ggplot(file) +
+  ylim(-1.1, 1.1)+
+  ggtitle(subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor("1"), y=as.numeric(C1)), color = mycolor)+
+  geom_boxplot(aes(x=factor("2"), y=as.numeric(C2)), color = mycolor)+
+  geom_boxplot(aes(x=factor("3"), y=as.numeric(C3)), color = mycolor)+
+  geom_boxplot(aes(x=factor("4"), y=as.numeric(C4)), color = mycolor)+
+  theme(plot.title = element_text(size=5)) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+
+  return(plot)
+}
 
 trends_by_gen <- function(file, title, subt, x_label, y_label){
   plot <- ggplot(file) +
@@ -337,7 +359,7 @@ labels = c("Snake", "Newt", "Dif"))+
 
 Correlation values were collected every 10th generation with the exception of the 1st generation (calculations started gen 2). The first figure presented is the correlation calculations for simulation A up to 5,000 generations with a 5 by 5 grid. The red line represents calculation A which is the correlation between mean newt phenotype and mean snake phenotype (I predict this would be positive). The green line (CB) is the correlation between the number of newts and the number of snakes (I predicted this would be negative). The blue line is (CC) and represents the correlation between the sum of toxicity and the number of snakes. The purple line (CD) is the correlation between the amount of resistance and the number of newt (predicted to be negative). The second figure shows the correlation calculations for all 16 simulations. The third figure shows the mean newt phenotype (red) the snake mean phenotype (blue) and the difference between the snake mean phenotype and the newt mean phenotype (black). I want to use the third figure which is a whole population calculation to the second figure which has a more localized calculation. 
 
-```{r, lest see that correlation}
+```{r, lest see that correlation, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
@@ -377,7 +399,7 @@ In the third figure I would say there is something going on, but is it coevoluti
 
 This subsection is looking at the above figures, but at a zoomed in section. I only look at the first 200 generations. The goal is to see where the correlation calculations begin and see how they change on a smaller, easier to see time scale.
 
-```{r, cor 5000 zooom}
+```{r, cor 5000 zooom, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="ZOOM Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
@@ -401,7 +423,7 @@ Here the four correlations are calculated and collected every 10 generations. Th
 The next section I run the GA1 simulations for 20,000 generations and 100,000 generations. To see if there are any major correlation changes that might occur when running my simulation for longer.
 
 
-```{r, correlation 20000}
+```{r, correlation 20000, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="Space: Newt VS Snake"
 subt="20,000 Gen Grid 5 by 5"
@@ -418,7 +440,7 @@ trends_by_gen(GA_20000_file, title, subt, x_label, y_label)
 
 The 20,000 generation plots looks very similar to the 5,000 generation plots. It does not look like anything dramatically changes.
 
-```{r, correlation 100000}
+```{r, correlation 100000, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="Space: Newt VS Snake"
 subt="100,000 Gen Grid 5 by 5"
@@ -441,7 +463,7 @@ Wow, it is extremely hard to tell what is going on when you plot all 100,000 gen
 Here I am going to condense the data down to 1 box plot per calculation per simulation over the last 1,000 generations (of the 5,000, 20,000, and 100,000 generation simulations). This will hopefully be an easier plot to read and compare results between different simulation lengths. There will be three plots the first plot (top left) will be the results for the last 1,000 generations of the 5,000 generation simulation. The second plot (top right) will be the results for the last 1,000 generation of the 20,000 generation plot. The third plot (bottom left) will be the results of the last 1,000 generations of the 100,000 generation simulation. All plots will show the 16 genetic architecture experiments (in this case they are unlabeled due to space, but each starts with A and continues left to right then down to the next line). The x-axis and y-axis are also unlabeled (due to space), but represents which correlation was calculated and its value respectively. The four correlation calculations see printed below:
 
 
-```{r, boxplotting 5000}
+```{r, boxplotting 5000, fig.height = 8, fig.width = 8, cache=TRUE}
   print("CA = mean_newt_pheno_By_mean_snake_pheno")
   print("CB = num_newts_By_num_snakes")
   print("CC = sum_newt_pheno_By_num_snake")
@@ -463,8 +485,8 @@ x_label="Type"
 y_label="Correlation"
 G3<-boxplot_cors_by_gen(cor_100000_file[which(cor_100000_file$gen>99000),], subt, x_label, y_label)
 
-print("Difference in simulation length")
-grid.arrange(G1, G2, G3, nrow=2)
+
+grid.arrange(G1, G2, G3, nrow=2, top=textGrob("Last 1,000 Gens for Different Simulation Lengths",gp=gpar(fontsize=16,font=3)))
 
 
 ```
@@ -475,7 +497,7 @@ The box plots differ between each of the 16 simulations, but are relatively simi
 
 I re-ran the 5,000 generation simulation, but changed the grid size by decreasing the area where the correlation could be calculated. In this case I tried to divide an 35 by 35 area by 8, 10, and 20 boxes. As the number of boxes increase the area in which things may be calculated decreases. The goal is to get close to finding a good amount of area to calculation local adaptation, while not being too large or too small. I will compare the results of the following simulations. Note: I ran 16 slim simulations 4 times (setting the grid at 5, 8, 10, 20) with the same msprime files
 
-```{r, correlation 5000 88}
+```{r, correlation 5000 88, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="Space: Newt VS Snake"
 subt="5,000 Gen Grid 8 by 8"
@@ -492,7 +514,7 @@ trends_by_gen(GA_5000_file_88, title, subt, x_label, y_label)
 
 When I increased the number of grids to 8 by 8, the correlation values got lower. The different correlation calculations that I made were less correlated and do not fluctuate between measurements as much as they did when the grid was 5 by 5.
 
-```{r, correlation 5000 1010}
+```{r, correlation 5000 1010, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="Space: Newt VS Snake"
 subt="5,000 Gen Grid 10 by 10"
@@ -509,7 +531,7 @@ trends_by_gen(GA_5000_file_1010, title, subt, x_label, y_label)
 
 When I increased the number of grids to 10 by 10, the correlation values looked very similar to the 8 by 8 grid. The 10 by 10 grid had less correlated vales when compared to the 5 by 5 grid. These  correlation calculations were less correlated and do not fluctuate between measurements as much as they did when the grid was 5 by 5. It is also possible that the 10 by 10 grid was just a little bit less correlated than the 8 by 8, but it is a bit difficult to tell. 
 
-```{r, correlation 5000 2020}
+```{r, correlation 5000 2020, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="Space: Newt VS Snake"
 subt="5,000 Gen Grid 20 by 20"
@@ -529,7 +551,7 @@ When I change the grid to a 20 by 20 everything was negatively correlated and th
 
 Similar to what I did before, I made box plots of the last 1,000 generation of the 5,000 generation simulations. Here, I will visually compare how changing the amount of area where the correlation calculations took place effect the correlation output. In the top left will be the box plots of the correlations from the 5 by 5 grid to the right is the 8 by 8 grid. Under the 5 by 5 grind will be the 10 by 10 grid and next to it will be the 20 by 20 grid box plots. To save space and see the results there are no labels on the x-axis (correlation calculation), the y-axis (correlation values), or the simulation letter (A starts on the top left and continues right and then to the next line). The four correlation calculations are printed below:
 
-```{r, boxplotting 5000 dif size}
+```{r, boxplotting 5000 dif size, fig.height = 8, fig.width = 8, cache=TRUE}
   print("CA = mean_newt_pheno_By_mean_snake_pheno")
   print("CB = num_newts_By_num_snakes")
   print("CC = sum_newt_pheno_By_num_snake")
@@ -554,8 +576,8 @@ x_label="Type"
 y_label="Correlation"
 G6<-boxplot_cors_by_gen(cor_5000_file_2020[which(cor_5000_file_2020$gen>4000),], subt, x_label, y_label)
 
-print("Difference in amount of grids")
-grid.arrange(G1, G4, G5, G6, nrow=2)
+
+grid.arrange(G1, G4, G5, G6, nrow=2, top=textGrob("1000 Gen at Differnt Time Points",gp=gpar(fontsize=16,font=3)))
 
 ```
 
@@ -565,7 +587,7 @@ At the number or grids increases the area in which individuals (phenotype or cou
 
 Now, I am going to look at the correlations that I calculated for the GA2 experiment. In this experiment the variance for mutations is equal between the species (mu*(effect_size^2)). Below, is the simulation letter and its associated mutation rate and effect size.  
 
-```{r ga2 values}
+```{r ga2 values, cache=TRUE}
 
 for(i in seq(1, length(GA2_lit_5000_files), 1)){
   myletter <- LETTERS[i]
@@ -580,7 +602,9 @@ for(i in seq(1, length(GA2_lit_5000_files), 1)){
 
 ```
 
-```{r, GA2 correlation}
+The next section contains the results of the correlation calculations and mean phenotypes in the GA2 experiment. The first figure shows 4 correlation results, which were collected with a 5 by 5 grid. The correlation between mean newt phenotype and mean snake phenotype is the red line (CA). The correlation between the number of newts and the number of snakes is the green line (CB). The correlation between the sum of toxicity and the number of snakes is the blue line (CC). The correlation between the amount of resistance and the number of newt is the purple line (CD). This figure shows all 25 simulations in this set. The second figure shows the mean newt phenotype (red) the snake mean phenotype (blue) and the difference between the snake mean phenotype and the newt mean phenotype (black) for all 25 simulations.
+
+```{r, GA2 correlation, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="GA2 Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
@@ -596,8 +620,14 @@ trends_by_gen(GA2_GA_5000_file, title, subt, x_label, y_label)
 
 ```
 
+The first figure shows the 4 correlation calculations collected every 10 generations for a 5,000 simulation. The first thing that I noticed in the first figure was a diminished CA correlation value. I did notice that CA values got a bit higher when the mean newt and snake values on the second plot intersected. These results were similar to the results seen in the GA1 experiment, with the exception of lower CA values. CB, CC, CD are all negative and generally fluctuate between 0 and -0.5. CA has a larger positive fluctuation between 0.0 and 1. The second figure shows the interaction of the mean snake and mean newt phenotypes. In this figure the phenotypes are often close to each other. I looked at both figures and wondered if maybe 5,000 generations was not enough time for a co-evolutionary relationship to form or stabilize. I also wondered why CA was lower (and did not start at 1) in this set of simulations.
 
-```{r, cor 5000 GA2 zooom}
+#### Zooming in on Correlation Caculations for 5 by 5 grid GA2
+
+Now, I am going to look at the zoomed in section of the GA2 5,000 generation simulations. I plotted the first 200 generations of my simulation and looked at the four correlation calculations and the newt & snake mean phenotype. Mostly, I want to look at where the correlations start off at and see how they immediately change. I want to compare the mean newt and snake phenotypes to the correlations.
+
+
+```{r, cor 5000 GA2 zooom, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="GA2 ZOOM Space: Newt VS Snake"
 subt="5,000 Gen Grid 5 by 5"
@@ -612,10 +642,13 @@ trends_by_gen(GA2_GA_5000_file[ which(GA2_GA_5000_file$gen<210),], title, subt, 
 
 ```
 
+The first thing I looked at was the second figure. The blue and red lines are not close together and it doesn't look like there a lot of movement in most of the simulations. Some of the red and blue lines decrease, and very few of the lines seem to increase. However, when looking at the correlation plots a lot of things are happening. There are some cases where things are falling and in other simulations things are going up. The blue, green, and purple generally start near 0. The red line usually starts off positive then decreases then goes back up. Its kind of weird how all four correlation lines can cluster at a certain time, but the mean phenotypes don't seem to change. I looked back at the zoomed in version of the GA1 experiment and found that the red line is a lot further away from the other lines in this experiment set. There was more of a trend in the GA1 experiment than in the GA2 experiment. Maybe it takes more time for co-evolution to occur when the variation between newts and snakes are the same.
 
+## 30,000 Generation Results
 
+In this section, I re-run the 25 GA2 simulations and increased the amount of generations to 30,000 (after looking at the 100,000 gen results). Here, I will again look at the four correlation calculations (CA, CB, CC, CD) and the mean newt and snake phenotypes. I hope to see more interaction between newt and snake mean phenotypes and a stabilization in the correlation calculations. 
 
-```{r, GA2 30000 correlation}
+```{r, GA2 30000 correlation, fig.height = 8, fig.width = 10, cache=TRUE}
 
 title="GA2 Space: Newt VS Snake"
 subt="30,000 Gen Grid 5 by 5"
@@ -631,18 +664,154 @@ trends_by_gen(GA2_GA_30000_file, title, subt, x_label, y_label)
 
 ```
 
+After looking at the results, I noticed that the the red line (newt and snake phenotype correlation) generally stays high after a certain amount of generations. It is really difficult to see how the purple, blue, and green correlation lines interact. It seems like they are mostly overlap each other. It looks like these three correlations might become a bit more negative as the number of generations increase (at lease in some of the simulations). When looking at the second figure the mean newt and mean snake phenotype usually start out at with one species phenotype being higher and as the number of generations increase both phenotypes increase and eventually cross. There were four simulation where there was no crossing between mean newt and snake phenotype (B, F, H, Y). When snake mean phenotype was higher the correlation between newt and snake phenotype was diminished (F, H), but when newt mean phenotype was higher the correlation was a bit higher (B, Y).
 
-```{r, cor 30000 GA2 mid zooom}
+#### Zooming in on 1,000 gen Period of Correlation Caculations for 5 by 5 grid
 
-title="GA2 ZOOM Space: Newt VS Snake"
+From the above section I wanted to zoom in on a 1,000 generation section where newt and snake phenotypes seem to be increasing. I choose to look at a section between 10,000 and 11,000 generations.
+
+```{r, cor 30000 GA2 mid zooom, fig.height = 8, fig.width = 10, cache=TRUE}
+
+title="GA2 midZOOM Space: Newt VS Snake"
 subt="30,000 Gen Grid 5 by 5"
 x_label="Generation"
 y_label="Correlation"
 cors_by_gen(GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=10000 & GA2_cor_30000_file$gen<11010),], title, subt, x_label, y_label)
 
-title="ZOOM Phenotpe by Gen For all Sims"
+title="midZOOM Phenotpe by Gen For all Sims"
 subt="GA2 30,000 Gen"
 y_label="Phenotype"
 trends_by_gen(GA2_GA_30000_file[ which(GA2_GA_30000_file$gen>=10000 & GA2_GA_30000_file$gen<11010),], title, subt, x_label, y_label)
 
 ```
+
+I mainly focus on looking for trends in the correlation results and the first one I noticed was how some of the four correlations seem to be following the same up and down pattern (most notably F, H, I, L, M). The blue, green and purple lines are mostly the same. The red line is usually positive and separated from the three other correlation lines. When I add in the second figure to what I observe in the first figure I start thinking about the how the difference in correlations might be dependent on which species currently has a higher phenotype (maybe over all or locally?). Potentially, when the newt mean phenotype is higher (overall) snakes in areas with high local newt phenotypes are under under selection to be more resistant. This selection might create a strong correlation between newt and snake phenotype, but when snakes meet or proceed the high newt phenotype the correlation gets weaker (S, U, V).   
+
+## Boxplot at Different Time Points
+
+To get a better visual of what might be happening to the correlation calculation when I take them at different intervals. I decided to look at box plots. The first box plot I look at all four correlation calculations for each simulation separated by four 1,000 generation sections. The first section is the first 1,000 generation. The second section is taken from the 4,000- 5,000 generations. The third section is from the 10,000-11,000 generation and the last section is the lass 1,000 generation (29,000-30,000). As before, there are no labels on the x-axis (correlation calculation), the y-axis (correlation values), or the simulation letter (A starts on the top left and continues right and then to the next line). The four correlation calculations are printed below:
+
+```{r, boxplotting 30000 dif time, fig.height = 8, fig.width = 8, cache=TRUE}
+  print("CA = mean_newt_pheno_By_mean_snake_pheno")
+  print("CB = num_newts_By_num_snakes")
+  print("CC = sum_newt_pheno_By_num_snake")
+  print("CD = sum_snake_pheno_By_num_newt")
+
+
+title="Space: Newt VS Snake"
+subt="25sims first 1000Gen, Grid 5 by 5"
+x_label="Type"
+y_label="Correlation"
+G7<-boxplot_cors_by_gen(GA2_cor_30000_file[which(GA2_cor_30000_file$gen<=1000),], subt, x_label, y_label)
+
+title="Space: Newt VS Snake"
+subt="25sims 4000-5000 gen, Grid 5 by 5"
+x_label="Type"
+y_label="Correlation"
+G8<-boxplot_cors_by_gen(GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=4000 & GA2_cor_30000_file$gen<=5000),], subt, x_label, y_label)
+
+title="Space: Newt VS Snake"
+subt="25sims 10000-11000, Grid 5 by 5"
+x_label="Type"
+y_label="Correlation"
+G9<-boxplot_cors_by_gen(GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=10000 & GA2_cor_30000_file$gen<=11000),], subt, x_label, y_label)
+
+title="Space: Newt VS Snake"
+subt="25sims last 1000Gen 30000, Grid 5 by 5"
+x_label="Type"
+y_label="Correlation"
+G10<-boxplot_cors_by_gen(GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=29000),], subt, x_label, y_label)
+
+
+grid.arrange(G7, G8, G9, G10, nrow=2, top=textGrob("1,000 Gen at Different Timepoints By Simulation",gp=gpar(fontsize=16,font=3)))
+
+```
+
+This figure is super difficult to read! The only thing I can tell is that the red box is consistently higher than the three other boxes. In the first 5,000 generations the purple box might be less negatively correlated in some of the simulations. However, for the most part the green, blue, and purple box plots look very similar. To see if the correlations were going up or down as the simulation kept running I decided to group the different box plots by which calculation I made. 
+
+The first graph (red) in the next figure is the correlation between newt and snake phenotype (CA) at the four different time points (1 = 0-1,000 gen, 2 = 4,000-5,000 gen, 3 = 10,000-11,000 gen, 4 = 29,000-30,000 gen). The second, third and fourth graph (green, blue, purple) is the correlation between number of newts and number of snakes (CB), the correlation between the amount of toxin and snakes (CC), and the correlation between resistance and number of newts (CD). Again, 1 = 0-1,000 gen, 2 = 4,000-5,000 gen, 3 = 10,000-11,000 gen, 4 = 29,000-30,000 gen.
+
+```{r, regrouping the box plot, cache=TRUE}
+# out.width = "1026", out.height = "528"
+myvars <- c("gen", "mean_newt_pheno_By_mean_snake_pheno", "sim")
+data_CA<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen<=1000),][myvars]
+names(data_CA)[names(data_CA) == 'mean_newt_pheno_By_mean_snake_pheno'] <- 'C1'
+CA2<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=4000 & GA2_cor_30000_file$gen<=5000),]$mean_newt_pheno_By_mean_snake_pheno
+CA3<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=10000 & GA2_cor_30000_file$gen<=11000),]$mean_newt_pheno_By_mean_snake_pheno
+CA4<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=29000),]$mean_newt_pheno_By_mean_snake_pheno
+data_CA$C2 <- CA2
+data_CA$C3 <- CA3
+data_CA$C4 <- CA4
+
+myvars <- c("gen", "num_newts_By_num_snakes", "sim")
+data_CB<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen<=1000),][myvars]
+names(data_CB)[names(data_CB) == 'num_newts_By_num_snakes'] <- 'C1'
+CB2<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=4000 & GA2_cor_30000_file$gen<=5000),]$num_newts_By_num_snakes
+CB3<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=10000 & GA2_cor_30000_file$gen<=11000),]$num_newts_By_num_snakes
+CB4<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=29000),]$num_newts_By_num_snakes
+data_CB$C2 <- CB2
+data_CB$C3 <- CB3
+data_CB$C4 <- CB4
+
+myvars <- c("gen", "sum_newt_pheno_By_num_snake", "sim")
+data_CC<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen<=1000),][myvars]
+names(data_CC)[names(data_CC) == 'sum_newt_pheno_By_num_snake'] <- 'C1'
+CC2<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=4000 & GA2_cor_30000_file$gen<=5000),]$sum_newt_pheno_By_num_snake
+CC3<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=10000 & GA2_cor_30000_file$gen<=11000),]$sum_newt_pheno_By_num_snake
+CC4<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=29000),]$sum_newt_pheno_By_num_snake
+data_CC$C2 <- CC2
+data_CC$C3 <- CC3
+data_CC$C4 <- CC4
+
+
+myvars <- c("gen", "sum_snake_pheno_By_num_newt", "sim")
+data_CD<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen<=1000),][myvars]
+names(data_CD)[names(data_CD) == 'sum_snake_pheno_By_num_newt'] <- 'C1'
+CD2<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=4000 & GA2_cor_30000_file$gen<=5000),]$sum_snake_pheno_By_num_newt
+CD3<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=10000 & GA2_cor_30000_file$gen<=11000),]$sum_snake_pheno_By_num_newt
+CD4<-GA2_cor_30000_file[which(GA2_cor_30000_file$gen>=29000),]$sum_snake_pheno_By_num_newt
+data_CD$C2 <- CD2
+data_CD$C3 <- CD3
+data_CD$C4 <- CD4
+
+subt="CAs"
+x_label="Type"
+y_label="Correlation"
+CAs<-boxplot_cors_by_type_gen(data_CA, subt, x_label, y_label, mycolor="#F8766D")
+
+subt="CBs"
+x_label="Type"
+y_label="Correlation"
+CBs<-boxplot_cors_by_type_gen(data_CB, subt, x_label, y_label, mycolor="#7CAE00")
+
+subt="CCs"
+x_label="Type"
+y_label="Correlation"
+CCs<-boxplot_cors_by_type_gen(data_CC, subt, x_label, y_label, mycolor="#00BFC4")
+
+subt="CDs"
+x_label="Type"
+y_label="Correlation"
+CDs<-boxplot_cors_by_type_gen(data_CD, subt, x_label, y_label, mycolor="#C77CFF")
+
+```
+
+```{r, regrouping the box plot figure, fig.height = 8, fig.width = 8, cache=TRUE}
+
+grid.arrange(CAs, CBs, CCs, CDs, nrow=2, top = textGrob("1,000 Gens Grouped by Caculation",gp=gpar(fontsize=16,font=3)))
+
+
+```
+
+The trend between time points was easier to see in this figure. Generally, the correlation between newt and snake phenotype increased at the number of generation increased (except F). The correlation between number of newts and number of snakes (CB), the correlation between the amount of toxin and snakes (CC), and the correlation between resistance and number of newts (CD) generally stay about the same. There are instances where they seem to move in a curved motion (like ~). It makes me wonder what makes these correlations stay between 0 and -0.5. I am also curious to how the correlations are connect to each other, if they are connect to each other.                                                                                                         
+
+
+## Future Ideas
+
+- How does interaction rate effect the correlation calculations?
+- How does avoidance change correlation?
+- When I run multiple trials how do I show that information?
+
+## Conclusion 
+ 
+Write after meeting with Peter

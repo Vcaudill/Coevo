@@ -11,6 +11,10 @@ data/*
 space_pic/*
 */msprime_explore/*
 msprime_explore/*
+*/Correlation_cache/*
+Correlation_cache/*
+Correlation_files/*
+*/Correlation_files/*
 
 *keep figures out of git
 */.Rproj.user/*
