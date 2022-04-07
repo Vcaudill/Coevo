@@ -13,8 +13,9 @@ rng = np.random.default_rng(12345) ## this will help to se the seeds for the msp
 # ###############################################################################
 # GENERAL RULES & GLOBALS
 # ###############################################################################
-
+# how to get a random paramter out config["cost"][0] because it is a list
 # Where you would like all output files from analysis to live
+# Need to work on making better directories, can I make new directories in this file?  
 
 cwd = os.getcwd()
 input_dir = "/home/vcaudill/kernlab/coevo/"
@@ -22,16 +23,16 @@ prefix = "snakefolder"
 out_csv = input_dir  + prefix + "/csv/"
 out_msprime = input_dir + prefix + "/msprime/"
 out_slim = input_dir + prefix + "/slim/"
-tag="snakemake_test"
-grid_val=10
-interaction_rate=0.05
+tag="snakemake_test3"
+grid_val=5
+#interaction_rate=0.05
 
 #s_param = ["0.1","0.2","0.3","0.4","0.5"] #sigma
 #m_param = ["0.1","0.2","0.3","0.4","0.5"] #mutation
 #g_param = ["5000","50000","100000"] #ending generation
 
 ## These are the output files that I expect
-out = expand(f"{out_slim}slim_trees_snake_mu_rate_{{s_murs}}_newt_mu_rate_{{n_murs}}_snake_mu_effect_sd_{{s_es}}_newt_mu_effect_sd_{{n_es}}_sigma_{{sigma}}_rep_{{rep}}_late_{{gen_end}}", rep=range(2), s_murs=config["s_mus"], n_murs=config["n_mus"], s_es=config["s_es"], n_es=config["n_es"], sigma=config["sigma"], gen_end=config["gen_end"])
+out = expand(f"{out_slim}{tag}_slim_trees_snake_mu_rate_{{s_murs}}_newt_mu_rate_{{n_murs}}_snake_mu_effect_sd_{{s_es}}_newt_mu_effect_sd_{{n_es}}_sigma_{{sigma}}_rep_{{rep}}_late_{{gen_end}}", rep=range(2), s_murs=config["s_mus"], n_murs=config["n_mus"], s_es=config["s_es"], n_es=config["n_es"], sigma=config["sigma"], gen_end=config["gen_end"])
 seeds = rng.integers(0,2**32, len(out))
 out = [out[i]+f"_ID_{seeds[i]}.trees" for i in range(len(out))]
 
@@ -42,7 +43,7 @@ rule all:
 
 rule msprime:
     #input: dont need infile
-    output: f"{out_msprime}{tag}_trees_su_{{s_murs}}_nu_{{n_murs}}_sue_{{s_es}}_nue_{{n_es}}_rep_{{rep}}_SLIMseed_{{seeds}}.init.trees"
+    output: f"{out_msprime}{tag}_trees_su_{{s_murs}}_nu_{{n_murs}}_sue_{{s_es}}_nue_{{n_es}}_rep_{{rep}}_ID_{{seeds}}.init.trees"
     #threads:20
     shell: 
         ("python /home/vcaudill/kernlab/coevo/MSprime_script/snake_newt_gv_sm.py {wildcards.s_murs} {wildcards.n_murs} " +
@@ -50,14 +51,15 @@ rule msprime:
 
 
 rule slim:
-    input: msp_ts=f"{out_msprime}{tag}_trees_su_{{s_murs}}_nu_{{n_murs}}_sue_{{s_es}}_nue_{{n_es}}_rep_{{rep}}_SLIMseed_{{seeds}}.init.trees"
-    output: f"{out_slim}slim_trees_snake_mu_rate_{{s_murs}}_newt_mu_rate_{{n_murs}}_snake_mu_effect_sd_{{s_es}}_newt_mu_effect_sd_{{n_es}}_sigma_{{sigma}}_rep_{{rep}}_late_{{gen_end}}_ID_{{seeds}}.trees"
+    input: msp_ts=f"{out_msprime}{tag}_trees_su_{{s_murs}}_nu_{{n_murs}}_sue_{{s_es}}_nue_{{n_es}}_rep_{{rep}}_ID_{{seeds}}.init.trees"
+    output: f"{out_slim}{tag}_slim_trees_snake_mu_rate_{{s_murs}}_newt_mu_rate_{{n_murs}}_snake_mu_effect_sd_{{s_es}}_newt_mu_effect_sd_{{n_es}}_sigma_{{sigma}}_rep_{{rep}}_late_{{gen_end}}_ID_{{seeds}}.trees"
     #threads:20
+    params: interaction_rate=config["interaction_rate"][0]
     shell:
         ("slim -d snake_mu_rate='{wildcards.s_murs}' -d newt_mu_rate='{wildcards.n_murs}' " +
         "-d snake_mu_effect_sd='{wildcards.s_es}' -d newt_mu_effect_sd='{wildcards.n_es}' "+
-        "-d msprime_file='\"{input}\"' -d treename='\"{out_slim}\"' -d outpath='\"{out_csv}\"' "+
-        "-d rep='{wildcards.rep}' -d NUMGENS='{wildcards.gen_end}' -d interaction_rate='{interaction_rate}' "
+        "-d msprime_file='\"{input}\"' -d treename='\"{out_slim}\"' -d tag='\"{tag}\"' -d outpath='\"{out_csv}\"' "+
+        "-d rep='{wildcards.rep}' -d NUMGENS='{wildcards.gen_end}' -d interaction_rate='{params.interaction_rate}' "
         "-d seed='{wildcards.seeds}' -d grid_val='{grid_val}' /home/vcaudill/kernlab/coevo/SLiM_script/cost_1on1_sm.slim")
  
 
