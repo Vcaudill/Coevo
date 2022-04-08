@@ -1,0 +1,33 @@
+---
+title: "correlation_part2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Comparing newt and snake phenotype correlation
+
+newt and snake data from Hanifin et al. 2008
+
+```{r, reak data cor}
+snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
+snewt$mean_res = snewt$mean_toxin+snewt$dif
+cor(snewt$mean_toxin, snewt$mean_res)
+
+```
+
+
+## More data from the slim simulation 
+
+might be a specific generation or a small set of generations, If I can get the data to be saved and then interpreted by R
+make a list in a coulmn 
+how to proporsion and recreate what I see in the slim map (the different box and their dims)
+
+
+
+
+
