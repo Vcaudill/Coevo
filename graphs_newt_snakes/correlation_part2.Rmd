@@ -5,6 +5,11 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggmap)
+library(ggplot2)
+library(sf)
+library(mapview)
 ```
 
 
@@ -17,15 +22,38 @@ newt and snake data from Hanifin et al. 2008
 snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
 snewt$mean_res = snewt$mean_toxin+snewt$dif
 cor(snewt$mean_toxin, snewt$mean_res)
+(sites <- data.frame(longitude = snewt$lon, latitude = snewt$lat))
+just_loc <- data.frame(snewt$lon, snewt$lat)
+snewt$lon<- snewt$lon *-1
+locations_sf <- st_as_sf(snewt, coords = c("lon", "lat"), crs = 4326)
+mapview(locations_sf)
+```
 
+```{r, more maps}
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("tools")
+library("maps")
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+states <- st_as_sf(maps::map("state", plot = FALSE, fill = TRUE))
+states$ID <- toTitleCase(states$ID)
+
+ggplot(data = world) +
+  geom_sf() +
+  geom_sf(data = states, fill = NA)+
+  geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_res), size = 5, shape = 22, ) +
+  geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_toxin), size = 3, shape = 21, ) +
+  scale_fill_viridis_c()+
+  coord_sf(xlim = c(-130.4494, -111.6764), ylim = c(29.742, 54.9415), expand = FALSE)
 ```
 
 
 ## More data from the slim simulation 
 
 might be a specific generation or a small set of generations, If I can get the data to be saved and then interpreted by R
-make a list in a coulmn 
-how to proporsion and recreate what I see in the slim map (the different box and their dims)
+make a list in a column 
+how to proportion and recreate what I see in the slim map (the different box and their dims)
 
 
 
