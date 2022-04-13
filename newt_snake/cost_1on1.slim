@@ -56,37 +56,24 @@ initialize() {
 	// snakes
 	initializeInteractionType(2, "xy", reciprocal=T, maxDistance=SM * 3);
 	i2.setInteractionFunction("n", 1.0/(2*PI*SM^2), SM);
-	
-	
+
+
 }
 
- function (float)mutTypeFrequency(o<MutationType>$ mutType)
-     {
-         muts = sim.mutationsOfType(mutType);
-         if (muts.size() > 0)
-            return sim.mutationFrequencies(NULL, muts);
-         return NULL;
+
+function (float)part_summarize(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index)
+{
+	//tabulateFecundity
+	grid_res= c(grid_res_value,grid_res_value);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
+	catn("F");
+	return sum_ind[index];
 }
-function (float)estimateNe_Heterozygosity(o<Subpopulation>$ subpop)
-     {
-         pi = calcHeterozygosity(p1.genomes);
-         grid_res= c(5,5);
-         newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
-         catn(newt_sum_ind[0]);
-         catn("F");
-         return newt_sum_ind[0];
-     }
-function (integer)tabulateFecundity(o<Subpopulation>$ subpop, i$ previous_N)
-     {
-         parentIDs = subpop.individuals.pedigreeParentIDs;
-         rescaledParentIDs = parentIDs - min(parentIDs);
-         return tabulate(rescaledParentIDs, previous_N - 1);
-}
-function (float)estimateNe_Inbreeding(o<Subpopulation>$ subpop)
-     {
-         previous_N = subpop.getValue("previous_N");
-         k = tabulateFecundity(subpop, previous_N);
-         return (previous_N * mean(k) - 2) / (mean(k) - 1 + var(k) / mean(k));
+
+function (string)create_value(o<Subpopulation>$ subpop, f$ my_need)
+{
+	my_need=asString(my_need);
+	return my_need;
 }
 
 // to make the mutions truly neutral, what is this doing?
@@ -174,7 +161,7 @@ reproduction(p0) {//snakes
 	
 	//Newt and snake phenotype should start at a similar point
 	catn(mean(p0.individuals.getValue("pheno")) + "    " + mean(p1.individuals.getValue("pheno")));
-
+	
 	snake_mean = mean(p0.individuals.getValue("pheno"));
 	newt_mean = mean(p1.individuals.getValue("pheno"));
 	//defineGlobal("snake_offset", 1-snake_mean);
@@ -182,10 +169,10 @@ reproduction(p0) {//snakes
 	
 	defineGlobal("snake_offset", 0);
 	defineGlobal("newt_offset", 0);
-
-//catn(mean(exp(-(snake_offset + (p0.individuals.getValue('pheno')/setCOST))^2)) + "    " + mean(exp(-(newt_offset + (p1.individuals.getValue('pheno')/setCOST))^2)));
-
-i1.evaluate();
+	
+	//catn(mean(exp(-(snake_offset + (p0.individuals.getValue('pheno')/setCOST))^2)) + "    " + mean(exp(-(newt_offset + (p1.individuals.getValue('pheno')/setCOST))^2)));
+	
+	i1.evaluate();
 
 }
 
@@ -317,10 +304,26 @@ early() {
 
 1 late() {
 	// log file info
+	grid_res=c(5,5);
 	log = sim.createLogFile("~/Desktop/sim_log.txt", logInterval=10);
-   log.addGeneration();
-   log.addCustomColumn("Ne_heterozygosity", "estimateNe_Heterozygosity(p1);");
+	log.addGeneration();
+	for (element in 1:4){
+		column_name=paste0("newt_", element);
+		my_value=part_summarize(p1, grid_res_value=5, index=element);
+		//my_value=asString(my_value);
+		defineGlobal("cur_elm", element);
+		defineGlobal("my_value", my_value);
+		log.addCustomColumn(column_name, "part_summarize(p1, grid_res_value=5, index=cur_elm);");
+		//part_summarize(p1, grid_res_value=5, index=cur_elm);
+		//create_value(p1, my_value);
+		catn(element);
+		catn(column_name);
+		catn(my_value);
+		catn(cur_elm);
+	}
 	
+	log.addCustomColumn("thingIwant_snake", "part_summarize(p0, grid_res_value=5, index=5);");
+
 }
 
 //Snake a Newt display 
@@ -445,18 +448,18 @@ early() {
 		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
 	//p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
 	//valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
-
+	
 	snake_mean_pheno_calc = summarizeIndividuals(p0.individuals, grid_res, bounds,
-            operation="individuals.size();", empty=0.0, perUnitArea=T);
-         snake_mean_pheno_calc = snake_mean_pheno_calc / max(snake_mean_pheno_calc);
-   p2.defineSpatialMap("snake_mean_pheno_calc", "xy", snake_mean_pheno_calc, F,
-            range(snake_mean_pheno_calc), c("black", "orange", "red")); //looking at snake mean phenotype by section
+		operation="individuals.size();", empty=0.0, perUnitArea=T);
+	snake_mean_pheno_calc = snake_mean_pheno_calc / max(snake_mean_pheno_calc);
+	p2.defineSpatialMap("snake_mean_pheno_calc", "xy", snake_mean_pheno_calc, F,
+		range(snake_mean_pheno_calc), c("black", "orange", "red")); //looking at snake mean phenotype by section
 	
 	newt_mean_pheno_calc = summarizeIndividuals(p1.individuals, grid_res, bounds,
-            operation="individuals.size();", empty=0.0, perUnitArea=T);
-         newt_mean_pheno_calc = newt_mean_pheno_calc / max(newt_mean_pheno_calc);
-   p3.defineSpatialMap("newt_mean_pheno_calc", "xy", newt_mean_pheno_calc, F,
-            range(newt_mean_pheno_calc), c("black", "orange", "red")); //looking at newt mean phenotype by section
+		operation="individuals.size();", empty=0.0, perUnitArea=T);
+	newt_mean_pheno_calc = newt_mean_pheno_calc / max(newt_mean_pheno_calc);
+	p3.defineSpatialMap("newt_mean_pheno_calc", "xy", newt_mean_pheno_calc, F,
+		range(newt_mean_pheno_calc), c("black", "orange", "red")); //looking at newt mean phenotype by section
 	
 	//p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, c(-0.1,0.1), colors=c("red", "white", "blue")); // showing the cov of snakes the range can make the colors lighter and darker depending on the cor values
 	
@@ -510,7 +513,7 @@ early() {
 		//		//writing info about the snakes "S"
 		//		myphenotypefileinfo = sim.generation + "    "  + asString(inds_s.getValue("pheno"))+ "    " + asString(inds_s.fitnessScaling)+"    "  +asString(inds_s.age)+ "    " + "S"+ "    " + asString(inds_s.x) + "    " + asString(inds_s.x);
 		//		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
-	//writeFile(mycorfile, mycorfileheader , append = T);
+		//writeFile(mycorfile, mycorfileheader , append = T);
 	}
 }
 
@@ -524,10 +527,10 @@ early() {
 }
 2 early (){
 	//mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
-		
-		
-		//writeFile(mycorfile, mycorfileinfo , append = T);
-		}
+	
+	
+	//writeFile(mycorfile, mycorfileinfo , append = T);
+}
 early(){ //caculating the selection coefficents
 	inds_n = p1.individuals;
 	inds_s = p0.individuals;
