@@ -64,24 +64,23 @@ initialize() {
 function (float)part_summarize(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
 	//tabulateFecundity
-	defineGlobal("maxindex", index);
+	//defineGlobal("maxindex", index);
 	
-	if(triger=="TRUE"){
-		if (sanity=="N"){
-			defineGlobal("cur_index", cur_index+1);
-			if(cur_index>maxindex){
-			defineGlobal("triger", "FALSE");}
-		}}
+	//if(triger=="TRUE"){
+		//if (sanity=="N"){
+			//defineGlobal("cur_index", cur_index+1);
+			//if(cur_index>maxindex){
+			//defineGlobal("triger", "FALSE");}}}
 	
-	if(triger=="FALSE"){
-	defineGlobal("cur_index", 0);
-	defineGlobal("triger", "TRUE");}
+	//if(triger=="FALSE"){
+	//defineGlobal("cur_index", 0);
+	//defineGlobal("triger", "TRUE");}
 	
 	grid_res= c(grid_res_value,grid_res_value);
 	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
-	catn(sanity+ "   " +cur_index + "    " + sum_ind[cur_index]);
+	catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
-	return sum_ind[cur_index];
+	return sum_ind[index];
 }
 
 function (string)create_value(o<Subpopulation>$ subpop, f$ my_need)
@@ -185,7 +184,7 @@ reproduction(p0) {//snakes
 	defineGlobal("snake_offset", 0);
 	defineGlobal("newt_offset", 0);
 	
-	//catn(mean(exp(-(snake_offset + (p0.individuals.getValue('pheno')/setCOST))^2)) + "    " + mean(exp(-(newt_offset + (p1.individuals.getValue('pheno')/setCOST))^2))); //something might not be right?
+	//catn(mean(exp(-(snake_offset + (p0.individuals.getValue('pheno')/setCOST))^2)) + "    " + mean(exp(-(newt_offset + (p1.individuals.getValue('pheno')/setCOST))^2)));
 	
 	i1.evaluate();
 
@@ -330,8 +329,8 @@ early() {
 		//my_value=asString(my_value);
 		defineGlobal("cur_elm", element);
 		//defineGlobal("my_value", my_value);
-		log.addCustomColumn(column_name, "part_summarize(p1, grid_res_value=5, index=cur_elm, sanity='N');");
-		log.addCustomColumn(column_name2, "part_summarize(p0, grid_res_value=5, index=cur_elm, sanity='S');");
+		log.addCustomColumn(column_name, paste0("part_summarize(p1, grid_res_value=5, index=", element, ", sanity='N');"));
+		log.addCustomColumn(column_name2, paste0("part_summarize(p0, grid_res_value=5, index=", element, ", sanity='S');"));
 		//part_summarize(p1, grid_res_value=5, index=cur_elm);
 		//create_value(p1, my_value);
 		//catn(element);
