@@ -19,7 +19,7 @@ initialize() {
 	//defineConstant("msprime_file", "newt_snake/data/both_1000_su_1e-11_nu_1e-11_sue_5.0_nue_5.0_GAlit_FN_2133159248_.init.trees");
 	
 	total_mut_rate = newt_mu_rate + snake_mu_rate;
-	
+	defineConstant("grid_val", 5);
 	defineConstant("sigma_M", 0.33); // the meeting interaction term
 	defineConstant("K", 1);  // carrying-capacity per unit square (roughly)
 	defineConstant("SD", sigma_in);  // sigma_D, the dispersal distance
@@ -61,21 +61,16 @@ initialize() {
 }
 
 /// FUNCTIONS for log file
-function (float)part_summarize(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
+
+//Sectional info
+
+//	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
+//	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
+
+
+function (float)summarize_ind_num(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
-	//tabulateFecundity
-	//defineGlobal("maxindex", index);
-	
-	//if(triger=="TRUE"){
-		//if (sanity=="N"){
-			//defineGlobal("cur_index", cur_index+1);
-			//if(cur_index>maxindex){
-			//defineGlobal("triger", "FALSE");}}}
-	
-	//if(triger=="FALSE"){
-	//defineGlobal("cur_index", 0);
-	//defineGlobal("triger", "TRUE");}
-	
+	//counting the number of individuals by the area they are in
 	grid_res= c(grid_res_value,grid_res_value);
 	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
 	catn(sanity+ "   " +index + "    " + sum_ind[index]);
@@ -83,10 +78,44 @@ function (float)part_summarize(o<Subpopulation>$ subpop, i$ grid_res_value, i$ i
 	return sum_ind[index];
 }
 
-function (string)create_value(o<Subpopulation>$ subpop, f$ my_need)
+function (float)summarize_mean_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
-	my_need=asString(my_need);
-	return my_need;
+	//counting the number of individuals by the area they are in
+	grid_res= c(grid_res_value,grid_res_value);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	//catn(cur_index);
+	return sum_ind[index];
+}
+
+function (float)summarize_sd_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
+{
+	//counting the number of individuals by the area they are in
+	grid_res= c(grid_res_value,grid_res_value);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)sd(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	//catn(cur_index);
+	return sum_ind[index];
+}
+
+function (float)summarize_max_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
+{
+	//counting the number of individuals by the area they are in
+	grid_res= c(grid_res_value,grid_res_value);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)max(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	//catn(cur_index);
+	return sum_ind[index];
+}
+
+function (float)summarize_min_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
+{
+	//counting the number of individuals by the area they are in
+	grid_res= c(grid_res_value,grid_res_value);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)min(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	//catn(cur_index);
+	return sum_ind[index];
 }
 
 // to make the mutions truly neutral, what is this doing?
@@ -318,28 +347,22 @@ early() {
 
 1 late() {
 	// log file info
-	grid_res=c(5,5);
-	defineGlobal("triger", "FALSE");
+	
 	log = sim.createLogFile("~/Desktop/sim_log.txt", logInterval=10);
 	log.addGeneration();
-	for (element in 0:4){
-		column_name=paste0("newt_", element);
-		column_name2=paste0("snake_", element);
-		//my_value=part_summarize(p1, grid_res_value=5, index=element);
-		//my_value=asString(my_value);
-		defineGlobal("cur_elm", element);
-		//defineGlobal("my_value", my_value);
-		log.addCustomColumn(column_name, paste0("part_summarize(p1, grid_res_value=5, index=", element, ", sanity='N');"));
-		log.addCustomColumn(column_name2, paste0("part_summarize(p0, grid_res_value=5, index=", element, ", sanity='S');"));
-		//part_summarize(p1, grid_res_value=5, index=cur_elm);
-		//create_value(p1, my_value);
-		//catn(element);
-		//catn(column_name);
-		//catn(my_value);
-		//catn(cur_elm);
+	for (element in 0:(grid_val*grid_val-1)){
+		//summarize_ind_num
+		log.addCustomColumn(paste0("newt_num_ind_", element), paste0("summarize_ind_num(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt num ind');"));
+		log.addCustomColumn(paste0("snake_num_ind_", element), paste0("summarize_ind_num(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake num ind');"));
+		//summarize_min_pheno
+		log.addCustomColumn(paste0("newt_min_pheno_", element), paste0("summarize_min_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt min pheno');"));
+		log.addCustomColumn(paste0("snake_min_pheno_", element), paste0("summarize_min_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake min pheno');"));	
+		
+		
+		
 	}
-	
-	
+
+
 
 }
 
@@ -406,7 +429,7 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(5, 5);
+	grid_res = c(grid_val, grid_val);
 	
 	
 	// cov in the early and not late part of slim (ind die between early and late)
@@ -450,12 +473,6 @@ early() {
 	defineGlobal("sum_newt_pheno_By_num_newt", sum_newt_pheno_By_num_newt);
 	defineGlobal("sum_snake_pheno_By_snake_newt", sum_snake_pheno_By_snake_newt);
 	
-	//Sectional info
-	
-	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
-	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
-	
-	catn(snake_sum_ind);
 	
 	// maybe it should be transposed?
 	// standorize the colors 
@@ -575,9 +592,9 @@ early(){ //caculating the selection coefficents
 	//	}
 	if ((sim.generation % 5) == 0) {
 		mycorfileinfo=	sim.generation  + "    " + asString(mean_newt_pheno_By_mean_snake_pheno) + "    " + 	asString(num_newts_By_num_snakes) + "    " + asString(sum_newt_pheno_By_num_snake)+ "    " + asString(sum_snake_pheno_By_num_newt)+ "    " + asString(sum_newt_pheno_By_num_newt) + "    " + asString(sum_snake_pheno_By_snake_newt);
-		catn(p0.individuals.getValue("pheno"));
-		catn(p1.individuals.getValue("pheno"));
-		catn(mycorfileinfo);
+		//catn(p0.individuals.getValue("pheno"));
+		//catn(p1.individuals.getValue("pheno"));
+		//catn(mycorfileinfo);
 		//writeFile(mycorfile, mycorfileinfo , append = T);
 	}
 }
