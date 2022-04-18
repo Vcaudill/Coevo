@@ -1,0 +1,191 @@
+---
+title: "GAs Conclusion"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library("reshape")
+```
+
+### Goal
+
+The goal of this markdown is to determine a conclusion to the genetic architecture (GA) experiment. I have run 4 replicas for each of the GA sets and will now summarize the results.
+
+GA1 experiment values:
+
+- 1e-8*(0.005)^2 = 2.5e-13
+- 1e-9*(0.05)^2 = 2.5e-12
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(5.0)^2 = 2.5e-10
+
+GA2 experiment values:
+
+- 1e-8*(0.05)^2 = 2.5e-11
+- 1e-9*(0.1581139)^2 = 2.5e-11
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(1.581139)^2 = 2.5e-11
+- 1e-12*(5)^2 = 2.5e-11
+
+
+This is a two dimensional simulation where newts and snakes are co-evolving. The newts develop a toxin and the snakes develop resistance. Resistance and toxicity are the phenotype that I measured and as the snakes and newts co-evolve these phenotypes get larger.  As snakes become more resistant, less toxic newts are being devoured, leaving only the most toxic newts. These toxic newts reproduce and create even more toxic newts. The cycle contentiously repeats. However, the growth of the phenotype is not unlimited, there is a burden for having a higher phenotype (fitness cost). If a snake eats a newt that is more toxic the snake dies.
+
+```{r, data gathering}
+lit_30 <- list.files(path="~/Desktop/GA1_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
+lit_30_G2 <- list.files(path="~/Desktop/GA2_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
+
+lit_30_file<-read.csv(lit_30[1], header = TRUE)
+replica <- unlist(str_split(unlist(str_split(lit_30[1],"rep_"))[3], "_"))[1]
+lit_30_file$rep<-replica
+lit_30_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_rate_"))[2], "_"))[1]
+lit_30_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_rate_"))[2], "_"))[1]
+lit_30_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+lit_30_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+lit_30_file$sim <-"A"
+
+lit_30_G2_file<-read.csv(lit_30_G2[1], header = TRUE)
+replica <- unlist(str_split(unlist(str_split(lit_30_G2[1],"rep_"))[3], "_"))[1]
+lit_30_G2_file$rep<-replica
+lit_30_G2_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"snake_mu_rate_"))[2], "_"))[1]
+lit_30_G2_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
+lit_30_G2_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+lit_30_G2_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+
+lit_30_G2_file$sim <-"A"
+
+oldstand=0
+letter=1
+for(i in seq(2, length(lit_30_G2), 1)){
+  stand <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
+  if (stand!=oldstand){
+    oldstand=stand
+    letter = letter + 1
+  }
+  
+  GA2_lit_temp_file <- read.csv(lit_30_G2[i], header = TRUE)
+  GA2_lit_temp_file$sim <-LETTERS[letter]
+  GA2_lit_temp_file$rep <-unlist(str_split(unlist(str_split(lit_30_G2[i],"rep_"))[3], "_"))[1]
+  GA2_lit_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"snake_mu_rate_"))[2], "_"))[1]
+  GA2_lit_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
+  GA2_lit_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  GA2_lit_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+
+  
+  lit_30_G2_file <- rbind(lit_30_G2_file, GA2_lit_temp_file)
+ 
+  
+  if (i<=length(lit_30)){
+  cor_temp_file <- read.csv(lit_30[i], header = TRUE)
+  cor_temp_file$sim <-LETTERS[letter]
+  cor_temp_file$rep <-unlist(str_split(unlist(str_split(lit_30[i],"rep_"))[3], "_"))[1]
+  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  lit_30_file <- rbind(lit_30_file, cor_temp_file)
+  rep <-unlist(str_split(unlist(str_split(lit_30[i],"rep_"))[3], "_"))[1]
+  
+  snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_rate_"))[2], "_"))[1]
+  newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_rate_"))[2], "_"))[1]
+  snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  print(paste0("Simulation ", LETTERS[letter],": Snake mu-rate & effect sd (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt mu-rate & effect sd (", newt_mu_rate, ", ", newt_mu_effect_sd, ")",  " rep: ", rep))
+  }
+  
+}
+
+
+```
+
+
+```{r, data summarizing}
+
+##summarizing data with mean and error bars for the different GA experiments 
+
+#GA1_lit<-lit_30_file[which(lit_30_file$generation>=10000 & lit_30_file$gen<=110000 ),]
+#GA2_lit<-lit_30_G2_file[which(lit_30_G2_file$generation>=10000 & lit_30_G2_file$gen<=110000 ),]
+
+title="Space: Newt VS Snake Population Size"
+subt="Gen 25sims"
+y_label="Snake Popsize"
+x_label="Newt Popsize"
+
+
+
+lit_30_G2_file$snake <- paste0(lit_30_G2_file$snake_mu_rate, "_",lit_30_G2_file$snake_mu_effect_sd)
+lit_30_G2_file$newt <- paste0(lit_30_G2_file$newt_mu_rate, "_",lit_30_G2_file$newt_mu_effect_sd)
+lit_30_G2_file$newt_snake <- paste0(lit_30_G2_file$newt, "_", lit_30_G2_file$snake)
+lit_30_G2_file$newt_snake_rep <- paste0(lit_30_G2_file$newt_snake, "_", lit_30_G2_file$rep)
+
+params <- data_frame()
+
+params$snake_mu_rate <- 0
+  params$newt_mu_rate <- 0
+  params$snake_mu_effect_sd <- 0
+  params$newt_mu_effect_sd <- 0
+
+params$rep<-5
+params$Newt_mean_Pheno<-0
+params$Snake_mean_Pheno<-0
+params$Newt_pop_size<-0
+params$Snake_pop_size<-0
+params$dif<-0
+
+for(i in unique(lit_30_G2_file$newt_snake_rep)){
+  print(i)
+# might need to loop through length
+  sumitup <- lit_30_G2_file[which(lit_30_G2_file$gen>=2500 & lit_30_G2_file$newt_snake_rep ==i),]
+ 
+  lit_30_file <- rbind(lit_30_file, cor_temp_file)
+# need a temp file then I need to calculate these values and bind it to the params file
+  # i also will need to get a line numer to take these values
+  params$Newt_mean_Pheno[i]<-mean(sumitup$Newt_mean_Pheno)
+  params$Snake_mean_Pheno[i]<-mean(sumitup$Snake_mean_Pheno)
+  params$Newt_pop_size[i]<-mean(sumitup$Newt_pop_size)
+  params$Snake_pop_size[i]<-mean(sumitup$Snake_pop_size)
+  params$dif[i]<-mean(sumitup$dif)
+  
+}
+t25 <- ggplot(lit_30_G2_file[which(lit_30_G2_file$gen>=2500),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)),size=3)+
+#  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)))+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+t25
+
+
+
+```
+
+```{r, heatmap}
+
+
+
+
+
+
+```
+
+
+
+
+
+
+

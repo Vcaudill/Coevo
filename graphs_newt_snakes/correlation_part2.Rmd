@@ -55,7 +55,79 @@ might be a specific generation or a small set of generations, If I can get the d
 make a list in a column 
 how to proportion and recreate what I see in the slim map (the different box and their dims)
 
+GA1 experiment values:
+
+- 1e-8*(0.005)^2 = 2.5e-13
+- 1e-9*(0.05)^2 = 2.5e-12
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(5.0)^2 = 2.5e-10
+
+GA2 experiment values:
+
+- 1e-8*(0.05)^2 = 2.5e-11
+- 1e-9*(0.1581139)^2 = 2.5e-11
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(1.581139)^2 = 2.5e-11
+- 1e-12*(5)^2 = 2.5e-11
+
+```{r, cor by location}
+
+cor_grid_30 <- list.files(path="~/Desktop/GA1_rep", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+cor_grid_30_G2 <- list.files(path="~/Desktop/GA2_rep", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+
+cor_grid_30_file<-read.csv(cor_grid_30[1], header = TRUE)
+replica <- unlist(str_split(unlist(str_split(cor_grid_30[1],"rep_"))[3], "_"))[1]
+cor_grid_30_file$rep<-replica
+cor_grid_30_file$sim <-"A"
+
+cor_grid_30_G2_file<-read.csv(cor_grid_30_G2[1], header = TRUE)
+replica <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"rep_"))[3], "_"))[1]
+cor_grid_30_G2_file$rep<-replica
+cor_grid_30_G2_file$sim <-"A"
+i=2
+oldstand=0
+letter=1
+for(i in seq(2, length(cor_grid_30_G2), 1)){
+  stand <- unlist(str_split(unlist(str_split(cor_grid_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
+  if (stand!=oldstand){
+    oldstand=stand
+    letter = letter + 1
+  }
+  
+  GA2_lit_temp_file <- read.csv(cor_grid_30_G2[i], header = TRUE)
+  GA2_lit_temp_file$sim <-LETTERS[letter]
+  GA2_lit_temp_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30_G2[i],"rep_"))[3], "_"))[1]
+
+  
+  cor_grid_30_G2_file <- rbind(cor_grid_30_G2_file, GA2_lit_temp_file)
+ 
+  
+  if (i<=length(cor_grid_30)){
+  cor_temp_file <- read.csv(cor_grid_30[i], header = TRUE)
+  cor_temp_file$sim <-LETTERS[letter]
+  cor_temp_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30[i],"rep_"))[3], "_"))[1]
+  cor_grid_30_file <- rbind(cor_grid_30_file, cor_temp_file)
+  rep <-unlist(str_split(unlist(str_split(cor_grid_30[i],"rep_"))[3], "_"))[1]
+  
+  snake_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30[i],"snake_mu_rate_"))[2], "_"))[1]
+  newt_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30[i],"newt_mu_rate_"))[2], "_"))[1]
+  snake_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  newt_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  print(paste0("Simulation ", LETTERS[letter],": Snake mu-rate & effect sd (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt mu-rate & effect sd (", newt_mu_rate, ", ", newt_mu_effect_sd, ")",  " rep: ", rep))
+  }
+  
+}
 
 
+```
+
+```{r, small sample}
+
+
+GA1<-cor_grid_30_file[which(cor_grid_30_file$generation>=10000 & cor_grid_30_file$gen<=110000 ),]
+GA2<-cor_grid_30_G2_file[which(cor_grid_30_G2_file$generation>=10000 & cor_grid_30_G2_file$gen<=110000 ),]
+
+
+```
 
 
