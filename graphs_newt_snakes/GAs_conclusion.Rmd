@@ -16,12 +16,20 @@ require(reshape2)
 library(plyr)
 library(gridGraphics)
 library(grid)
+library(knitr)
+library(kableExtra)
 library("reshape")
 ```
 
 ### Goal
 
-The goal of this markdown is to determine a conclusion to the genetic architecture (GA) experiment. I have run 4 replicas for each of the GA sets and will now summarize the results.
+The goal of this markdown is to determine a conclusion to the genetic architecture (GA) experiment. I have run 4 replicas for each of the GA sets and will summarize the results.
+
+This is a two dimensional co-evolution simulation where newts have developed a toxin and snakes have evolved resistance to this toxin. Resistance and toxicity are the phenotype that I measured and as the snakes and newts co-evolve these phenotypes get larger. As snakes become more resistant, less toxic newts are being devoured, leaving only the most toxic newts. These toxic newts reproduce and create even more toxic newts. The cycle contentiously repeats. However, the growth of the phenotype is not unlimited, there is a burden for having a higher phenotype (fitness cost). 
+
+Resistance and toxicity are quantitative traits that are the sum of effects from mutations on these specific phenotypes. In my simulations I create different genetic architectures (GA) for resistance and toxicity to see if there is an effect on the how the population co-evolve. Genetic architectures are a combination of mutation rates and the standard deviation of the mutation effect size. I have ran two types of genetic architecture studies one where one species is at an evolutionary disadvantage (one species will have less variance) and the other study has the same level of variance. In the study where there is no variance disadvantage I test the effects of mutation rate and effect size to see if one or the other has a large effect on how a population can co-evolve. In the study where there is a disadvantage I not only look at the effects of mutation rate and effect size, but also look at how a disadvantage can effect a population undergoing co-evolution. The disadvantage experiment is GA1 (16 simulations) and the same level of variance is GA2 (25 simulations).
+
+Each of the simulations contain their own neutral msprime simulation (to generate genetic diversity) followed by the slim simulation (populations are co-evolving). 
 
 GA1 experiment values:
 
@@ -39,34 +47,55 @@ GA2 experiment values:
 - 1e-12*(5)^2 = 2.5e-11
 
 
-This is a two dimensional simulation where newts and snakes are co-evolving. The newts develop a toxin and the snakes develop resistance. Resistance and toxicity are the phenotype that I measured and as the snakes and newts co-evolve these phenotypes get larger.  As snakes become more resistant, less toxic newts are being devoured, leaving only the most toxic newts. These toxic newts reproduce and create even more toxic newts. The cycle contentiously repeats. However, the growth of the phenotype is not unlimited, there is a burden for having a higher phenotype (fitness cost). If a snake eats a newt that is more toxic the snake dies.
+The first thing I do is gather the data from each GA set, paying attention to all of the parameters especially the replica number. I typically give each simulation a letter associated with the mutation rate and effect size. Here are the trial letters and the parameters associated with it.
+
 
 ```{r, data gathering}
+
+para_table <- read.csv("/Users/victoria/Desktop/Coevo/data/GAtestvar_lit.csv", header = TRUE)
+para_table$trial<-LETTERS[para_table$trial]
+para_table <- data.frame("Trial"=para_table$trial, "Snake Mu Rate"=para_table$snake_mu_rate, "Snake effect size"= para_table$snake_mu_effect_sd, "Newt Mu Rate"=para_table$newt_mu_rate, "Newt effect size"= para_table$newt_mu_effect_sd)
+#kable(para_table, caption="GA2 Params")
+
+para_table %>% dplyr::mutate_if(is.numeric, funs(as.character(signif(., 3)))) %>%
+    kable(., caption="GA1 Params") %>%
+ kable_styling("striped")
+
+
+para_table <- read.csv("/Users/victoria/Desktop/Coevo/data/GAtestvar_lit_25.csv", header = TRUE)
+para_table$trial<-LETTERS[para_table$trial]
+para_table <- data.frame("Trial"=para_table$trial, "Snake Mu Rate"=para_table$snake_mu_rate, "Snake effect size"= para_table$snake_mu_effect_sd, "Newt Mu Rate"=para_table$newt_mu_rate, "Newt effect size"= para_table$newt_mu_effect_sd)
+#kable(para_table, caption="GA2 Params")
+
+para_table %>% dplyr::mutate_if(is.numeric, funs(as.character(signif(., 3)))) %>%
+    kable(., caption="GA2 Params") %>%
+ kable_styling("striped")
+
 lit_30 <- list.files(path="~/Desktop/GA1_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
 lit_30_G2 <- list.files(path="~/Desktop/GA2_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
 
 lit_30_file<-read.csv(lit_30[1], header = TRUE)
 replica <- unlist(str_split(unlist(str_split(lit_30[1],"rep_"))[3], "_"))[1]
 lit_30_file$rep<-replica
-lit_30_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_rate_"))[2], "_"))[1]
-lit_30_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_rate_"))[2], "_"))[1]
-lit_30_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-lit_30_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+lit_30_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30[1],"snake_mu_rate_"))[2], "_"))[1]
+lit_30_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[1],"newt_mu_rate_"))[2], "_"))[1]
+lit_30_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[1],"snake_mu_effect_sd_"))[2], "_"))[1]
+lit_30_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[1],"newt_mu_effect_sd_"))[2], "_"))[1]
 lit_30_file$sim <-"A"
 
 lit_30_G2_file<-read.csv(lit_30_G2[1], header = TRUE)
 replica <- unlist(str_split(unlist(str_split(lit_30_G2[1],"rep_"))[3], "_"))[1]
 lit_30_G2_file$rep<-replica
-lit_30_G2_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"snake_mu_rate_"))[2], "_"))[1]
-lit_30_G2_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
-lit_30_G2_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-lit_30_G2_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+lit_30_G2_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[1],"snake_mu_rate_"))[2], "_"))[1]
+lit_30_G2_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[1],"newt_mu_rate_"))[2], "_"))[1]
+lit_30_G2_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[1],"snake_mu_effect_sd_"))[2], "_"))[1]
+lit_30_G2_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[1],"newt_mu_effect_sd_"))[2], "_"))[1]
 
 lit_30_G2_file$sim <-"A"
 
 oldstand=0
 letter=1
-for(i in seq(2, length(lit_30_G2), 1)){
+for(i in seq(1, length(lit_30_G2), 1)){
   stand <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
   if (stand!=oldstand){
     oldstand=stand
@@ -100,89 +129,158 @@ for(i in seq(2, length(lit_30_G2), 1)){
   newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_rate_"))[2], "_"))[1]
   snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_effect_sd_"))[2], "_"))[1]
   newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  print(paste0("Simulation ", LETTERS[letter],": Snake mu-rate & effect sd (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt mu-rate & effect sd (", newt_mu_rate, ", ", newt_mu_effect_sd, ")",  " rep: ", rep))
+  #print(paste0("Simulation ", LETTERS[letter],": Snake mu-rate & effect sd (", snake_mu_rate,", ", snake_mu_effect_sd, ") Newt mu-rate & effect sd (", newt_mu_rate, ", ", newt_mu_effect_sd, ")",  " rep: ", rep))
   }
   
 }
 
-
+lit_30_file$dif <- lit_30_file$Snake_mean_Pheno-lit_30_file$Newt_mean_Pheno
+lit_30_G2_file$dif <- lit_30_G2_file$Snake_mean_Pheno-lit_30_G2_file$Newt_mean_Pheno
 ```
 
 
-```{r, data summarizing}
-
-##summarizing data with mean and error bars for the different GA experiments 
-
-#GA1_lit<-lit_30_file[which(lit_30_file$generation>=10000 & lit_30_file$gen<=110000 ),]
-#GA2_lit<-lit_30_G2_file[which(lit_30_G2_file$generation>=10000 & lit_30_G2_file$gen<=110000 ),]
-
-title="Space: Newt VS Snake Population Size"
-subt="Gen 25sims"
-y_label="Snake Popsize"
-x_label="Newt Popsize"
 
 
+```{r, general file and graph making}
 
-lit_30_G2_file$snake <- paste0(lit_30_G2_file$snake_mu_rate, "_",lit_30_G2_file$snake_mu_effect_sd)
-lit_30_G2_file$newt <- paste0(lit_30_G2_file$newt_mu_rate, "_",lit_30_G2_file$newt_mu_effect_sd)
-lit_30_G2_file$newt_snake <- paste0(lit_30_G2_file$newt, "_", lit_30_G2_file$snake)
-lit_30_G2_file$newt_snake_rep <- paste0(lit_30_G2_file$newt_snake, "_", lit_30_G2_file$rep)
+#the functions to make the params file and the summary and heatmap figures 
 
+create_parm_file <- function(file, min_gen, max_gen){
 params <- data_frame()
 
-params$snake_mu_rate <- 0
-  params$newt_mu_rate <- 0
-  params$snake_mu_effect_sd <- 0
-  params$newt_mu_effect_sd <- 0
+for(i in 1:length(unique(file$newt_snake_rep))){
 
-params$rep<-5
-params$Newt_mean_Pheno<-0
-params$Snake_mean_Pheno<-0
-params$Newt_pop_size<-0
-params$Snake_pop_size<-0
-params$dif<-0
-
-for(i in unique(lit_30_G2_file$newt_snake_rep)){
-  print(i)
-# might need to loop through length
-  sumitup <- lit_30_G2_file[which(lit_30_G2_file$gen>=2500 & lit_30_G2_file$newt_snake_rep ==i),]
+  pattern=unique(file$newt_snake_rep)[i]
+  sumitup <- file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep ==pattern),]
  
-  lit_30_file <- rbind(lit_30_file, cor_temp_file)
-# need a temp file then I need to calculate these values and bind it to the params file
-  # i also will need to get a line numer to take these values
-  params$Newt_mean_Pheno[i]<-mean(sumitup$Newt_mean_Pheno)
-  params$Snake_mean_Pheno[i]<-mean(sumitup$Snake_mean_Pheno)
-  params$Newt_pop_size[i]<-mean(sumitup$Newt_pop_size)
-  params$Snake_pop_size[i]<-mean(sumitup$Snake_pop_size)
-  params$dif[i]<-mean(sumitup$dif)
+  params_temp<- data_frame(Newt_mean_Pheno=mean(sumitup$Newt_mean_Pheno),
+                           Snake_mean_Pheno=mean(sumitup$Snake_mean_Pheno), 
+                           Newt_mean_Pheno_sd=sd(sumitup$Newt_mean_Pheno),
+                           Snake_mean_Pheno_sd=sd(sumitup$Snake_mean_Pheno),
+                           Newt_pop_size=mean(sumitup$Newt_pop_size),
+                           Snake_pop_size=mean(sumitup$Snake_pop_size),
+                           dif=mean(sumitup$dif),
+                           snake_mu_rate=sumitup$snake_mu_rate[1],
+                           newt_mu_rate=sumitup$newt_mu_rate[1],
+                           snake_mu_effect_sd=sumitup$snake_mu_effect_sd[1],
+                           newt_mu_effect_sd=sumitup$newt_mu_effect_sd[1],
+                           rep=sumitup$rep[1])
   
+  
+  params <- rbind(params, params_temp)
 }
-t25 <- ggplot(lit_30_G2_file[which(lit_30_G2_file$gen>=2500),]) +
+
+params$snake <- paste0(params$snake_mu_rate, "_",params$snake_mu_effect_sd)
+params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
+params$newt_snake <- paste0(params$newt, "_", params$snake)
+return(params)
+}
+
+GA_summary <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label){
+
+file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+
+params<-create_parm_file(file, min_gen, max_gen)
+
+my_plot <- ggplot(params) +
   #xlim(0, 1000)+
-  ggtitle(title, subtitle = subt) +
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, "gen to ", max_gen, " gen")) +
   xlab(x_label) + ylab(y_label)+
-  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = factor(snake), shape=factor(newt)),size=3)+
+  geom_point(aes(x=as.numeric(get(x_line)), y=as.numeric(get(y_line)), color = factor(snake), shape=factor(newt)),size=3)+
 #  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)))+
   theme(plot.title = element_text(size=5)) +
   #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
   #labs(colour = color_label) +
   #facet_wrap(~sim)+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
-t25
+  theme_bw() +  theme(axis.text.x = element_text( hjust=1, size = 8))
+
+return(my_plot)
+}
+
+build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, title, subt, y_label, x_label, red_blue=F){
+  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+  
+  params<-create_parm_file(file, min_gen, max_gen)
+  
+ my_plot <- ggplot(params, aes(newt, paste0(snake, "_", rep))) +    # Create heatmap with ggplot2
+  ggtitle(title, subtitle = subt) +
+  xlab(x_label) + ylab(y_label)+
+  geom_tile(aes(fill = get(fill_line)))
+ if(red_blue==FALSE){
+  my_plot<- my_plot + scale_fill_viridis_c(name = fill_line_text)
+  }
+ if(red_blue==TRUE){
+  my_plot<- my_plot + scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = fill_line_text)
+ }
+  return(my_plot)
+}
+
+ 
+```
 
 
+First, I will look at a summary plot for the different GA sets. There are four points for each GA set (one for each replica).
+
+```{r, graphing the summary}
+
+GA_summary(lit_30_file, min_gen=5000, max_gen=10000, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+GA_summary(lit_30_file, min_gen=5000, max_gen=10000, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 25sims", y_label="Snake Popsize", x_label="Dif")
+
+GA_summary(lit_30_G2_file, min_gen=5000, max_gen=10000, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+GA_summary(lit_30_G2_file, min_gen=5000, max_gen=10000, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 25sims", y_label="Snake Popsize", x_label="Dif")
 
 ```
 
 ```{r, heatmap}
 
+#params_GA1
 
+build_heatmap(lit_30_file, min_gen=5000, max_gen=10000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 
+build_heatmap(lit_30_file, min_gen=5000, max_gen=10000, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
+
+build_heatmap(lit_30_G2_file, min_gen=5000, max_gen=10000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+
+build_heatmap(lit_30_G2_file, min_gen=5000, max_gen=10000, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 
 
 
 ```
+```{r, plot experiment}
+library(plotly)
+library(gapminder)
+#GA_summary(lit_30_file, min_gen=5000, max_gen=10000, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+#lit_30_file$generation
 
+lit_30_file$snake <- paste0(lit_30_file$snake_mu_rate, "_",lit_30_file$snake_mu_effect_sd)
+lit_30_file$newt_snake <- paste0(lit_30_file$newt_mu_rate, "_", lit_30_file$newt_mu_effect_sd, "_", lit_30_file$snake_mu_rate, "_", lit_30_file$snake_mu_effect_sd)
+lit_30_file$sim
+#params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
+#params$newt_snake <- paste0(params$newt, "_", params$snake)
+
+lit_30_file_min<-lit_30_file[which(lit_30_file$generation>=5000 & lit_30_file$generation<=5350),]
+p <- lit_30_file_min %>%
+  plot_ly(
+    x = ~Newt_pop_size, 
+    y = ~Snake_pop_size, 
+    color = ~factor(sim), 
+    #shape = ~factor(newt)
+    frame = ~generation, 
+    #text = ~country, 
+    #hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  ) %>%
+  layout(
+    xaxis = list(
+      type = "log"
+    )
+  )
+
+p
+```
 
 
 

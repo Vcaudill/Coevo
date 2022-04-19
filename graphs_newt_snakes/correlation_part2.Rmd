@@ -79,11 +79,22 @@ cor_grid_30_file<-read.csv(cor_grid_30[1], header = TRUE)
 replica <- unlist(str_split(unlist(str_split(cor_grid_30[1],"rep_"))[3], "_"))[1]
 cor_grid_30_file$rep<-replica
 cor_grid_30_file$sim <-"A"
+cor_grid_30_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30[i],"rep_"))[3], "_"))[1]
+cor_grid_30_file$snake_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30[1],"snake_mu_rate_"))[2], "_"))[1]
+cor_grid_30_file$newt_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30[1],"newt_mu_rate_"))[2], "_"))[1]
+cor_grid_30_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30[1],"snake_mu_effect_sd_"))[2], "_"))[1]
+cor_grid_30_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30[1],"newt_mu_effect_sd_"))[2], "_"))[1]
 
 cor_grid_30_G2_file<-read.csv(cor_grid_30_G2[1], header = TRUE)
 replica <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"rep_"))[3], "_"))[1]
 cor_grid_30_G2_file$rep<-replica
 cor_grid_30_G2_file$sim <-"A"
+cor_grid_30_G2_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30_G2[i],"rep_"))[3], "_"))[1]
+cor_grid_30_G2_file$snake_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"snake_mu_rate_"))[2], "_"))[1]
+cor_grid_30_G2_file$newt_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"newt_mu_rate_"))[2], "_"))[1]
+cor_grid_30_G2_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"snake_mu_effect_sd_"))[2], "_"))[1]
+cor_grid_30_G2_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"newt_mu_effect_sd_"))[2], "_"))[1]
+
 i=2
 oldstand=0
 letter=1
@@ -97,7 +108,10 @@ for(i in seq(2, length(cor_grid_30_G2), 1)){
   GA2_lit_temp_file <- read.csv(cor_grid_30_G2[i], header = TRUE)
   GA2_lit_temp_file$sim <-LETTERS[letter]
   GA2_lit_temp_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30_G2[i],"rep_"))[3], "_"))[1]
-
+  GA2_lit_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30_G2[i],"snake_mu_rate_"))[2], "_"))[1]
+GA2_lit_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30[i],"newt_mu_rate_"))[2], "_"))[1]
+GA2_lit_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+GA2_lit_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
   
   cor_grid_30_G2_file <- rbind(cor_grid_30_G2_file, GA2_lit_temp_file)
  
@@ -106,6 +120,10 @@ for(i in seq(2, length(cor_grid_30_G2), 1)){
   cor_temp_file <- read.csv(cor_grid_30[i], header = TRUE)
   cor_temp_file$sim <-LETTERS[letter]
   cor_temp_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30[i],"rep_"))[3], "_"))[1]
+  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30[i],"snake_mu_rate_"))[2], "_"))[1]
+cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30[i],"newt_mu_rate_"))[2], "_"))[1]
+cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
   cor_grid_30_file <- rbind(cor_grid_30_file, cor_temp_file)
   rep <-unlist(str_split(unlist(str_split(cor_grid_30[i],"rep_"))[3], "_"))[1]
   
@@ -126,8 +144,12 @@ for(i in seq(2, length(cor_grid_30_G2), 1)){
 
 GA1<-cor_grid_30_file[which(cor_grid_30_file$generation>=10000 & cor_grid_30_file$gen<=110000 ),]
 GA2<-cor_grid_30_G2_file[which(cor_grid_30_G2_file$generation>=10000 & cor_grid_30_G2_file$gen<=110000 ),]
+length(GA1$generation)
 
-
+GA1<-cor_grid_30_file[which(cor_grid_30_file$generation==10001 & rep==0),]
+GA1_mean = GA1[ , grepl( "mean" , names( GA1 ) ) ]
+GA1T<-data.frame(t(GA1_mean))
+GA1T
 ```
 
 
