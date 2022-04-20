@@ -74,36 +74,62 @@ para_table %>% dplyr::mutate_if(is.numeric, funs(as.character(signif(., 3)))) %>
 lit_30 <- list.files(path="~/Desktop/GA1_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
 lit_30_G2 <- list.files(path="~/Desktop/GA2_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
 
-lit_30_file<-read.csv(lit_30[1], header = TRUE)
-replica <- unlist(str_split(unlist(str_split(lit_30[1],"rep_"))[3], "_"))[1]
-lit_30_file$rep<-replica
-lit_30_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30[1],"snake_mu_rate_"))[2], "_"))[1]
-lit_30_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[1],"newt_mu_rate_"))[2], "_"))[1]
-lit_30_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[1],"snake_mu_effect_sd_"))[2], "_"))[1]
-lit_30_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[1],"newt_mu_effect_sd_"))[2], "_"))[1]
-lit_30_file$sim <-"A"
+lit_30_file<- data.frame()
+# 
+# lit_30_file<-read.csv(lit_30[1], header = TRUE)
+# replica <- unlist(str_split(unlist(str_split(lit_30[1],"rep_"))[3], "_"))[1]
+# lit_30_file$rep<-replica
+# lit_30_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30[1],"snake_mu_rate_"))[2], "_"))[1]
+# lit_30_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[1],"newt_mu_rate_"))[2], "_"))[1]
+# lit_30_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[1],"snake_mu_effect_sd_"))[2], "_"))[1]
+# lit_30_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[1],"newt_mu_effect_sd_"))[2], "_"))[1]
+# lit_30_file$sim <-"A"
 
-lit_30_G2_file<-read.csv(lit_30_G2[1], header = TRUE)
-replica <- unlist(str_split(unlist(str_split(lit_30_G2[1],"rep_"))[3], "_"))[1]
-lit_30_G2_file$rep<-replica
-lit_30_G2_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[1],"snake_mu_rate_"))[2], "_"))[1]
-lit_30_G2_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[1],"newt_mu_rate_"))[2], "_"))[1]
-lit_30_G2_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[1],"snake_mu_effect_sd_"))[2], "_"))[1]
-lit_30_G2_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[1],"newt_mu_effect_sd_"))[2], "_"))[1]
+# lit_30_G2_file<-read.csv(lit_30_G2[1], header = TRUE)
+# replica <- unlist(str_split(unlist(str_split(lit_30_G2[1],"rep_"))[3], "_"))[1]
+# lit_30_G2_file$rep<-replica
+# lit_30_G2_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[1],"snake_mu_rate_"))[2], "_"))[1]
+# lit_30_G2_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[1],"newt_mu_rate_"))[2], "_"))[1]
+# lit_30_G2_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[1],"snake_mu_effect_sd_"))[2], "_"))[1]
+# lit_30_G2_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[1],"newt_mu_effect_sd_"))[2], "_"))[1]
+# 
+# lit_30_G2_file$sim <-"A"
 
-lit_30_G2_file$sim <-"A"
-
+lit_30_G2_file <- data.frame()
 oldstand=0
-letter=1
+letter=0
+newt_unique=0
+newt_numb = 0
 for(i in seq(1, length(lit_30_G2), 1)){
   stand <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
+  up <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  phrase = paste0(stand, "_", up)
   if (stand!=oldstand){
     oldstand=stand
     letter = letter + 1
   }
+
+    if (phrase=="1.0e-08_0.05" ){
+    newt_numb =  1
+   }
+    if (phrase=="1.0e-09_0.158114"){
+    newt_numb =  2
+   }
+      if (phrase=="1.0e-10_0.5"){
+    newt_numb =  3
+   }
+    if (phrase=="1.0e-11_1.58114"){
+    newt_numb =  4
+   }
+  
+      if (phrase=="1.0e-12_5.0"){
+    newt_numb =  5
+   }
+ 
   
   GA2_lit_temp_file <- read.csv(lit_30_G2[i], header = TRUE)
   GA2_lit_temp_file$sim <-LETTERS[letter]
+   GA2_lit_temp_file$size <-newt_numb
   GA2_lit_temp_file$rep <-unlist(str_split(unlist(str_split(lit_30_G2[i],"rep_"))[3], "_"))[1]
   GA2_lit_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"snake_mu_rate_"))[2], "_"))[1]
   GA2_lit_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
@@ -115,8 +141,27 @@ for(i in seq(1, length(lit_30_G2), 1)){
  
   
   if (i<=length(lit_30)){
+
+  stand <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_rate_"))[2], "_"))[1]
+  up <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  phrase = paste0(stand, "_", up)
+
+   if (phrase=="1.0e-08_0.005"){
+    newt_numb =  1
+   }
+    if (phrase=="1.0e-09_0.05"){
+    newt_numb =  2
+   }
+      if (phrase=="1.0e-10_0.5"){
+    newt_numb =  3
+   }
+    if (phrase=="1.0e-11_5.0"){
+    newt_numb =  4
+   }
+   
   cor_temp_file <- read.csv(lit_30[i], header = TRUE)
   cor_temp_file$sim <-LETTERS[letter]
+  cor_temp_file$size <-newt_numb
   cor_temp_file$rep <-unlist(str_split(unlist(str_split(lit_30[i],"rep_"))[3], "_"))[1]
   cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_rate_"))[2], "_"))[1]
   cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_rate_"))[2], "_"))[1]
@@ -254,22 +299,53 @@ library(gapminder)
 #GA_summary(lit_30_file, min_gen=5000, max_gen=10000, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
 #lit_30_file$generation
 
+
+#lit_30_file$sim
 lit_30_file$snake <- paste0(lit_30_file$snake_mu_rate, "_",lit_30_file$snake_mu_effect_sd)
-lit_30_file$newt_snake <- paste0(lit_30_file$newt_mu_rate, "_", lit_30_file$newt_mu_effect_sd, "_", lit_30_file$snake_mu_rate, "_", lit_30_file$snake_mu_effect_sd)
-lit_30_file$sim
-#params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
+lit_30_file$newt <- paste0(lit_30_file$newt_mu_rate, "_",lit_30_file$newt_mu_effect_sd)
+
+lit_30_file$newt_snake_rep <- paste0(lit_30_file$newt_mu_rate, "_", lit_30_file$newt_mu_effect_sd, "_", lit_30_file$snake_mu_rate, "_", lit_30_file$snake_mu_effect_sd, "_", lit_30_file$rep)
+
+unique(lit_30_G2_file$snake)
 #params$newt_snake <- paste0(params$newt, "_", params$snake)
 
-lit_30_file_min<-lit_30_file[which(lit_30_file$generation>=5000 & lit_30_file$generation<=5350),]
+lit_30_file_min<-lit_30_file[which(lit_30_file$generation>=5000 & lit_30_file$generation<=5550),]
 p <- lit_30_file_min %>%
+  plot_ly(
+    x = ~Newt_pop_size, 
+    y = ~Snake_pop_size, 
+    color = ~factor(snake), 
+    size = ~size,
+    frame = ~generation, 
+    text = ~factor(newt_snake_rep), 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  ) %>%
+  layout(
+    xaxis = list(
+      type = "log"
+    )
+  )
+
+p
+
+lit_30_G2_file$snake <- paste0(lit_30_G2_file$snake_mu_rate, "_",lit_30_G2_file$snake_mu_effect_sd)
+
+lit_30_G2_file$newt <- paste0(lit_30_G2_file$newt_mu_rate, "_",lit_30_G2_file$newt_mu_effect_sd)
+
+lit_30_G2_file$newt_snake_rep <- paste0(lit_30_G2_file$newt_mu_rate, "_", lit_30_G2_file$newt_mu_effect_sd, "_", lit_30_G2_file$snake_mu_rate, "_", lit_30_G2_file$snake_mu_effect_sd, "_", lit_30_G2_file$rep)
+
+lit_30_G2_file_mini<-lit_30_G2_file[which(lit_30_G2_file$generation>=0 & lit_30_G2_file$generation<=5000),]
+p <- lit_30_G2_file_mini %>%
   plot_ly(
     x = ~Newt_pop_size, 
     y = ~Snake_pop_size, 
     color = ~factor(sim), 
     #shape = ~factor(newt)
     frame = ~generation, 
-    #text = ~country, 
-    #hoverinfo = "text",
+    text = ~factor(sim), 
+    hoverinfo = "text",
     type = 'scatter',
     mode = 'markers'
   ) %>%
