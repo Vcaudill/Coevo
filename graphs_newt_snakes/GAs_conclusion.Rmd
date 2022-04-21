@@ -282,10 +282,12 @@ labels = c("Snake", "Newt", "Dif"))+
 
 First, I will look at a plot of how the mean phenotype of newts and snakes changes overtime. Each of these plots contains four replicas for all GA combinations (letter label is the experiment that was run, 16 Sim is from GA1 and 25 Sim is from GA2). Each of these plots has three lines, red for the mean newt phenotype, blue for the mean snake phenotype, and black for the difference between mean snake and mean newt phenotype. Note this is a mean for the entire population.
 
-```{r, graphing by gen}
-trends_by_gen(lit_30_file, title="Space: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
 
-trends_by_gen(lit_30_G2_file, title="Space: Newt VS Snake Population Size GA2", subt="Gen 25sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+```{r, graphing by gen}
+trends_by_gen(lit_30_file, title="Space: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations")
+
+trends_by_gen(lit_30_G2_file, title="Space: Newt VS Snake Population Size GA2", subt="Gen 25sims", y_label="Mean Phenotype", x_label="Generations")
 
 ```
 
@@ -313,6 +315,10 @@ In the GA2 experiment results are not as easy to summarize. Many of the simulati
 
 (there could still be an advantage from the beginning)
 
+
+This next section is a more visual representation of the summary plots. Here, there will be four heatmaps. The first two show the results from the GA1 experiment with the last two showing the results from the GA2 experiment. The heatmaps have the newt GAs on the x-axis and the snake GAs and the simulation replication number on the y-axis. The colors in the heat might will either be yellow to purple for the snake population size or blue to red for the difference in mean phenotypes.
+
+
 ```{r, heatmap}
 
 #params_GA1
@@ -339,7 +345,7 @@ library(gapminder)
 lit_30_file$snake <- paste0(lit_30_file$snake_mu_rate, "_",lit_30_file$snake_mu_effect_sd)
 lit_30_file$newt <- paste0(lit_30_file$newt_mu_rate, "_",lit_30_file$newt_mu_effect_sd)
 
-lit_30_file$newt_snake_rep <- paste0(lit_30_file$newt_mu_rate, "_", lit_30_file$newt_mu_effect_sd, "_", lit_30_file$snake_mu_rate, "_", lit_30_file$snake_mu_effect_sd, "_", lit_30_file$rep)
+lit_30_file$newt_snake_rep <- paste0("Newt_",lit_30_file$newt_mu_rate, "_", lit_30_file$newt_mu_effect_sd, "_Snake_",lit_30_file$snake_mu_rate, "_", lit_30_file$snake_mu_effect_sd, "_", lit_30_file$rep)
 
 #unique(lit_30_G2_file$snake)
 #params$newt_snake <- paste0(params$newt, "_", params$snake)
@@ -391,7 +397,7 @@ lit_30_G2_file$snake <- paste0(lit_30_G2_file$snake_mu_rate, "_",lit_30_G2_file$
 
 lit_30_G2_file$newt <- paste0(lit_30_G2_file$newt_mu_rate, "_",lit_30_G2_file$newt_mu_effect_sd)
 
-lit_30_G2_file$newt_snake_rep <- paste0(lit_30_G2_file$newt_mu_rate, "_", lit_30_G2_file$newt_mu_effect_sd, "_", lit_30_G2_file$snake_mu_rate, "_", lit_30_G2_file$snake_mu_effect_sd, "_", lit_30_G2_file$rep)
+lit_30_G2_file$newt_snake_rep <- paste0("Newt_",lit_30_G2_file$newt_mu_rate, "_", lit_30_G2_file$newt_mu_effect_sd, "_Snake_", lit_30_G2_file$snake_mu_rate, "_", lit_30_G2_file$snake_mu_effect_sd, "_", lit_30_G2_file$rep)
 
 lit_30_G2_file_mini<-lit_30_G2_file[which(lit_30_G2_file$generation>=0 & lit_30_G2_file$generation<=30000),]
 p <- lit_30_G2_file_mini %>%
@@ -401,7 +407,7 @@ p <- lit_30_G2_file_mini %>%
     color = ~factor(snake), 
     size = ~size,
     frame = ~generation, 
-    text = ~factor(sim), 
+    text = ~factor(newt_snake_rep), 
     hoverinfo = "text",
     type = 'scatter',
     mode = 'markers'
