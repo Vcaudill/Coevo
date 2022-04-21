@@ -229,7 +229,7 @@ params<-create_parm_file(file, min_gen, max_gen)
 
 my_plot <- ggplot(params) +
   #xlim(0, 1000)+
-  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, "gen to ", max_gen, " gen")) +
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
   xlab(x_label) + ylab(y_label)+
   geom_point(aes(x=as.numeric(get(x_line)), y=as.numeric(get(y_line)), color = factor(snake), shape=factor(newt)),size=3)+
 #  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)))+
@@ -248,7 +248,7 @@ build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, tit
   params<-create_parm_file(file, min_gen, max_gen)
   
  my_plot <- ggplot(params, aes(newt, paste0(snake, "_", rep))) +    # Create heatmap with ggplot2
-  ggtitle(title, subtitle = subt) +
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
   xlab(x_label) + ylab(y_label)+
   geom_tile(aes(fill = get(fill_line)))
  if(red_blue==FALSE){
@@ -260,11 +260,40 @@ build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, tit
   return(my_plot)
 }
 
+trends_by_gen <- function(file, title, subt, x_label, y_label){
+ 
+  plot <- ggplot(file) +
+    facet_wrap(~sim)+
+    geom_line(aes(generation, dif, col="dif"))+
+    ggtitle(title, subtitle = subt) +
+    geom_line(aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno"),)+
+    geom_line(aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno"))+
+    ylim(-5,10)+
+    xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  return(plot)
+  }
  
 ```
 
 
-First, I will look at a summary plot for the different GA sets. There are four points for each GA set (one for each replica).
+First, I will look at a plot of how the mean phenotype of newts and snakes changes overtime. Each of these plots contains four replicas for all GA combinations (letter label is the experiment that was run, 16 Sim is from GA1 and 25 Sim is from GA2). Each of these plots has three lines, red for the mean newt phenotype, blue for the mean snake phenotype, and black for the difference between mean snake and mean newt phenotype. Note this is a mean for the entire population.
+
+```{r, graphing by gen}
+trends_by_gen(lit_30_file, title="Space: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+trends_by_gen(lit_30_G2_file, title="Space: Newt VS Snake Population Size GA2", subt="Gen 25sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+```
+
+
+After looking at the GA1 and GA2 figures, I noticed that there are similarities between the four replicas (blue, red, and black lines follow similar trends). In the GA1 figure there is a strong trend increasing replica variability as the GA of newts creates an advantage (gets a smaller mutation rate and larger effect size). There is a similar pattern in variability of the replicas in snakes, as the replica variability increases so is the phenotype variability. I also noticed that newts seem to have a higher phenotype more often than snakes. In the GA2 figure the mean phenotypes of newts and snake are more closely matched (16/25). My question is why are there a collective difference in some of these simulation?
+
+
+Next, I will discuss a summary plot for the different GA sets. The first plot has the newt population size by snake population size (a larger population size might indicate a co-evolution advantage) and the second plot is the difference between snake and newt mean phenotype and snake population size. There are four points for each GA set (one for each replica). Color will represent the four GAs of the snake and the shapes will represent the four GAs of newts. Each plot will have a starting generation and an ending generation (that can easily be changed). 
 
 ```{r, graphing the summary}
 
@@ -278,6 +307,12 @@ GA_summary(lit_30_G2_file, min_gen=5000, max_gen=10000, x_line="dif", y_line="Sn
 
 ```
 
+The species which has the phenotype variance advantage will have a co-evolution advantage until the effect of some mutations is so large that that species losses its advantage to the cost of the phenotype. In the GA1 experiment snakes have a higher phenotype when their GA is blue or green and when paired with a newt GA of the plus and circle. Newts have a higher phenotype and population size when their GA is a square or triangle and when paired with a snake GA of purple or red.
+
+In the GA2 experiment results are not as easy to summarize. Many of the simulations result with similar population sizes or a low mean phenotype difference. The results depicted depend on the generations shown in the plot. A possible conclusion for this experiment is that the larger the effect size and smaller the mutation rate the more it is likely for one species to have a co-evolutionary advantage. For example lets look at the blue square with a X, Newts have a small mutation rate and a larger effect size for the same set of generations one replica of the same simulation shows the the snakes are winning and one simulation shows that the newts are winning. This could be that the newts got a few "lucky" mutations creating a higher phenotype leading them to "win" the co-evolutionary arms race or that the newts have not gotten any mutations or large effect and the snakes have slowly accumulated more mutations which have less of effect.
+
+(there could still be an advantage from the beginning)
+
 ```{r, heatmap}
 
 #params_GA1
@@ -286,9 +321,9 @@ build_heatmap(lit_30_file, min_gen=5000, max_gen=10000, fill_line="Snake_pop_siz
 
 build_heatmap(lit_30_file, min_gen=5000, max_gen=10000, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 
-build_heatmap(lit_30_G2_file, min_gen=5000, max_gen=10000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+build_heatmap(lit_30_G2_file, min_gen=5000, max_gen=10000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="25 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 
-build_heatmap(lit_30_G2_file, min_gen=5000, max_gen=10000, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
+build_heatmap(lit_30_G2_file, min_gen=5000, max_gen=10000, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="25 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 
 
 
@@ -306,7 +341,7 @@ lit_30_file$newt <- paste0(lit_30_file$newt_mu_rate, "_",lit_30_file$newt_mu_eff
 
 lit_30_file$newt_snake_rep <- paste0(lit_30_file$newt_mu_rate, "_", lit_30_file$newt_mu_effect_sd, "_", lit_30_file$snake_mu_rate, "_", lit_30_file$snake_mu_effect_sd, "_", lit_30_file$rep)
 
-unique(lit_30_G2_file$snake)
+#unique(lit_30_G2_file$snake)
 #params$newt_snake <- paste0(params$newt, "_", params$snake)
 
 lit_30_file_min<-lit_30_file[which(lit_30_file$generation>=5000 & lit_30_file$generation<=5550),]
@@ -328,7 +363,29 @@ p <- lit_30_file_min %>%
     )
   )
 
+#p
+
+lit_30_file_min<-lit_30_file[which(lit_30_file$generation>=0 & lit_30_file$generation<=30000),]
+p <- lit_30_file_min %>%
+  plot_ly(
+    x = ~Newt_pop_size, 
+    y = ~Snake_pop_size, 
+    color = ~factor(snake), 
+    size = ~size,
+    frame = ~generation, 
+    text = ~factor(newt_snake_rep), 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  ) %>%
+  layout(
+    xaxis = list(
+      type = "log"
+    )
+  )
+
 p
+
 
 lit_30_G2_file$snake <- paste0(lit_30_G2_file$snake_mu_rate, "_",lit_30_G2_file$snake_mu_effect_sd)
 
@@ -336,13 +393,13 @@ lit_30_G2_file$newt <- paste0(lit_30_G2_file$newt_mu_rate, "_",lit_30_G2_file$ne
 
 lit_30_G2_file$newt_snake_rep <- paste0(lit_30_G2_file$newt_mu_rate, "_", lit_30_G2_file$newt_mu_effect_sd, "_", lit_30_G2_file$snake_mu_rate, "_", lit_30_G2_file$snake_mu_effect_sd, "_", lit_30_G2_file$rep)
 
-lit_30_G2_file_mini<-lit_30_G2_file[which(lit_30_G2_file$generation>=0 & lit_30_G2_file$generation<=5000),]
+lit_30_G2_file_mini<-lit_30_G2_file[which(lit_30_G2_file$generation>=0 & lit_30_G2_file$generation<=30000),]
 p <- lit_30_G2_file_mini %>%
   plot_ly(
     x = ~Newt_pop_size, 
     y = ~Snake_pop_size, 
-    color = ~factor(sim), 
-    #shape = ~factor(newt)
+    color = ~factor(snake), 
+    size = ~size,
     frame = ~generation, 
     text = ~factor(sim), 
     hoverinfo = "text",
@@ -357,9 +414,6 @@ p <- lit_30_G2_file_mini %>%
 
 p
 ```
-
-
-
 
 
 
