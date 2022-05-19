@@ -20,6 +20,7 @@ newt and snake data from Hanifin et al. 2008
 
 ```{r, reak data cor}
 snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
+
 snewt$mean_res = snewt$mean_toxin+snewt$dif
 cor(snewt$mean_toxin, snewt$mean_res)
 (sites <- data.frame(longitude = snewt$lon, latitude = snewt$lat))
@@ -72,14 +73,16 @@ GA2 experiment values:
 
 ```{r, cor by location}
 
-cor_grid_30 <- list.files(path="~/Desktop/GA1_rep", pattern="_grid_", full.names=TRUE, recursive=FALSE)
-cor_grid_30_G2 <- list.files(path="~/Desktop/GA2_rep", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+#cor_grid_30 <- list.files(path="~/Desktop/GA1_rep", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+#cor_grid_30_G2 <- list.files(path="~/Desktop/GA2_rep", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+cor_grid_30 <- list.files(path="~/Desktop/GA1_csv_notperarea", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+cor_grid_30_G2 <- list.files(path="~/Desktop/GA2_csv_notperarea", pattern="_grid_", full.names=TRUE, recursive=FALSE)
 
 cor_grid_30_file<-read.csv(cor_grid_30[1], header = TRUE)
 replica <- unlist(str_split(unlist(str_split(cor_grid_30[1],"rep_"))[3], "_"))[1]
 cor_grid_30_file$rep<-replica
 cor_grid_30_file$sim <-"A"
-cor_grid_30_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30[i],"rep_"))[3], "_"))[1]
+cor_grid_30_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30[1],"rep_"))[3], "_"))[1]
 cor_grid_30_file$snake_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30[1],"snake_mu_rate_"))[2], "_"))[1]
 cor_grid_30_file$newt_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30[1],"newt_mu_rate_"))[2], "_"))[1]
 cor_grid_30_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30[1],"snake_mu_effect_sd_"))[2], "_"))[1]
@@ -89,22 +92,22 @@ cor_grid_30_G2_file<-read.csv(cor_grid_30_G2[1], header = TRUE)
 replica <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"rep_"))[3], "_"))[1]
 cor_grid_30_G2_file$rep<-replica
 cor_grid_30_G2_file$sim <-"A"
-cor_grid_30_G2_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30_G2[i],"rep_"))[3], "_"))[1]
+cor_grid_30_G2_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"rep_"))[3], "_"))[1]
 cor_grid_30_G2_file$snake_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"snake_mu_rate_"))[2], "_"))[1]
 cor_grid_30_G2_file$newt_mu_rate <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"newt_mu_rate_"))[2], "_"))[1]
 cor_grid_30_G2_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"snake_mu_effect_sd_"))[2], "_"))[1]
 cor_grid_30_G2_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30_G2[1],"newt_mu_effect_sd_"))[2], "_"))[1]
 
-i=2
+
 oldstand=0
 letter=1
-for(i in seq(2, length(cor_grid_30_G2), 1)){
+for(i in seq(1, length(cor_grid_30_G2), 1)){
   stand <- unlist(str_split(unlist(str_split(cor_grid_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
   if (stand!=oldstand){
     oldstand=stand
-    letter = letter + 1
+    #letter = letter + 1
   }
-  
+  letter = i
   GA2_lit_temp_file <- read.csv(cor_grid_30_G2[i], header = TRUE)
   GA2_lit_temp_file$sim <-LETTERS[letter]
   GA2_lit_temp_file$rep <-unlist(str_split(unlist(str_split(cor_grid_30_G2[i],"rep_"))[3], "_"))[1]
@@ -141,15 +144,297 @@ cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_grid_30
 
 ```{r, small sample}
 
+cor_grid_30_file$snake <- paste0(cor_grid_30_file$snake_mu_rate, "_",cor_grid_30_file$snake_mu_effect_sd)
+cor_grid_30_file$newt <- paste0(cor_grid_30_file$newt_mu_rate, "_",cor_grid_30_file$newt_mu_effect_sd)
+
+cor_grid_30_file$newt_snake_rep <- paste0("Newt_",cor_grid_30_file$newt_mu_rate, "_", cor_grid_30_file$newt_mu_effect_sd, "_Snake_",cor_grid_30_file$snake_mu_rate, "_", cor_grid_30_file$snake_mu_effect_sd, "_", cor_grid_30_file$rep)
+
+
+
+#GA1_mean = cor_grid_30_file[ , grepl( "mean" , names( cor_grid_30_file ) ) ]
+
+
+#unique(cor_grid_30_file$newt_snake_rep)
 
 GA1<-cor_grid_30_file[which(cor_grid_30_file$generation>=10000 & cor_grid_30_file$gen<=110000 ),]
-GA2<-cor_grid_30_G2_file[which(cor_grid_30_G2_file$generation>=10000 & cor_grid_30_G2_file$gen<=110000 ),]
-length(GA1$generation)
+#GA2<-cor_grid_30_G2_file[which(cor_grid_30_G2_file$generation>=10000 & cor_grid_30_G2_file$gen<=110000 ),]
+#length(GA1$generation)
 
-GA1<-cor_grid_30_file[which(cor_grid_30_file$generation==10001 & rep==0),]
-GA1_mean = GA1[ , grepl( "mean" , names( GA1 ) ) ]
-GA1T<-data.frame(t(GA1_mean))
-GA1T
+
+#GA1<-cor_grid_30_file[which(cor_grid_30_file$generation<=50 & cor_grid_30_file$newt_snake_rep=="Newt_1.0e-08_0.005_Snake_1.0e-09_0.05_2"),]
+
+GA1_mean = GA1[,grepl("generation|mean", names(GA1)) ]
+
+#How to remake the dataframe into gen, newt_value, snake_value, location (x, y)?
+
+GA1_t <- data.frame(t(GA1_mean))
+
+loc_x = 1
+loc_y = 5
+skip = 1
+GA1_t$loc_x = 0
+GA1_t$loc_y = 0
+GA1_t$species = 0
+grid_info <- as.character(rownames(GA1_t))
+for (i in 2:nrow(GA1_t)){
+   #print(as.numeric(unlist(str_split(i,"_pheno_"))[2]))
+  
+  GA1_t$species[i] = unlist(str_split(grid_info[i],"_mean"))[1]
+  
+  if(loc_y==0){
+    loc_x = loc_x + 1
+    loc_y = 5
+  }
+  #print(paste0(loc_x, " ", loc_y))
+  GA1_t$loc_x[i]= loc_x
+GA1_t$loc_y[i] = loc_y
+  
+  if (skip %% 2 == 0 ){
+    loc_y = loc_y - 1
+  } 
+  skip = skip +1
+  
+}
+
+GA1_t$names<- rownames(GA1_t)
+
+GA1_mean = cor_grid_30_file[,grepl( "mean" , names(cor_grid_30_file)) ]
+GA1_mean$generation <- cor_grid_30_file$generation
+GA1_mean$rep <- cor_grid_30_file$rep
+GA1_mean$snake_mu_rate <- cor_grid_30_file$snake_mu_rate
+GA1_mean$newt_mu_rate <- cor_grid_30_file$newt_mu_rate
+GA1_mean$snake_mu_effect_sd <- cor_grid_30_file$snake_mu_effect_sd
+GA1_mean$newt_mu_effect_sd <- cor_grid_30_file$newt_mu_effect_sd
+GA1_mean$snake <- cor_grid_30_file$snake
+GA1_mean$newt <- cor_grid_30_file$newt
+GA1_mean$newt_snake_rep <- cor_grid_30_file$newt_snake_rep
+
+
+data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_24, factor_key=TRUE)
+
+
+data_long_mean$lox <- GA1_t[match(data_long_mean$condition, GA1_t$names),"loc_x"]
+data_long_mean$loy <- GA1_t[match(data_long_mean$condition, GA1_t$names),"loc_y"]
+data_long_mean$species <- GA1_t[match(data_long_mean$condition, GA1_t$names),"species"]
+
+
+
+GA1_max = cor_grid_30_file[,grepl( "max" , names(cor_grid_30_file)) ]
+GA1_max$generation <- cor_grid_30_file$generation
+GA1_max$rep <- cor_grid_30_file$rep
+GA1_max$snake_mu_rate <- cor_grid_30_file$snake_mu_rate
+GA1_max$newt_mu_rate <- cor_grid_30_file$newt_mu_rate
+GA1_max$snake_mu_effect_sd <- cor_grid_30_file$snake_mu_effect_sd
+GA1_max$newt_mu_effect_sd <- cor_grid_30_file$newt_mu_effect_sd
+GA1_max$snake <- cor_grid_30_file$snake
+GA1_max$newt <- cor_grid_30_file$newt
+GA1_max$newt_snake_rep <- cor_grid_30_file$newt_snake_rep
+
+data_long_max <- gather(GA1_max, condition, measurement, newt_max_pheno_0:snake_max_pheno_24, factor_key=TRUE)
+
+data_long_max$lox <- data_long_mean$lox 
+data_long_max$loy <- data_long_mean$loy
+data_long_max$species <- data_long_mean$species
+
+
+```
+
+
+
+
+```{r, grid graph values}
+
+GA1_onefile<-data_long_mean[which(data_long_mean$newt_snake_rep=="Newt_1.0e-10_0.5_Snake_1.0e-10_0.5_0" & data_long_max$gen==29981 ),]
+
+#GA1_onefile<-data_long_mean[which(data_long_mean$newt_snake_rep==unique(data_long_mean$newt_snake_rep)[16] & data_long_max$gen==29981 ),]
+
+#GA1_onefile<-data_long_max[which(data_long_max$newt_snake_rep=="Newt_1.0e-10_0.5_Snake_1.0e-10_0.5_0" & data_long_max$gen==29051 ),]
+
+ggplot(GA1_onefile)+
+ 
+  geom_point(data = GA1_onefile[which(GA1_onefile$species=="snake"),], aes(x = lox, y = loy, fill = measurement), size = 10, shape = 22, ) +
+  geom_point(data = GA1_onefile[which(GA1_onefile$species=="newt"),], aes(x = lox, y = loy, fill = measurement), size = 7, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()
+
+
+
+
+```
+
+
+```{r, corelation plots}
+
+cor_files <- list.files(path="~/Desktop/GA1_rep", pattern="_cor_", full.names=TRUE, recursive=FALSE)
+cor_GA2_files <- list.files(path="~/Desktop/GA2_rep", pattern="_cor_", full.names=TRUE, recursive=FALSE)
+lit_30 <- list.files(path="~/Desktop/GA1_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
+lit_30_G2 <- list.files(path="~/Desktop/GA2_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
+
+lit_30_file<- data.frame()
+lit_30_G2_file <- data.frame()
+
+
+number=1
+#cor_file <- read.csv(cor_files[number], header = TRUE)
+#cor_file$sim <-"A"
+#cor_GA2_file <- read.csv(cor_GA2_files[number], header = TRUE)
+#cor_GA2_file$sim <-"A"
+
+cor_file<- data.frame()
+cor_GA2_file<- data.frame()
+oldstand=0
+letter=0
+newt_unique=0
+newt_numb = 0
+for(i in seq(1, length(cor_GA2_files), 1)){
+  stand <- unlist(str_split(unlist(str_split(cor_GA2_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  up <- unlist(str_split(unlist(str_split(cor_GA2_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  phrase = paste0(stand, "_", up)
+  if (stand!=oldstand){
+    oldstand=stand
+    letter = letter + 1
+  }
+
+    if (phrase=="1.0e-08_0.05" ){
+    newt_numb =  1
+   }
+    if (phrase=="1.0e-09_0.158114"){
+    newt_numb =  2
+   }
+      if (phrase=="1.0e-10_0.5"){
+    newt_numb =  3
+   }
+    if (phrase=="1.0e-11_1.58114"){
+    newt_numb =  4
+   }
+  
+      if (phrase=="1.0e-12_5.0"){
+    newt_numb =  5
+   }
+
+  
+
+  GA2_cor_temp_file <- read.csv(cor_GA2_files[i], header = TRUE)
+  GA2_cor_temp_file$sim <-LETTERS[letter]
+  GA2_cor_temp_file$size <-newt_numb
+  GA2_cor_temp_file$rep <-unlist(str_split(unlist(str_split(cor_GA2_files[i],"rep_"))[3], "_"))[1]
+  GA2_cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(cor_GA2_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  GA2_cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(cor_GA2_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  GA2_cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_GA2_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  GA2_cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_GA2_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  
+  cor_GA2_file <- rbind(cor_GA2_file, GA2_cor_temp_file)
+  
+  GA2_lit_temp_file <- read.csv(lit_30_G2[i], header = TRUE)
+  GA2_lit_temp_file$sim <-LETTERS[letter]
+  GA2_lit_temp_file$size <-newt_numb
+  GA2_lit_temp_file$rep <-unlist(str_split(unlist(str_split(lit_30_G2[i],"rep_"))[3], "_"))[1]
+  GA2_lit_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"snake_mu_rate_"))[2], "_"))[1]
+  GA2_lit_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_rate_"))[2], "_"))[1]
+  GA2_lit_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  GA2_lit_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30_G2[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+
+  
+  lit_30_G2_file <- rbind(lit_30_G2_file, GA2_lit_temp_file)
+  
+
+  if (i<=length(cor_files)){
+  stand <- unlist(str_split(unlist(str_split(cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  up <- unlist(str_split(unlist(str_split(cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  phrase = paste0(stand, "_", up)
+
+   if (phrase=="1.0e-08_0.005"){
+    newt_numb =  1
+   }
+    if (phrase=="1.0e-09_0.05"){
+    newt_numb =  2
+   }
+      if (phrase=="1.0e-10_0.5"){
+    newt_numb =  3
+   }
+    if (phrase=="1.0e-11_5.0"){
+    newt_numb =  4
+   }
+  cor_temp_file <- read.csv(cor_files[i], header = TRUE)
+  cor_temp_file$sim <-LETTERS[letter]
+  cor_temp_file$size <-newt_numb
+  cor_temp_file$rep <-unlist(str_split(unlist(str_split(cor_files[i],"rep_"))[3], "_"))[1]
+  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  cor_file <- rbind(cor_file, cor_temp_file)
+  
+  GA1_temp_file <- read.csv(lit_30[i], header = TRUE)
+  GA1_temp_file$sim <-LETTERS[letter]
+  GA1_temp_file$size <-newt_numb
+  GA1_temp_file$rep <-unlist(str_split(unlist(str_split(lit_30[i],"rep_"))[3], "_"))[1]
+  GA1_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_rate_"))[2], "_"))[1]
+  GA1_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_rate_"))[2], "_"))[1]
+  GA1_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  GA1_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(lit_30[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  lit_30_file <- rbind(lit_30_file, GA1_temp_file)
+  
+  #print(paste0("Simulation ", LETTERS[letter],": Snake mu-rate & effect sd (", cor_temp_file$snake_mu_rate[i],", ", cor_temp_file$snake_mu_effect_sd[i], ") Newt mu-rate & effect sd (", cor_temp_file$newt_mu_rate[i], ", ",cor_temp_file$ newt_mu_effect_sd[i], ")" ))
+  }
+  
+}
+lit_30_file$dif <- lit_30_file$Snake_mean_Pheno-lit_30_file$Newt_mean_Pheno
+lit_30_G2_file$dif <- lit_30_G2_file$Snake_mean_Pheno-lit_30_G2_file$Newt_mean_Pheno
+
+```
+
+
+
+```{r, cor box set up}
+
+boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+  ylim(-1.1, 1.1)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(rep), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "CA"))+
+  geom_hline(yintercept=real_snewt_cor)+
+  #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
+  theme(plot.title = element_text(size=5)) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+
+  return(plot)
+}
+
+trends_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+ file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+    facet_wrap(~sim)+
+    geom_line(aes(generation, dif, group=rep, col="dif"))+
+    ggtitle(title, subtitle = subt) +
+    geom_line(aes(generation, Snake_mean_Pheno, group=rep, color="Snake_mean_Pheno"),)+
+    geom_line(aes(generation, Newt_mean_Pheno, group=rep, color="Newt_mean_Pheno"))+
+    ylim(-5,10)+
+    xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  return(plot)
+}
+
+
+boxplot_cors_by_gen(cor_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", 10000, 15000)
+
+boxplot_cors_by_gen(cor_GA2_file, "Simulation Correlation Comparied to Real Correlation", "GA2", "newt/snake GAs&rep", "Cor", 10000, 15000)
+
+trends_by_gen(lit_30_file, "test", "GA1", "newt/snake GAs&rep", "Cor", 10000, 15000)
+
 ```
 
 

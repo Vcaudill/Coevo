@@ -1,0 +1,26 @@
+---
+title: "graph dor DAC"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r, fitness graph}
+setCOST=100
+Phenotype= seq(1, 20, 0.5)
+the_y = exp(-(Phenotype/setCOST)^2)
+
+plot(Phenotype, the_y, type="l", lwd=3)
+
+
+Phenotype= seq(1, 20, 0.5)
+Cost = 1-exp(-(Phenotype/setCOST)^2)
+
+plot(Phenotype, Cost, type="l", lwd=3)
+#how to change this to the probably of survival
+
+```

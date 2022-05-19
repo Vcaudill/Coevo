@@ -563,8 +563,37 @@ dif <- ggplot(GA_file[ which(GA_file$gen!=1),]) +
   scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
   #labs(colour = color_label) +
   facet_wrap(~sim)+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
 dif
+# for the poster
+# title="Newt & Snake Mean Phenotype as Generations Increases"
+# subt="Newt & Snake GA: Mutation Rate 1e-10, Effect size 0.5"
+# y_label="Mean Phenotype"
+# x_label="Generations"
+# ggplot(GA_file_100[ which(GA_file_100$gen!=1 & GA_file_100$sim=="K"),]) +
+#   xlim(0, 30000)+
+#   ggtitle(title, subtitle = subt) +
+#   xlab(x_label) + ylab(y_label)+
+#   geom_line(aes(x=as.numeric(gen), y=as.numeric(Snake_mean_Pheno)),size=1, color = "steelblue")+
+#   geom_line(aes(x=as.numeric(gen), y=as.numeric(Newt_mean_Pheno)),size=1, color = "darkred")+
+#   theme(plot.title = element_text(size=5)) +
+#   #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+#   #labs(colour = color_label) +
+#   #facet_wrap(~sim)+
+#   theme_bw(base_size = 14,) 
+# theme(axis.text.x = element_text(angle = 45, hjust=1, size = 14),
+#                       axis.text.y = element_text(size = 14), 
+#                       strip.background = element_blank(), 
+#                       axis.text=element_text(size=16), 
+#                       axis.title=element_text(size=18),
+#                       strip.text.x = element_blank())
 ```
 
 The relationship between a species population size and the "whining" species can be a times easy to spot (C, G, O, I, J, L, and P), but at other times it can be hard to discern. When snakes are "winning" their population size is greater than the newts. When the newts are "winning" their population size is equal or greater then the snakes. There are other question that I have for this figure, like why are A, F, K, and P not beige? Or why the species with highest variation is not "winning" in the co-evolutionary arms race? I wonder if I would get these sames results if I ran the simulation for longer? - I suspect not because it seems like the colors are getting lighter (as least they look this way in the plot). 

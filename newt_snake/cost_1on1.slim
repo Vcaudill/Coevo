@@ -72,48 +72,48 @@ function (float)summarize_ind_num(o<Subpopulation>$ subpop, i$ grid_res_value, i
 {
 	//counting the number of individuals by the area they are in
 	grid_res= c(grid_res_value,grid_res_value);
-	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
-	catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0); //, perUnitArea=T
+	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
 }
 
 function (float)summarize_mean_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
-	//counting the number of individuals by the area they are in
+	//mean phenotype of an area
 	grid_res= c(grid_res_value,grid_res_value);
-	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
-	catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);//, perUnitArea=T
+	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
 }
 
 function (float)summarize_sd_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
-	//counting the number of individuals by the area they are in
+	//pheno sd of an area
 	grid_res= c(grid_res_value,grid_res_value);
-	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)sd(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
-	catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)sd(individuals.getValue('pheno')); else length(individuals); ", empty=0.0); //, perUnitArea=T
+	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
 }
 
 function (float)summarize_max_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
-	//counting the number of individuals by the area they are in
+	//max phenotype of an area
 	grid_res= c(grid_res_value,grid_res_value);
-	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)max(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
-	catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)max(individuals.getValue('pheno')); else length(individuals); ", empty=0.0); //, perUnitArea=T
+	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
 }
 
 function (float)summarize_min_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
-	//counting the number of individuals by the area they are in
+	//the min phenotype of an area 
 	grid_res= c(grid_res_value,grid_res_value);
-	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)min(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
-	catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)min(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);//, perUnitArea=T
+	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
 }

@@ -122,8 +122,8 @@ Newt_pop_size <- making_data_frames(files, all_of("Newt_pop_size"))
 Snake_pop_size <- making_data_frames(files, all_of("Snake_pop_size"))
 
 # Files for space results
-files_u5 <- list.files(path="~/Desktop/beta_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
-
+#files_u5 <- list.files(path="~/Desktop/beta_u5", pattern="nu_*1.56", full.names=TRUE, recursive=FALSE)
+files_u5<- list.files(path="~/Desktop/cor_5000/cor_byUnit/text_files", pattern="GA5_lit_", full.names=TRUE, recursive=FALSE)
 beta_n_s <- making_data_frames(files_u5, all_of("beta_n"))
 beta_s_s <- making_data_frames(files_u5, all_of("beta_s"))
 Newt_mean_Pheno_s <- making_data_frames(files_u5, all_of("Newt_mean_Pheno"))
@@ -142,7 +142,8 @@ Snake_pop_size_s <- making_data_frames(files_u5, all_of("Snake_pop_size"))
 
 vc1 <- var_by_var(Newt_pop_size, Snake_mean_Pheno, Newt_mean_Pheno, Snake_pop_size, title="NoSpace: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake-Newt Phenotype" , highcol="darkred") 
 
-vc2_s <- var_by_var(Newt_pop_size_s, Snake_mean_Pheno_s, Newt_mean_Pheno_s, Snake_pop_size_s, title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake-Newt Phenotype", highcol="steelblue") 
+end = 3
+vc2_s <- var_by_var(Newt_pop_size_s[,-(1:end)] , Snake_mean_Pheno_s[,-(1:end)], Newt_mean_Pheno_s[,-(1:end)], Snake_pop_size_s[,-(1:end)], title="Space: Newt VS Snake Population Size Color=Phenotype", subt="sigma = 0.1, mu = 1.0e-10", y_label="Snake Popsize", x_label="Newt Popsize", colored=TRUE, color_label="Snake-Newt Phenotype", highcol="steelblue") 
 
 name_of_file= paste0("~/Desktop/figs/popsize_by_popsize_phenodifcolor", ".png")
 png(filename =name_of_file)

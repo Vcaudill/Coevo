@@ -52,7 +52,7 @@ The first thing I do is gather the data from each GA set, paying attention to al
 
 ```{r, data gathering}
 
-para_table <- read.csv("/Users/victoria/Desktop/Coevo/data/GAtestvar_lit.csv", header = TRUE)
+para_table <- read.csv("/Users/victoria/Desktop/Coevo/data/GA1_values.csv", header = TRUE)
 para_table$trial<-LETTERS[para_table$trial]
 para_table <- data.frame("Trial"=para_table$trial, "Snake Mu Rate"=para_table$snake_mu_rate, "Snake effect size"= para_table$snake_mu_effect_sd, "Newt Mu Rate"=para_table$newt_mu_rate, "Newt effect size"= para_table$newt_mu_effect_sd)
 #kable(para_table, caption="GA2 Params")
@@ -250,7 +250,7 @@ build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, tit
  my_plot <- ggplot(params, aes(newt, paste0(snake, "_", rep))) +    # Create heatmap with ggplot2
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
   xlab(x_label) + ylab(y_label)+
-  geom_tile(aes(fill = get(fill_line)))
+  geom_tile(aes(fill = get(fill_line)))+theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
  if(red_blue==FALSE){
   my_plot<- my_plot + scale_fill_viridis_c(name = fill_line_text)
   }
@@ -264,10 +264,10 @@ trends_by_gen <- function(file, title, subt, x_label, y_label){
  
   plot <- ggplot(file) +
     facet_wrap(~sim)+
-    geom_line(aes(generation, dif, col="dif"))+
+    geom_line(aes(generation, dif, group=rep, col="dif"))+
     ggtitle(title, subtitle = subt) +
-    geom_line(aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno"),)+
-    geom_line(aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno"))+
+    geom_line(aes(generation, Snake_mean_Pheno, group=rep, color="Snake_mean_Pheno"),)+
+    geom_line(aes(generation, Newt_mean_Pheno, group=rep, color="Newt_mean_Pheno"))+
     ylim(-5,10)+
     xlab(x_label) + ylab(y_label)+
     scale_color_manual(name = "Type",
@@ -301,9 +301,9 @@ Next, I will discuss a summary plot for the different GA sets. The first plot ha
 
 GA_summary(lit_30_file, min_gen=5000, max_gen=10000, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
 
-GA_summary(lit_30_file, min_gen=5000, max_gen=10000, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 25sims", y_label="Snake Popsize", x_label="Dif")
+GA_summary(lit_30_file, min_gen=5000, max_gen=10000, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
 
-GA_summary(lit_30_G2_file, min_gen=5000, max_gen=10000, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+GA_summary(lit_30_G2_file, min_gen=5000, max_gen=10000, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 25sims", y_label="Snake Popsize", x_label="Newt Popsize")
 
 GA_summary(lit_30_G2_file, min_gen=5000, max_gen=10000, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 25sims", y_label="Snake Popsize", x_label="Dif")
 
@@ -327,7 +327,17 @@ build_heatmap(lit_30_file, min_gen=5000, max_gen=10000, fill_line="Snake_pop_siz
 
 build_heatmap(lit_30_file, min_gen=5000, max_gen=10000, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 
-build_heatmap(lit_30_G2_file, min_gen=5000, max_gen=10000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="25 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+#build_heatmap(lit_30_file, min_gen=5000, max_gen=10000, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=F)
+
+build_heatmap(lit_30_G2_file, min_gen=10000, max_gen=11000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="25 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+
+build_heatmap(lit_30_G2_file, min_gen=000, max_gen=5000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="25 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+
+build_heatmap(lit_30_G2_file, min_gen=15000, max_gen=20000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="25 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+
+build_heatmap(lit_30_G2_file, min_gen=20000, max_gen=25000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="25 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+
+build_heatmap(lit_30_G2_file, min_gen=25000, max_gen=30000, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="25 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 
 build_heatmap(lit_30_G2_file, min_gen=5000, max_gen=10000, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="25 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 

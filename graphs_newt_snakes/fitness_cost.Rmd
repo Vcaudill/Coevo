@@ -548,19 +548,19 @@ I run one cost1on1 simulation per cost value. Each of these simulations start ou
 
 ```{r, phenotypes at differnt costs data gather}
 
-files <- list.files(path="~/Desktop/data", pattern="costtest", full.names=TRUE, recursive=FALSE)
+files <- list.files(path="~/Desktop/data/cost_test", pattern="costtest_", full.names=TRUE, recursive=FALSE)
 number=1
 file <- read.table(files[number], header = TRUE)
 #file_name <- substr(files[number], 36, 186)
 #print(paste0("File Name: ", file_name))
 
-costnum <- as.numeric(unlist(strsplit(files[number], split= "_"))[30])
+costnum <- as.numeric(unlist(strsplit(files[number], split= "_"))[31])
 file$cost <-costnum
 
 
 for(i in seq(2, length(files), 2)){
   temp_file <- read.table(files[i], header = TRUE)
-  costnum<-as.numeric(unlist(strsplit(files[i], split= "_"))[30])
+  costnum<-as.numeric(unlist(strsplit(files[i], split= "_"))[31])
   temp_file$cost <-costnum
   file <- rbind(file, temp_file)
   
@@ -571,6 +571,7 @@ for(i in seq(2, length(files), 2)){
 pl1 <- ggplot(file, aes(gen, Newt_mean_Pheno, col=factor(cost))) + geom_line()+ 
     ggtitle("Newt Mean Pheno by Gen", subtitle = "Different Cost") +
     xlab("Generations") + ylab("Phenotype")+
+  xlim(0, 5001)+
     theme_bw() 
 
 pl2 <- ggplot(file, aes(gen, Snake_mean_Pheno, col=factor(cost))) + geom_line()+ 
