@@ -10,6 +10,8 @@ library(ggmap)
 library(ggplot2)
 library(sf)
 library(mapview)
+library(ggpubr)
+theme_set(theme_pubr())
 ```
 
 
@@ -263,6 +265,11 @@ ggplot(GA1_onefile)+
 ```
 
 
+
+
+
+
+
 ```{r, corelation plots}
 
 cor_files <- list.files(path="~/Desktop/GA1_rep", pattern="_cor_", full.names=TRUE, recursive=FALSE)
@@ -411,30 +418,120 @@ boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, ma
   return(plot)
 }
 
-trends_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
- file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
-    facet_wrap(~sim)+
-    geom_line(aes(generation, dif, group=rep, col="dif"))+
-    ggtitle(title, subtitle = subt) +
-    geom_line(aes(generation, Snake_mean_Pheno, group=rep, color="Snake_mean_Pheno"),)+
-    geom_line(aes(generation, Newt_mean_Pheno, group=rep, color="Newt_mean_Pheno"))+
-    ylim(-5,10)+
-    xlab(x_label) + ylab(y_label)+
-    scale_color_manual(name = "Type",
-values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
-labels = c("Snake", "Newt", "Dif"))+
-    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen){
+  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+  real_snewt_var = var(snewt$dif)
+  cfile$newt_snake_rep <- paste0("Newt_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_Snake_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
+  var_cor_table=data.frame()
+
+  
+  for(i in 1:length(unique(file$newt_snake_rep))){
+    pattern<-unique(file$newt_snake_rep)[i]
+    temp_file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep==pattern),]
+    temp_cor_file<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$newt_snake_rep==pattern),]
+    
+    var_cor_table_temp<- data.frame("pattern"=pattern, "var"= var(temp_file$dif),"cor" = cor(temp_file$newt_toxin, temp_file$snake_res), "mean_corr" = mean(temp_cor_file$mean_newt_pheno_By_mean_snake_pheno))
+    var_cor_table <- rbind(var_cor_table, var_cor_table_temp)
+  }
+ 
+  var_cor_table_temp<- data.frame("pattern"="real", "var"= real_snewt_var, "cor" = real_snewt_cor, "mean_corr" = real_snewt_cor)
+  var_cor_table <- rbind(var_cor_table, var_cor_table_temp)
+  
+  plot <- ggplot(var_cor_table) +
+  #ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  #xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(var), y=as.numeric(cor), color = pattern), shape=17, size=3)+
+  geom_point(aes(x=as.numeric(var), y=as.numeric(mean_corr), color = pattern), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
   return(plot)
 }
 
+
+
+trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern){
+ file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+  cfile$newt_snake_rep <- paste0(cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep==pattern),]) +
+    #geom_line(aes(generation, dif, group=rep, col="dif"))+
+      ggtitle(title, subtitle = paste0(subt," pattern ", pattern, " From ", min_gen, " gen to ", max_gen, " gen"))+
+    geom_line(aes(generation, Snake_mean_Pheno, group=rep, color="Snake_mean_Pheno"),)+
+    geom_line(aes(generation, Newt_mean_Pheno, group=rep, color="Newt_mean_Pheno"))+
+    #ylim(0,10)+
+    #xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred"),
+labels = c("Snake", "Newt"))+
+    theme_bw() +theme(legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_blank(),
+                      plot.margin=unit(c(1,1,+0.3,1), "cm"))
+  
+  cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$newt_snake_rep==pattern),]) +
+    geom_line(aes(generation, mean_newt_pheno_By_mean_snake_pheno, col="CA"))+
+    #ggtitle(title, subtitle = subt) +
+    ylim(-1.1, 1.1)+
+    #xlab(x_label_cor) + ylab(y_label)+
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank(),
+                      plot.margin=unit(c(-0.5,1,1,1), "cm"))
+  
+  file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep==pattern),]
+  cfile<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$newt_snake_rep==pattern),]
+  toDelete <- seq(0, nrow(cfile), 2)
+  cfile_short <-  cfile[-toDelete, ]
+  figure <- ggarrange(plot, cor_plot + font("x.text", size = 10),heights = c(2, 1.5),ncol = 1, nrow = 2, align = "v")
+    print(paste0("pattern ", pattern))
+  print(paste0("Cor between average snake pheno and local cor ", cor(file$Snake_mean_Pheno, cfile_short$mean_newt_pheno_By_mean_snake_pheno)))
+  print(paste0("Cor between average newt pheno and local cor ", cor(file$Newt_mean_Pheno, cfile_short$mean_newt_pheno_By_mean_snake_pheno)))
+  print(paste0("Cor between average dif pheno and local cor ", cor(file$dif, cfile_short$mean_newt_pheno_By_mean_snake_pheno)))
+  return(figure)
+}
+
+
+
+```
+
+```{r, myplots}
 
 boxplot_cors_by_gen(cor_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", 10000, 15000)
 
 boxplot_cors_by_gen(cor_GA2_file, "Simulation Correlation Comparied to Real Correlation", "GA2", "newt/snake GAs&rep", "Cor", 10000, 15000)
 
-trends_by_gen(lit_30_file, "test", "GA1", "newt/snake GAs&rep", "Cor", 10000, 15000)
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=5000, pattern="1.0e-10_0.5_1.0e-10_0.5_3")
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=10000, max_gen=15000, pattern="1.0e-10_0.5_1.0e-10_0.5_3")
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=5000, pattern="1.0e-08_0.005_1.0e-08_0.005_1")
+
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=15000, pattern="1.0e-09_0.05_1.0e-08_0.005_2")
+
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=15000, pattern="1.0e-08_0.005_1.0e-09_0.05_2")
+
+trends_by_gen(lit_30_G2_file, cor_GA2_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=15000, pattern="1.0e-08_0.05_1.0e-08_0.05_2")
 
 ```
+
+
+
+```{r, varation}
+snake_info<-data_long_mean[which(data_long_mean$species=="snake"),]
+newt_info<-data_long_mean[which(data_long_mean$species=="newt"),]
+
+names(newt_info)[names(newt_info) == 'measurement'] <- 'newt_toxin'
+newt_info$snake_res<-snake_info$measurement
+newt_info$dif<-newt_info$snake_res-newt_info$newt_toxin
+
+
+var_cor(newt_info, cor_file, "var by cor", "mini", "var", "cor", 10000, 15000)
+
+```
+
+
+
+
 
 

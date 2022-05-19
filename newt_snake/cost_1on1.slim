@@ -9,8 +9,8 @@ initialize() {
 	
 	//Testing factors 	
 	//defineConstant("mu_rate", 1e-8); //just be the snake mu
-	defineConstant("snake_mu_rate", 1e-8); //snake mu/newt mu it will me more or less comman than nake	
-	defineConstant("newt_mu_rate", 1e-8); //newt mu/ snake mu it will me more or less comman than nake
+	defineConstant("snake_mu_rate", 1e-6); //snake mu/newt mu it will me more or less comman than nake	
+	defineConstant("newt_mu_rate", 1e-6); //newt mu/ snake mu it will me more or less comman than nake
 	defineConstant("snake_mu_effect_sd", 0.05);
 	defineConstant("newt_mu_effect_sd", 0.05);
 	//defineConstant("msprime_file", "newt_snake/data/both_su_1e-10_nu_1e-10_sue_0.01_nue_0.01.init.trees");//sme 0.05, nme 0.01	
@@ -26,12 +26,12 @@ initialize() {
 	defineConstant("SI", sigma_in);  // sigma_I, the spatial interaction distance
 	defineConstant("surs", sigma_in);  // surs, the surviver distance
 	defineConstant("SM", SI);  // sigma_M, the mate choice distance
-	defineConstant("L", 4);    // mean lifetime at stationarity (what id the life times are different for each species?)
+	defineConstant("L", 4);    // mean lifetime at stationarity (what is the life times are different for each species?)
 	defineConstant("W", 35.0);  // width and height of the simulated area
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.05);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.07);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
@@ -457,24 +457,24 @@ early() {
 	
 	// maybe it should be transposed?
 	// standorize the colors 
-	p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
-		valueRange=range(p1.individuals.z), colors=c("#FFFFFF", "#FF0000"));//"#000000", "#FFFFFF"
-	p0.defineSpatialMap('snakes', 'xy', snake_means, interpolate=F,
-		valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
+	//p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
+		//valueRange=range(p1.individuals.z), colors=c("#FFFFFF", "#FF0000"));//"#000000", "#FFFFFF"
+	//p0.defineSpatialMap('snakes', 'xy', snake_means, interpolate=F,
+		//valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
 	//p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
 	//valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
 	
 	snake_mean_pheno_calc = summarizeIndividuals(p0.individuals, grid_res, bounds,
 		operation="individuals.size();", empty=0.0, perUnitArea=T);
 	snake_mean_pheno_calc = snake_mean_pheno_calc / max(snake_mean_pheno_calc);
-	p2.defineSpatialMap("snake_mean_pheno_calc", "xy", snake_mean_pheno_calc, F,
-		range(snake_mean_pheno_calc), c("black", "orange", "red")); //looking at snake mean phenotype by section
+	//p2.defineSpatialMap("snake_mean_pheno_calc", "xy", snake_mean_pheno_calc, F,
+		//range(snake_mean_pheno_calc), c("black", "orange", "red")); //looking at snake mean phenotype by section
 	
 	newt_mean_pheno_calc = summarizeIndividuals(p1.individuals, grid_res, bounds,
 		operation="individuals.size();", empty=0.0, perUnitArea=T);
 	newt_mean_pheno_calc = newt_mean_pheno_calc / max(newt_mean_pheno_calc);
-	p3.defineSpatialMap("newt_mean_pheno_calc", "xy", newt_mean_pheno_calc, F,
-		range(newt_mean_pheno_calc), c("black", "orange", "red")); //looking at newt mean phenotype by section
+	//p3.defineSpatialMap("newt_mean_pheno_calc", "xy", newt_mean_pheno_calc, F,
+		//range(newt_mean_pheno_calc), c("black", "orange", "red")); //looking at newt mean phenotype by section
 	
 	//p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, c(-0.1,0.1), colors=c("red", "white", "blue")); // showing the cov of snakes the range can make the colors lighter and darker depending on the cor values
 	
