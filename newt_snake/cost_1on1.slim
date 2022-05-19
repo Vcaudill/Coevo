@@ -82,7 +82,7 @@ function (float)summarize_mean_pheno(o<Subpopulation>$ subpop, i$ grid_res_value
 {
 	//mean phenotype of an area
 	grid_res= c(grid_res_value,grid_res_value);
-	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);//, perUnitArea=T
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=NAN);//, perUnitArea=T
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
@@ -92,7 +92,7 @@ function (float)summarize_sd_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, 
 {
 	//pheno sd of an area
 	grid_res= c(grid_res_value,grid_res_value);
-	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)sd(individuals.getValue('pheno')); else length(individuals); ", empty=0.0); //, perUnitArea=T
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)sd(individuals.getValue('pheno')); else length(individuals); ", empty=NAN); //, perUnitArea=T
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
@@ -102,7 +102,7 @@ function (float)summarize_max_pheno(o<Subpopulation>$ subpop, i$ grid_res_value,
 {
 	//max phenotype of an area
 	grid_res= c(grid_res_value,grid_res_value);
-	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)max(individuals.getValue('pheno')); else length(individuals); ", empty=0.0); //, perUnitArea=T
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)max(individuals.getValue('pheno')); else length(individuals); ", empty=NAN); //, perUnitArea=T
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
@@ -112,7 +112,7 @@ function (float)summarize_min_pheno(o<Subpopulation>$ subpop, i$ grid_res_value,
 {
 	//the min phenotype of an area 
 	grid_res= c(grid_res_value,grid_res_value);
-	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)min(individuals.getValue('pheno')); else length(individuals); ", empty=0.0);//, perUnitArea=T
+	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)min(individuals.getValue('pheno')); else length(individuals); ", empty=NAN);//, perUnitArea=T
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
@@ -422,7 +422,7 @@ early() {
 	//catn(snake_cov);
 	snake_sum_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
-	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=NAN, perUnitArea=F);
 	
 	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
@@ -432,15 +432,18 @@ early() {
 	
 	newt_sum_pheno=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)sum(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
-	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=0.0, perUnitArea=T);
+	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=NAN, perUnitArea=F);
 	
 	
 	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
 	
 	//correlations 	
-	
-	
-	mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno), c(snake_mean_pheno));
+	newt_mean_pheno=newt_mean_pheno[];
+	snake_mean_pheno=snake_mean_pheno[];
+	catn(newt_mean_pheno);
+	catn(snake_mean_pheno);
+	u=isFinite(newt_mean_pheno)&isFinite(snake_mean_pheno);
+	mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno[u]), c(snake_mean_pheno[u])); // mean should not be devied by the area and the things it gives back should be "nan"
 	num_newts_By_num_snakes = cor(c(snake_sum_ind), c(newt_sum_ind));
 	sum_newt_pheno_By_num_snake = cor(c(newt_sum_pheno), c(snake_sum_ind));
 	sum_snake_pheno_By_num_newt = cor(c(snake_sum_pheno), c(newt_sum_ind));

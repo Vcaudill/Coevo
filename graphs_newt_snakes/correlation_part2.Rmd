@@ -246,7 +246,7 @@ data_long_max$species <- data_long_mean$species
 
 ```{r, grid graph values}
 
-GA1_onefile<-data_long_mean[which(data_long_mean$newt_snake_rep=="Newt_1.0e-10_0.5_Snake_1.0e-10_0.5_0" & data_long_max$gen==29981 ),]
+GA1_onefile<-data_long_mean[which(data_long_mean$newt_snake_rep=="Newt_1.0e-10_0.5_Snake_1.0e-10_0.5_0" & data_long_max$gen==10981 ),]
 
 #GA1_onefile<-data_long_mean[which(data_long_mean$newt_snake_rep==unique(data_long_mean$newt_snake_rep)[16] & data_long_max$gen==29981 ),]
 
@@ -259,16 +259,41 @@ ggplot(GA1_onefile)+
   scale_fill_viridis_c()+
   theme_bw()
 
+unique(data_long_mean$newt_snake_rep)
+
+GA1_onefile_2<-data_long_mean[which(data_long_mean$newt_snake_rep=="Newt_1.0e-08_0.005_Snake_1.0e-08_0.005_0" & data_long_max$gen==10981 ),]
 
 
+
+ggplot(GA1_onefile_2)+
+ 
+  geom_point(data = GA1_onefile_2[which(GA1_onefile_2$species=="snake"),], aes(x = lox, y = loy, fill = measurement), size = 10, shape = 22, ) +
+  geom_point(data = GA1_onefile_2[which(GA1_onefile_2$species=="newt"),], aes(x = lox, y = loy, fill = measurement), size = 7, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()
 
 ```
 
 
+```{r pheno scatter}
 
+snake_info<-data_long_mean[which(data_long_mean$species=="snake"),]
+newt_info<-data_long_mean[which(data_long_mean$species=="newt"),]
 
+names(newt_info)[names(newt_info) == 'measurement'] <- 'newt_toxin'
+newt_info$snake_res<-snake_info$measurement
+newt_info$dif<-newt_info$snake_res-newt_info$newt_toxin
+pattern<-"Newt_1.0e-08_0.005_Snake_1.0e-08_0.005_0"
+scatter_pheno<-newt_info[which(newt_info$newt_snake_rep==pattern & newt_info$generation>14000 & newt_info$generation<15000 ),]
+scatter_pheno<-newt_info[which(newt_info$newt_snake_rep==pattern & newt_info$generation==20981 ),]
+#scatter_pheno[scatter_pheno == 0] <- NA
+#scatter_pheno[scatter_pheno == 1] <- NA
+ggplot(scatter_pheno)+
+ ggtitle(paste0(" pattern ", pattern, " From ", min(scatter_pheno$generation), " gen to ", max(scatter_pheno$generation), " gen"))+
+  geom_point(aes(y = newt_toxin, x = snake_res, color=generation), size = 3) 
+  theme_bw()
 
-
+```
 
 ```{r, corelation plots}
 
@@ -438,8 +463,8 @@ var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen
   var_cor_table <- rbind(var_cor_table, var_cor_table_temp)
   
   plot <- ggplot(var_cor_table) +
-  #ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
-  #xlab(x_label) + ylab(y_label)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
   geom_point(aes(x=as.numeric(var), y=as.numeric(cor), color = pattern), shape=17, size=3)+
   geom_point(aes(x=as.numeric(var), y=as.numeric(mean_corr), color = pattern), size=3)+
   theme(plot.title = element_text(size=5)) +
