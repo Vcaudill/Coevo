@@ -297,9 +297,9 @@ ggplot(scatter_pheno)+
 
 ```{r, corelation plots}
 
-cor_files <- list.files(path="~/Desktop/GA1_rep", pattern="_cor_", full.names=TRUE, recursive=FALSE)
+cor_files <- list.files(path="~/Desktop/csv_GA1_long", pattern="_cor_", full.names=TRUE, recursive=FALSE)
 cor_GA2_files <- list.files(path="~/Desktop/GA2_rep", pattern="_cor_", full.names=TRUE, recursive=FALSE)
-lit_30 <- list.files(path="~/Desktop/GA1_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
+lit_30 <- list.files(path="~/Desktop/csv_GA1_long", pattern="_lit_", full.names=TRUE, recursive=FALSE)
 lit_30_G2 <- list.files(path="~/Desktop/GA2_rep", pattern="_lit_", full.names=TRUE, recursive=FALSE)
 
 lit_30_file<- data.frame()
@@ -423,17 +423,20 @@ lit_30_G2_file$dif <- lit_30_G2_file$Snake_mean_Pheno-lit_30_G2_file$Newt_mean_P
 boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
   file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ylim(-1.1, 1.1)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
   xlab(x_label) + ylab(y_label)+
   geom_boxplot(aes(x=factor(rep), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "CA"))+
-  geom_hline(yintercept=real_snewt_cor)+
+  geom_hline(yintercept=real_snewt_cor, linetype="dashed")+
+    geom_hline(yintercept=0, linetype="solid")+
   #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
   #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
-  facet_wrap(~sim)+
+  facet_wrap(~newt_snake)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -519,24 +522,47 @@ labels = c("Snake", "Newt"))+
 }
 
 
+four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, min_gen, max_gen){
+  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+  ylim(-1.1, 1.1)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor("CA"), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "CA"))+
+  geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
+  geom_hline(yintercept=0, linetype="solid")+
+  theme(plot.title = element_text(size=5)) +
+  facet_wrap(~newt_snake)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+
+  return(plot)
+}
 
 ```
 
 ```{r, myplots}
 
-boxplot_cors_by_gen(cor_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", 10000, 15000)
+boxplot_cors_by_gen(cor_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", 4000, 5000)
 
-boxplot_cors_by_gen(cor_GA2_file, "Simulation Correlation Comparied to Real Correlation", "GA2", "newt/snake GAs&rep", "Cor", 10000, 15000)
+four_types_boxplot_cors_by_gen(cor_file, "Simulation four Correlation", "GA1", "newt/snake GAs&rep", "Cor", 4000, 5000)
 
-trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=5000, pattern="1.0e-10_0.5_1.0e-10_0.5_3")
-trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=10000, max_gen=15000, pattern="1.0e-10_0.5_1.0e-10_0.5_3")
-trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=5000, pattern="1.0e-08_0.005_1.0e-08_0.005_1")
+boxplot_cors_by_gen(cor_GA2_file, "Simulation Correlation Comparied to Real Correlation", "GA2", "newt/snake GAs&rep", "Cor", 4000, 5000)
 
-trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=15000, pattern="1.0e-09_0.05_1.0e-08_0.005_2")
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=5000, pattern="1.0e-10_0.5_1.0e-10_0.5_0")
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=10000, max_gen=15000, pattern="1.0e-10_0.5_1.0e-10_0.5_0")
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=5000, pattern="1.0e-08_0.005_1.0e-08_0.005_0")
 
-trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=15000, pattern="1.0e-08_0.005_1.0e-09_0.05_2")
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=15000, pattern="1.0e-09_0.05_1.0e-08_0.005_0")
 
-trends_by_gen(lit_30_G2_file, cor_GA2_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=15000, pattern="1.0e-08_0.05_1.0e-08_0.05_2")
+trends_by_gen(lit_30_file, cor_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=15000, pattern="1.0e-08_0.005_1.0e-09_0.05_0")
+
+trends_by_gen(lit_30_G2_file, cor_GA2_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=0, max_gen=15000, pattern="1.0e-08_0.05_1.0e-08_0.05_0")
 
 ```
 

@@ -275,8 +275,91 @@ values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "di
 labels = c("Snake", "Newt", "Dif"))+
     theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
   return(plot)
-  }
- 
+}
+
+whale_gen <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+dif <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = dif))+
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+
+pop_size_hist <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+dif <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  #geom_histogram(aes(dif))+
+  geom_histogram(aes(Snake_pop_size-Newt_pop_size), fill="darkolivegreen4")+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+}
+
+pheno_dif_hist <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+dif <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(dif), fill="aquamarine4")+
+  
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
 ```
 
 
@@ -293,6 +376,70 @@ trends_by_gen(lit_30_G2_file, title="Space: Newt VS Snake Population Size GA2", 
 
 
 After looking at the GA1 and GA2 figures, I noticed that there are similarities between the four replicas (blue, red, and black lines follow similar trends). In the GA1 figure there is a strong trend increasing replica variability as the GA of newts creates an advantage (gets a smaller mutation rate and larger effect size). There is a similar pattern in variability of the replicas in snakes, as the replica variability increases so is the phenotype variability. I also noticed that newts seem to have a higher phenotype more often than snakes. In the GA2 figure the mean phenotypes of newts and snake are more closely matched (16/25). My question is why are there a collective difference in some of these simulation?
+
+
+```{r, whale}
+min_gen=5000
+max_gen=10000
+rep=0
+
+whale_gen(lit_30_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake-Newt Popsize", x_label="Snake-Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
+
+pop_size_hist(lit_30_file, title="Snake-Newt Popsize Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Popsize",  min_gen=min_gen, max_gen=max_gen, rep=rep )
+
+pheno_dif_hist(lit_30_file, title="Snake-Newt Phenotype Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype",  min_gen=min_gen, max_gen=max_gen, rep=rep )
+
+
+file<-lit_30_file[ which(lit_30_file$generation>=min_gen & lit_30_file$generation<=max_gen & lit_30_file$rep==rep),]
+plot.x <- ggplot(file) + geom_boxplot(aes(newt_snake_rep, dif))
+plot.y <- ggplot(file) + geom_boxplot(aes(newt_snake_rep, Snake_pop_size-Newt_pop_size))
+
+
+grid.arrange(plot.x, plot.y, ncol=2)
+
+plot.x <- layer_data(plot.x)[,1:6]
+plot.y <- layer_data(plot.y)[,1:6]
+colnames(plot.x) <- paste0("x.", gsub("y", "", colnames(plot.x)))
+colnames(plot.y) <- paste0("y.", gsub("y", "", colnames(plot.y)))
+df <- cbind(plot.x, plot.y); rm(plot.x, plot.y)
+df$category <- sort(unique(file$newt_snake_rep))
+df.outliers <- df %>%
+  select(category, x.middle, x.outliers, y.middle, y.outliers) %>%
+  data.table::data.table()
+#df.outliers <- df.outliers[, list(x.outliers = unlist(x.outliers), y.outliers = unlist(y.outliers)), by = list(category, x.middle, y.middle)]
+ggplot(df, aes(fill = category, color = category)) +
+
+  # 2D box defined by the Q1 & Q3 values in each dimension, with outline
+  geom_rect(aes(xmin = x.lower, xmax = x.upper, ymin = y.lower, ymax = y.upper), alpha = 0.3) +
+  geom_rect(aes(xmin = x.lower, xmax = x.upper, ymin = y.lower, ymax = y.upper), 
+            color = "black", fill = NA) +
+
+  # whiskers for x-axis dimension with ends
+  geom_segment(aes(x = x.min, y = y.middle, xend = x.max, yend = y.middle)) + #whiskers
+  geom_segment(aes(x = x.min, y = y.lower, xend = x.min, yend = y.upper)) + #lower end
+  geom_segment(aes(x = x.max, y = y.lower, xend = x.max, yend = y.upper)) + #upper end
+
+  # whiskers for y-axis dimension with ends
+  geom_segment(aes(x = x.middle, y = y.min, xend = x.middle, yend = y.max)) + #whiskers
+  geom_segment(aes(x = x.lower, y = y.min, xend = x.upper, yend = y.min)) + #lower end
+  geom_segment(aes(x = x.lower, y = y.max, xend = x.upper, yend = y.max)) + #upper end
+
+  # outliers
+  #geom_point(data = df.outliers, aes(x = x.outliers, y = y.middle), size = 3, shape = 1) + # x-direction
+  #geom_point(data = df.outliers, aes(x = x.middle, y = y.outliers), size = 3, shape = 1) + # y-direction
+
+  xlab("s-n mean pheno") + ylab("s-n pop size") +  
+  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      strip.background = element_blank(), 
+                      strip.text.x = element_blank(), 
+                      legend.position="right",
+                      legend.text=element_text(size=5),
+                      panel.grid.major = element_blank(), 
+                      panel.grid.minor = element_blank(),
+                      panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+ 
+```
 
 
 Next, I will discuss a summary plot for the different GA sets. The first plot has the newt population size by snake population size (a larger population size might indicate a co-evolution advantage) and the second plot is the difference between snake and newt mean phenotype and snake population size. There are four points for each GA set (one for each replica). Color will represent the four GAs of the snake and the shapes will represent the four GAs of newts. Each plot will have a starting generation and an ending generation (that can easily be changed). 
