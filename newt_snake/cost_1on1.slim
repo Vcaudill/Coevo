@@ -28,6 +28,7 @@ initialize() {
 	defineConstant("SM", SI);  // sigma_M, the mate choice distance
 	defineConstant("L", 4);    // mean lifetime at stationarity (what is the life times are different for each species?)
 	defineConstant("W", 35.0);  // width and height of the simulated area
+	defineConstant("H", 4);  // Multiplitive height increase of the simulated area
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
@@ -71,7 +72,7 @@ initialize() {
 function (float)summarize_ind_num(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
 	//counting the number of individuals by the area they are in
-	grid_res= c(grid_res_value,grid_res_value);
+	grid_res= c(grid_res_value,grid_res_value*H);
 	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)length(individuals); else length(individuals); ", empty=0.0); //, perUnitArea=T
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
@@ -81,7 +82,7 @@ function (float)summarize_ind_num(o<Subpopulation>$ subpop, i$ grid_res_value, i
 function (float)summarize_mean_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
 	//mean phenotype of an area
-	grid_res= c(grid_res_value,grid_res_value);
+	grid_res= c(grid_res_value,grid_res_value*H);
 	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)mean(individuals.getValue('pheno')); else length(individuals); ", empty=NAN);//, perUnitArea=T
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
@@ -91,7 +92,7 @@ function (float)summarize_mean_pheno(o<Subpopulation>$ subpop, i$ grid_res_value
 function (float)summarize_sd_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
 	//pheno sd of an area
-	grid_res= c(grid_res_value,grid_res_value);
+	grid_res= c(grid_res_value,grid_res_value*H);
 	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)sd(individuals.getValue('pheno')); else length(individuals); ", empty=NAN); //, perUnitArea=T
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
@@ -101,7 +102,7 @@ function (float)summarize_sd_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, 
 function (float)summarize_max_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
 	//max phenotype of an area
-	grid_res= c(grid_res_value,grid_res_value);
+	grid_res= c(grid_res_value,grid_res_value*H);
 	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)max(individuals.getValue('pheno')); else length(individuals); ", empty=NAN); //, perUnitArea=T
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
@@ -111,7 +112,7 @@ function (float)summarize_max_pheno(o<Subpopulation>$ subpop, i$ grid_res_value,
 function (float)summarize_min_pheno(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, s$ sanity)
 {
 	//the min phenotype of an area 
-	grid_res= c(grid_res_value,grid_res_value);
+	grid_res= c(grid_res_value,grid_res_value*H);
 	sum_ind=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation="if (length(individuals)>1)min(individuals.getValue('pheno')); else length(individuals); ", empty=NAN);//, perUnitArea=T
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
@@ -172,8 +173,8 @@ reproduction(p0) {//snakes
 	//sim.treeSeqRememberIndividuals(p0.individuals);
 	//sim.treeSeqRememberIndividuals(p1.individuals);
 	
-	p1.setSpatialBounds(c(0, 0, W, W)); //newt
-	p0.setSpatialBounds(c(0, 0, W, W)); //snake
+	p1.setSpatialBounds(c(0, 0, W, W*H)); //newt
+	p0.setSpatialBounds(c(0, 0, W, W*H)); //snake
 	//	// would it be better to add them on the same plot
 	//	// random initial positions
 	for (ind in p1.individuals) { //newt
@@ -188,16 +189,16 @@ reproduction(p0) {//snakes
 	
 	}
 	sim.addSubpop("p2", 1);
-	p2.setSpatialBounds(c(0, 0, W, W));
+	p2.setSpatialBounds(c(0, 0, W, W*H));
 	sim.addSubpop("p3", 1);
-	p3.setSpatialBounds(c(0, 0, W, W));
+	p3.setSpatialBounds(c(0, 0, W, W*H));
 	
 	// random initial positions
 	for (ind in p2.individuals) {
-		ind.setSpatialPosition(c(W/2, W/2));
+		ind.setSpatialPosition(c(W/2, (W*H)/2));
 	}
 	for (ind in p3.individuals) {
-		ind.setSpatialPosition(c(W/2, W/2));
+		ind.setSpatialPosition(c(W/2, (W*H)/2));
 	}
 	
 	
@@ -252,8 +253,9 @@ early() {
 	
 	
 	// avoid edge effects
-	inds_n.fitnessScaling = inds_n.fitnessScaling * pmin(sqrt(inds_n.x/SI), 1.0) * pmin(sqrt(inds_n.y/SI), 1.0) * pmin(sqrt((W - inds_n.x)/SI), 1.0) * pmin(sqrt((W - inds_n.y)/SI), 1.0); // * effects
-	inds_s.fitnessScaling = inds_s.fitnessScaling * pmin(sqrt(inds_s.x/SI), 1.0) * pmin(sqrt(inds_s.y/SI), 1.0) * pmin(sqrt((W - inds_s.x)/SI), 1.0) * pmin(sqrt((W - inds_s.y)/SI), 1.0);
+	inds_n.fitnessScaling = inds_n.fitnessScaling * pmin(sqrt(inds_n.x/SI), 1.0) * pmin(sqrt(inds_n.y/SI), 1.0) * pmin(sqrt((W - inds_n.x)/SI), 1.0) * pmin(sqrt((W*H - inds_n.y)/SI), 1.0); // * effects
+	
+	inds_s.fitnessScaling = inds_s.fitnessScaling * pmin(sqrt(inds_s.x/SI), 1.0) * pmin(sqrt(inds_s.y/SI), 1.0) * pmin(sqrt((W - inds_s.x)/SI), 1.0) * pmin(sqrt((W*H - inds_s.y)/SI), 1.0);
 	
 	
 	//Snake and Newt 1on1 interaction
@@ -410,7 +412,7 @@ early() {
 	// in summarizeIndividuals how does operation and gather work?
 	// Can I just gather the different individuals in the sections and then do cor?
 	
-	grid_res = c(grid_val, grid_val);
+	grid_res = c(grid_val, grid_val*H);
 	
 	
 	// cov in the early and not late part of slim (ind die between early and late)
@@ -555,7 +557,7 @@ if (sim.generation == 1) {
 	log = sim.createLogFile("~/Desktop/grid_space.txt", logInterval=10);
 	log.addGeneration();
 	//loop for the different spaces in the grid 
-	for (element in 0:(grid_val*grid_val-1)){
+	for (element in 0:(grid_val*grid_val*H-1)){
 		//summarize_ind_num
 		log.addCustomColumn(paste0("newt_num_ind_", element), paste0("summarize_ind_num(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt num ind');"));
 		log.addCustomColumn(paste0("snake_num_ind_", element), paste0("summarize_ind_num(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake num ind');"));
