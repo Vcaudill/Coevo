@@ -24,3 +24,39 @@ plot(Phenotype, Cost, type="l", lwd=3)
 #how to change this to the probably of survival
 
 ```
+
+
+```{r, my plots for poster}
+
+min_gen=100
+max_gen=20000
+rep=0
+unique(GA1_long_file$snake_mu_rate)
+ggplot(GA1_long_file[ which(GA1_long_file$generation>=min_gen & GA1_long_file$generation<=max_gen & GA1_long_file$rep==rep & GA1_long_file$snake_mu_rate=="1.0e-10" & GA1_long_file$newt_mu_rate=="1.0e-10"),]) +
+    #facet_wrap(~sim)+
+    geom_line(aes(generation, dif, col="dif"), size=1 )+
+    ggtitle("test", subtitle = paste0(" From ", min_gen, " gen to ", max_gen, " gen")) +
+    geom_line(aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno"), size=1 )+
+    geom_line(aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno"), size=1 )+
+    geom_hline(yintercept=0, linetype="dashed", color="gray54", size=1 )+
+    ylim(-5,8)+
+    #xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+ggsave(
+  "~/Desktop/newt_snake_coevo_example.pdf",
+  plot = last_plot(),
+  scale = 1,
+  width = 7,
+  height = 5,
+  #units = c("in"),
+  dpi = 300,
+  limitsize = TRUE,
+  bg = NULL,
+)
+```

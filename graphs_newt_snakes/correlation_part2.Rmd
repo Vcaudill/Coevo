@@ -11,7 +11,7 @@ library(ggplot2)
 library(sf)
 library(mapview)
 library(ggpubr)
-theme_set(theme_pubr())
+#theme_set(theme_pubr())
 ```
 
 
@@ -45,10 +45,27 @@ states$ID <- toTitleCase(states$ID)
 ggplot(data = world) +
   geom_sf() +
   geom_sf(data = states, fill = NA)+
-  geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_res), size = 5, shape = 22, ) +
-  geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_toxin), size = 3, shape = 21, ) +
-  scale_fill_viridis_c()+
-  coord_sf(xlim = c(-130.4494, -111.6764), ylim = c(29.742, 54.9415), expand = FALSE)
+  geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_res), size = 6, shape = 22, ) +
+  geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_toxin), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+  coord_sf(xlim = c(-127, -115), ylim = c(34, 50.5), expand = FALSE) 
+
+ggplot(data = world) +
+  geom_sf() +
+  geom_sf(data = states, fill = NA)+
+  #geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_res), size = 6, shape = 22, ) +
+  geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_toxin), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+  coord_sf(xlim = c(-127, -115), ylim = c(34, 50.5), expand = FALSE)
+
+ggplot(data = world) +
+  geom_sf() +
+  geom_sf(data = states, fill = NA)+
+  geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_res), size = 6, shape = 22, ) +
+  #geom_point(data = snewt, aes(x = lon, y = lat, fill = mean_toxin), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))+
+  coord_sf(xlim = c(-127, -115), ylim = c(34, 50.5), expand = FALSE)
+  
 ```
 
 

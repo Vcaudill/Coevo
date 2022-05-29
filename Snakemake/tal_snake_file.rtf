@@ -1,0 +1,101 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2580
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;\f1\fnil\fcharset0 HelveticaNeue;}
+{\colortbl;\red255\green255\blue255;\red89\green138\blue67;\red23\green23\blue23;}
+{\*\expandedcolortbl;;\cssrgb\c41569\c60000\c33333;\cssrgb\c11765\c11765\c11765;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\sl360\partightenfactor0
+
+\f0\fs24 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 --unlock 
+\f1\fs26 \cf0 \cb1 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 """\
+\pard\pardeftab560\slleading20\partightenfactor0
+\cf0 Snakefile for running GA Experiment\
+\
+slim -m -t -d "snake_mu_rate = $\{1\}" -d "newt_mu_rate = $\{2\}" -d "snake_mu_effect_sd = $\{3\}" -d "newt_mu_effect_sd = $\{4\}" -d "msprime_file = '$\{5\}'" -d "treename = '$\{6\}'" -d "outpath = '$\{7\}'" -d "myFN = '$\{9\}'" -d "NUMGENS = $\{10\}" '/home/vcaudill/kernlab/coevo/SLiM_script/cost_1on1.slim';\
+\
+"""\
+\
+import sys, os, subprocess, glob, pathlib\
+import numpy as np\
+configfile: "tall_map_GA1.yaml" \
+#still need to run the slim part, but there is a back log\
+#configfile: "sim_params_GA2_100000gen.yaml" #seems to have run well!\
+rng = np.random.default_rng(12345) ## this will help to set the seeds for the msprime and slim sims\
+\
+# ###############################################################################\
+# GENERAL RULES & GLOBALS\
+# ###############################################################################\
+# how to get a random paramter out config["cost"][0] because it is a list\
+# Where you would like all output files from analysis to live\
+# Need to work on making better directories, can I make new directories in this file?  \
+\
+cwd = os.getcwd()\
+input_dir = "/home/vcaudill/kernlab/coevo/"\
+prefix = config["main_dr"][0]\
+maindir = input_dir  + prefix\
+out_csv = input_dir  + prefix + "/csv/"\
+out_msprime = input_dir + prefix + "/msprime/"\
+out_slim = input_dir + prefix + "/slim/"\
+tag="rep_long"\
+replics=4\
+if not os.path.isdir(maindir):\
+    os.mkdir(maindir)\
+if not os.path.isdir(out_csv):\
+    os.mkdir(out_csv)\
+if not os.path.isdir(out_slim):\
+    os.mkdir(out_slim)\
+if not os.path.isdir(out_msprime):\
+    os.mkdir(out_msprime)\
+\
+#grid_val=5\
+#interaction_rate=0.05\
+\
+#s_param = ["0.1","0.2","0.3","0.4","0.5"] #sigma\
+#m_param = ["0.1","0.2","0.3","0.4","0.5"] #mutation\
+#g_param = ["5000","50000","100000"] #ending generation\
+out = [] \
+#'\{:.1e\}'.format(1e-22)\
+## These are the output files that I expect\
+#out = expand(f"\{out_slim\}\{tag\}_slim_trees_snake_mu_rate_\{\{s_murs\}\}_newt_mu_rate_\{\{n_murs\}\}_snake_mu_effect_sd_\{\{s_es\}\}_newt_mu_effect_sd_\{\{n_es\}\}_sigma_\{\{sigma\}\}_rep_\{\{rep\}\}_late_\{\{gen_end\}\}", rep=range(1), s_murs=config["s_mus"], n_murs=config["n_mus"], s_es=config["s_es"], n_es=config["n_es"], sigma=config["sigma"], gen_end=config["gen_end"])\
+#nested for loop throught the paramiters need to rotate thought the replicas first to keep the seeds the same \
+for k in range(replics):\
+    for i in range(len(config["s_mus"])):\
+        for j in range(len(config["n_mus"])):\
+            out.append(f"\{out_slim\}\{tag\}_slim_trees_snake_mu_rate_\{'\{:.1e\}'.format(config['s_mus'][i])\}_newt_mu_rate_\{'\{:.1e\}'.format(config['n_mus'][j])\}_snake_mu_effect_sd_\{config['s_es'][i]\}_newt_mu_effect_sd_\{config['n_es'][j]\}_sigma_\{config['sigma'][0]\}_rep_\{k\}_late_\{config['gen_end'][0]\}")\
+\
+seeds = rng.integers(0,2**32, len(out))\
+out = [out[i]+f"_ID_\{seeds[i]\}.trees" for i in range(len(out))]\
+\
+# --dry--run\
+# Run full pipeline!\
+rule all: \
+   input: out\
+\
+rule msprime:\
+    #input: dont need infile\
+    output: f"\{out_msprime\}\{tag\}_trees_su_\{\{s_mus\}\}_nu_\{\{n_mus\}\}_sue_\{\{s_es\}\}_nue_\{\{n_es\}\}_rep_\{\{rep\}\}_ID_\{\{seeds\}\}.init.trees"\
+    #threads:20\
+    shell: \
+        ("python /home/vcaudill/kernlab/coevo/MSprime_script/snake_newt_gv_sm.py \{wildcards.s_mus\} \{wildcards.n_mus\} " +\
+        "\{wildcards.s_es\} \{wildcards.n_es\} \{out_msprime\} \{tag\} \{wildcards.rep\} \{wildcards.seeds\}")\
+\
+\
+rule slim:\
+    input: msp_ts=f"\{out_msprime\}\{tag\}_trees_su_\{\{s_mus\}\}_nu_\{\{n_mus\}\}_sue_\{\{s_es\}\}_nue_\{\{n_es\}\}_rep_\{\{rep\}\}_ID_\{\{seeds\}\}.init.trees"\
+    output: f"\{out_slim\}\{tag\}_slim_trees_snake_mu_rate_\{\{s_mus\}\}_newt_mu_rate_\{\{n_mus\}\}_snake_mu_effect_sd_\{\{s_es\}\}_newt_mu_effect_sd_\{\{n_es\}\}_sigma_\{\{sigma\}\}_rep_\{\{rep\}\}_late_\{\{gen_end\}\}_ID_\{\{seeds\}\}.trees"\
+    #threads:20\
+    params: \
+        interaction_rate=config["interaction_rate"][0],\
+        grid_val=config["grid_val"][0]\
+    \
+    shell:\
+        ("slim -d snake_mu_rate='\{wildcards.s_mus\}' -d newt_mu_rate='\{wildcards.n_mus\}' " +\
+        "-d snake_mu_effect_sd='\{wildcards.s_es\}' -d newt_mu_effect_sd='\{wildcards.n_es\}' "+\
+        "-d msprime_file='\\"\{input\}\\"' -d treename='\\"\{out_slim\}\\"' -d tag='\\"\{tag\}\\"' -d outpath='\\"\{out_csv\}\\"' "+\
+        "-d rep='\{wildcards.rep\}' -d NUMGENS='\{wildcards.gen_end\}' -d interaction_rate='\{params.interaction_rate\}' "\
+        "-d seed='\{wildcards.seeds\}' -d grid_val='\{params.grid_val\}' /home/vcaudill/kernlab/coevo/SLiM_script/cost_1on1_sm.slim")\
+ \
+\
+ \
+}
