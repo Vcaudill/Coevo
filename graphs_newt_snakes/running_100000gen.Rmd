@@ -297,9 +297,9 @@ var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen
 
 
 cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern){
- file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  cfile$newt_snake_rep <- paste0(cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
-  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep==pattern),]) +
+ file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
+  cfile$snake_newt_rep <- paste0(cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
     #geom_line(aes(generation, dif, group=rep, col="dif"))+
       ggtitle(title, subtitle = paste0(subt," pattern ", pattern, " From ", min_gen, " gen to ", max_gen, " gen"))+
     geom_line(aes(generation, Snake_mean_Pheno, group=rep, color="Snake_mean_Pheno"),)+
@@ -315,7 +315,7 @@ labels = c("Snake", "Newt"))+
                       axis.title.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_blank(),
                       plot.margin=unit(c(1,1,+0.3,1), "cm"))
   
-  cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$newt_snake_rep==pattern),]) +
+  cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]) +
     geom_line(aes(generation, mean_newt_pheno_By_mean_snake_pheno, col="CA"))+
     #ggtitle(title, subtitle = subt) +
     ylim(-1.1, 1.1)+
@@ -326,8 +326,8 @@ labels = c("Snake", "Newt"))+
                       axis.title.y = element_blank(),
                       plot.margin=unit(c(-0.5,1,1,1), "cm"))
   
-  file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep==pattern),]
-  cfile<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$newt_snake_rep==pattern),]
+  file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]
+  cfile<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]
   toDelete <- seq(0, nrow(cfile), 2)
   cfile_short <-  cfile[-toDelete, ]
   figure <- ggarrange(plot, cor_plot + font("x.text", size = 10),heights = c(2, 1.5),ncol = 1, nrow = 2, align = "v")
@@ -684,9 +684,9 @@ cuts <- cut(h$breaks, c(-Inf,(abs(min(drop_lows$dif))-value)+min(drop_lows$dif),
                         max(drop_lows$dif)-(max(drop_lows$dif)-value+.5),max(drop_lows$dif)))
 
 
-pdf("~/Desktop/dif_in_phenotype_hist.pdf", width = 7, height = 5)
+#pdf("~/Desktop/dif_in_phenotype_hist.pdf", width = 7, height = 5)
 plot(h, col=c("yellow","grey","yellow")[cuts])
-dev.off()
+#dev.off()
 
 
 # ggplot(drop_lows[which(abs(drop_lows$dif)>=value),]) +
@@ -707,6 +707,17 @@ dev.off()
 # ggsave("~/Desktop/dif_in_phenotype_popsize.pdf", plot = last_plot(), scale = 1,
 #   width = 7, height = 5, dpi = 300, limitsize = TRUE, bg = NULL)
 
+ggplot(drop_lows)  +
+ ggtitle(paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  geom_point(aes(x=as.numeric(dif), y=popsize_dif), color = "darkgreen",size=3)+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text( hjust=1, size = 8))
+ggsave("~/Desktop/dif_phenotype_dif_popsize.pdf", plot = last_plot(), scale = 1,
+  width = 7, height = 5, dpi = 300, limitsize = TRUE, bg = NULL)
+
+
+
+
 ggplot(drop_lows[which(abs(drop_lows$dif)>=value),])  +
   ylim(600, 1200)+
   #ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
@@ -721,9 +732,10 @@ ggplot(drop_lows[which(abs(drop_lows$dif)>=value),])  +
   #labs(colour = color_label) +
   #facet_wrap(~sim)+
   theme_bw() +  theme(axis.text.x = element_text( hjust=1, size = 8))
+#ggsave("~/Desktop/phenotype_popsize.pdf", plot = last_plot(), scale = 1,
+ # width = 7, height = 5, dpi = 300, limitsize = TRUE, bg = NULL)
 
-ggsave("~/Desktop/phenotype_popsize.pdf", plot = last_plot(), scale = 1,
-  width = 7, height = 5, dpi = 300, limitsize = TRUE, bg = NULL)
+
 ```
 
 

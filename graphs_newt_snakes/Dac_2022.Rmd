@@ -48,8 +48,121 @@ labels = c("Snake", "Newt", "Dif"))+
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank())
+# ggsave(
+#   "~/Desktop/newt_snake_coevo_example.pdf",
+#   plot = last_plot(),
+#   scale = 1,
+#   width = 7,
+#   height = 5,
+#   #units = c("in"),
+#   dpi = 300,
+#   limitsize = TRUE,
+#   bg = NULL,
+# )
+
+title="Snake-Newt Winning Hist"
+subt="Gen 16sims"
+y_label="Count"
+x_label="Snake-Newt Phenotype/100 (green) & Snake-Newt Popsize (purple)"
+min_gen=5000
+max_gen=15000
+
+GA1_long_file$snake_GA<-paste0(GA1_long_file$snake_mu_rate, "_", GA1_long_file$snake_mu_effect_sd)
+  GA1_long_file$newt_GA<-paste0(GA1_long_file$newt_mu_rate, "_", GA1_long_file$newt_mu_effect_sd)
+  
+  GA1_fig_file<-GA1_long_file[ which(GA1_long_file$generation>=min_gen & GA1_long_file$generation<=max_gen),]
+  
+  thepopmin <- min(GA1_fig_file$Snake_pop_size-GA1_fig_file$Newt_pop_size)/100 
+  thepopmax <- max(GA1_fig_file$Snake_pop_size-GA1_fig_file$Newt_pop_size)/100
+  thedifmin <- min(GA1_fig_file$dif) 
+  thedifmax <- max(GA1_fig_file$dif)
+  true_max <- max(abs(thepopmin), abs(thepopmax),abs(thedifmin), abs(thedifmax))
+
+  data_points <- nrow(GA1_fig_file[which(GA1_fig_file$generation>=min_gen & GA1_fig_file$generation<=max_gen  &  GA1_fig_file$snake_GA==GA1_fig_file$snake_GA[1] &  GA1_fig_file$newt_GA==GA1_fig_file$newt_GA[1]),])
+  print(data_points)
+  GA1_fig_file$dif_pop<- GA1_fig_file$Snake_pop_size - GA1_fig_file$Newt_pop_size
+  
+ggplot(GA1_fig_file) +
+  
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=dif, y=..count../data_points), fill="#8B008B",  alpha = 0.65, bins = 20)+
+  geom_histogram(aes(x=(dif_pop)/100, y=..count../data_points), fill="#008B00",  alpha = 0.65, bins = 20)+
+  scale_y_continuous(labels = scales::percent)+
+#limits=c(0, .6)
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      #strip.background = element_blank(), 
+                      strip.text.x = element_blank(), 
+                      #panel.grid.major = element_blank(), 
+                      #panel.grid.minor = element_blank(),
+                      #panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+
 ggsave(
-  "~/Desktop/newt_snake_coevo_example.pdf",
+  "~/Desktop/newt_snake_hist.pdf",
+  plot = last_plot(),
+  scale = 1,
+  width = 14,
+  height = 6,
+  #units = c("in"),
+  dpi = 300,
+  limitsize = TRUE,
+  bg = NULL,
+)
+
+title="Snake-Newt Winning Hist"
+subt="Gen 16sims"
+y_label="Count"
+x_label="Snake-Newt Phenotype/100 (green) & Snake-Newt Popsize (purple)"
+min_gen=85000
+max_gen=100000
+
+GA1_long_file$snake_GA<-paste0(GA1_long_file$snake_mu_rate, "_", GA1_long_file$snake_mu_effect_sd)
+  GA1_long_file$newt_GA<-paste0(GA1_long_file$newt_mu_rate, "_", GA1_long_file$newt_mu_effect_sd)
+  
+  GA1_fig_file<-GA1_long_file[ which(GA1_long_file$generation>=min_gen & GA1_long_file$generation<=max_gen),]
+  
+  thepopmin <- min(GA1_fig_file$Snake_pop_size-GA1_fig_file$Newt_pop_size)/100 
+  thepopmax <- max(GA1_fig_file$Snake_pop_size-GA1_fig_file$Newt_pop_size)/100
+  thedifmin <- min(GA1_fig_file$dif) 
+  thedifmax <- max(GA1_fig_file$dif)
+  true_max <- max(abs(thepopmin), abs(thepopmax),abs(thedifmin), abs(thedifmax))
+
+  data_points <- nrow(GA1_fig_file[which(GA1_fig_file$generation>=min_gen & GA1_fig_file$generation<=max_gen  &  GA1_fig_file$snake_GA==GA1_fig_file$snake_GA[1] &  GA1_fig_file$newt_GA==GA1_fig_file$newt_GA[1]),])
+  print(data_points)
+ggplot(GA1_fig_file) +
+  
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=dif, y=..count../data_points), fill="#8B008B",  alpha = 0.65, bins = 20)+
+  geom_histogram(aes(x=(Snake_pop_size-Newt_pop_size)/100, y=..count../data_points), fill="#008B00",  alpha = 0.65, bins = 20)+
+  scale_y_continuous(labels = scales::percent)+
+  #xlim((-1*true_max)-1, true_max+1)+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      #strip.background = element_blank(), 
+                      strip.text.x = element_blank(), 
+                      #panel.grid.major = element_blank(), 
+                      #panel.grid.minor = element_blank(),
+                      #panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+ggsave(
+  "~/Desktop/newt_snake_hist_late.pdf",
   plot = last_plot(),
   scale = 1,
   width = 7,
@@ -59,4 +172,187 @@ ggsave(
   limitsize = TRUE,
   bg = NULL,
 )
+
+fakedata<-as.data.frame(rnorm(1000,0, 2))
+
+ggplot(fakedata) +
+  ggtitle("Phenotype Dif")+
+geom_histogram(aes(x=`rnorm(1000, 0, 2)`), fill="#8B008B",  alpha = 0.65, bins = 20)+
+theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      #strip.background = element_blank(), 
+                      strip.text.x = element_blank(), 
+                      #panel.grid.major = element_blank(), 
+                      #panel.grid.minor = element_blank(),
+                      #panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+# ggsave(
+#   "~/Desktop/hist_pheno_dif.pdf",
+#   plot = last_plot(),
+#   scale = 1,
+#   width = 7,
+#   height = 5,
+#   #units = c("in"),
+#   dpi = 300,
+#   limitsize = TRUE,
+#   bg = NULL,
+# )
+
+fakedata$popsize<-rnorm(1000,0, 4)
+
+ggplot(fakedata) +
+  ggtitle("Phenotype Dif")+
+geom_histogram(aes(x=popsize), fill="#008B00",  alpha = 0.65, bins = 20)+
+theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      #strip.background = element_blank(), 
+                      strip.text.x = element_blank(), 
+                      #panel.grid.major = element_blank(), 
+                      #panel.grid.minor = element_blank(),
+                      #panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+# ggsave(
+#   "~/Desktop/hist_popsize_dif.pdf",
+#   plot = last_plot(),
+#   scale = 1,
+#   width = 7,
+#   height = 5,
+#   #units = c("in"),
+#   dpi = 300,
+#   limitsize = TRUE,
+#   bg = NULL,
+# )
+```
+
+
+```{r, more plots for poster}
+min_gen=100
+max_gen=6000
+rep=0
+pattern="1.0e-09_0.5_1.0e-10_0.05_0"
+GA1_long_file$snake_GA
+unique(GA1_long_file$snake_mu_rate)
+ggplot(GA1_long_file[ which(GA1_long_file$generation>=min_gen & GA1_long_file$generation<=max_gen & GA1_long_file$rep==rep & GA1_long_file$snake_mu_rate=="1.0e-09" & GA1_long_file$newt_mu_rate=="1.0e-10"),]) +
+    #facet_wrap(~sim)+
+    ggtitle("test", subtitle = paste0(" From ", min_gen, " gen to ", max_gen, " gen")) +
+    geom_line(aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno"), size=1 )+
+    geom_line(aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno"), size=1 )+
+    ylim(-5,8)+
+    #xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+# ggsave(
+#   "~/Desktop/catch_up_part1.pdf",
+#   plot = last_plot(),
+#   scale = 1,
+#   width = 7,
+#   height = 5,
+#   #units = c("in"),
+#   dpi = 300,
+#   limitsize = TRUE,
+#   bg = NULL,
+# )
+
+min_gen=4500
+max_gen=85000
+rep=0
+pattern="1.0e-09_0.5_1.0e-10_0.05_0"
+GA1_long_file$snake_GA
+unique(GA1_long_file$snake_mu_rate)
+ggplot(GA1_long_file[ which(GA1_long_file$generation>=min_gen & GA1_long_file$generation<=max_gen & GA1_long_file$rep==rep & GA1_long_file$snake_mu_rate=="1.0e-09" & GA1_long_file$newt_mu_rate=="1.0e-10"),]) +
+    #facet_wrap(~sim)+
+    ggtitle("test", subtitle = paste0(" From ", min_gen, " gen to ", max_gen, " gen")) +
+    geom_line(aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno"), size=1 )+
+    geom_line(aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno"), size=1 )+
+    ylim(-5,8)+
+    #xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+# ggsave(
+#   "~/Desktop/catch_up_part2.pdf",
+#   plot = last_plot(),
+#   scale = 1,
+#   width = 7,
+#   height = 5,
+#   #units = c("in"),
+#   dpi = 300,
+#   limitsize = TRUE,
+#   bg = NULL,
+# )
+
+min_gen=80000
+max_gen=99999
+rep=0
+pattern="1.0e-09_0.5_1.0e-10_0.05_0"
+GA1_long_file$snake_GA
+unique(GA1_long_file$snake_mu_rate)
+ggplot(GA1_long_file[ which(GA1_long_file$generation>=min_gen & GA1_long_file$generation<=max_gen & GA1_long_file$rep==rep & GA1_long_file$snake_mu_rate=="1.0e-09" & GA1_long_file$newt_mu_rate=="1.0e-10"),]) +
+    #facet_wrap(~sim)+
+    ggtitle("test", subtitle = paste0(" From ", min_gen, " gen to ", max_gen, " gen")) +
+    geom_line(aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno"), size=1 )+
+    geom_line(aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno"), size=1 )+
+    ylim(-5,8)+
+    #xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+# ggsave(
+#   "~/Desktop/catch_up_part3.pdf",
+#   plot = last_plot(),
+#   scale = 1,
+#   width = 7,
+#   height = 5,
+#   #units = c("in"),
+#   dpi = 300,
+#   limitsize = TRUE,
+#   bg = NULL,
+# )
+min_gen=100
+max_gen=99999
+rep=0
+pattern="1.0e-09_0.5_1.0e-10_0.05_0"
+GA1_long_file$snake_GA
+unique(GA1_long_file$snake_mu_rate)
+ggplot(GA1_long_file[ which(GA1_long_file$generation>=min_gen & GA1_long_file$generation<=max_gen & GA1_long_file$rep==rep & GA1_long_file$snake_mu_rate=="1.0e-09" & GA1_long_file$newt_mu_rate=="1.0e-10"),]) +
+    #facet_wrap(~sim)+
+    ggtitle("test", subtitle = paste0(" From ", min_gen, " gen to ", max_gen, " gen")) +
+    geom_line(aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno"), size=1 )+
+    geom_line(aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno"), size=1 )+
+    #xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+# ggsave(
+#   "~/Desktop/catch_up_all.pdf",
+#   plot = last_plot(),
+#   scale = 1,
+#   width = 7,
+#   height = 5,
+#   #units = c("in"),
+#   dpi = 300,
+#   limitsize = TRUE,
+#   bg = NULL,
+# )
 ```
