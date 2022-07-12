@@ -26,9 +26,22 @@ library(stringr)
 library(patchwork)
 ```
 
-### Goal
+### Goal:
 
-figure out a main conclusion for the poster!
+Think & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs) can lead to. 
+I.E. is there spacial correlation between the phenotype? If so when/why? 
+
+### Questions:
+
+Can I find a certain GA or set of GAs that are similar to the correlation between real newts and snake phenotypes across different locations in space?
+
+### Background
+
+Evolution textbooks often highlight the interaction of toxic newts with resistant snakes as a model example of co-evolution. As newts become more toxic snakes become more resistant leading to their phenotypes being highly correlated across space. There are about 3-4 mutations that make a snake resistant to the toxin have been discovered. One-two of these mutations have a large effect leading to a high toxin resistance in snakes. However, these mutations break an ion-channel leading the snakes to be slower (potentially more venerable to predators). This suggests that the genetic architecture (GA)  for resistance within snakes has a low mutation rate with a large effect size. The mutations that allow newts to be toxic (or at least resistant to their own toxin) have yet to be determined (2022). Thus we may ask are there many or only a few mutations that lead to newt toxicity? Do these mutations have a large or small effect?  
+
+### Experiment
+
+I created a simulation study to observe the co-evolutionary outcome of the newt-snake interaction at different genetic architectures (GAs) in a spatial setting. I hypothesized that we would see an interaction (co-evolutionary arms race) between newt and snake phenotype under some GA combinations when newts and snakes were evolving over geographical space. Each GA is paired with another GA creating 16 combinations.
 
 GA1 experiment values:
 
@@ -37,10 +50,19 @@ GA1 experiment values:
 - 1e-10*(0.5)^2 = 2.5e-11
 - 1e-11*(5.0)^2 = 2.5e-10
 
+Landscape: 20 by 5 grid. A tall map!
+
+Observations to make:
+
+- How do phenotypes change over time?
+- What are the phenotypes of newts and snakes spatially? And are they correlated? 
+- Are newts and snakes interacting, in other words are there spatial locations overlapping?
+- Is there a noticeable difference between the GA combinations?
 
 
+### The data
 
-
+I gather text file data from different files and have to do some table wrangling to get it into a format I can graph. I use information gathered from the entire population; data containing a mean value for the entire map (lit), correlation data based off of local populations that were divided into grids (cor) and data collected from grid based populations (grid). These simulations have a msprime (coalescent/burn in/random genetic variation) and then run for 50,000 generations in SLiM (co-evolution) (all with the same GA values).
 
 ```{r, data gathering}
 
@@ -141,6 +163,10 @@ for(i in seq(1, length(GA1_tall), 1)){
 
 GA1_tall_tall_file$dif <- GA1_tall_tall_file$Snake_mean_Pheno-GA1_tall_tall_file$Newt_mean_Pheno
 
+GA1_tall_tall_file$group_rep <- paste0(GA1_tall_tall_file$snake_mu_rate, "_", GA1_tall_tall_file$snake_mu_effect_sd,"_",GA1_tall_tall_file$newt_mu_rate, "_", GA1_tall_tall_file$newt_mu_effect_sd, "_", GA1_tall_tall_file$rep)
+
+GA1_tall_tall_file$group <- paste0(GA1_tall_tall_file$snake_mu_rate, "_", GA1_tall_tall_file$snake_mu_effect_sd,"_",GA1_tall_tall_file$newt_mu_rate, "_", GA1_tall_tall_file$newt_mu_effect_sd)
+
 grid_tall_file$snake_newt_rep <- paste0("Snake_",grid_tall_file$snake_mu_rate, "_", grid_tall_file$snake_mu_effect_sd, "_Newt_",grid_tall_file$newt_mu_rate, "_", grid_tall_file$newt_mu_effect_sd, "_", grid_tall_file$rep)
 ```
 
@@ -189,6 +215,7 @@ hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_ge
   #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
+  xlim(-1.1, 1.1)+
   facet_wrap(~newt_snake)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
@@ -215,12 +242,14 @@ hist_cors_by_gen_col_rep_nofill <- function(file, title, subt, x_label, y_label,
   #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
+  #stat_bin(bins=30)+
   facet_wrap(~newt_snake)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank())
 
+suppressMessages(print(plot))
 
   return(plot)
 }
@@ -646,20 +675,47 @@ two_hist_death_all_rep(GA1_tall_tall_file, title="Snake-Newt Winning Hist", subt
 ```
 
 
-First, I will look at a plot of how the mean phenotype of newts and snakes changes overtime. Each of these plots contains four replicas for all GA combinations (letter label is the experiment that was run, 16 Sim is from GA1 and 25 Sim is from GA2). Each of these plots has three lines, red for the mean newt phenotype, blue for the mean snake phenotype, and black for the difference between mean snake and mean newt phenotype. Note this is a mean for the entire population.
+### Mean Phenotype Whole Simulation
+
+First, I will look at a plot of how the mean phenotype of the entire population of newts and snakes changes overtime. Each of these plots has three colored lines, red for the mean newt phenotype, blue for the mean snake phenotype, and black for the difference between mean snake and mean newt phenotype. There are 4 line per color that represent the different replicas that I ran. **Note this is a mean for the entire population.** Mutational variance increases for the snakes as you go down (top to bottom) the figure and increases for the newts as you go across (left to right).
 
 
 
 ```{r, graphing by gen}
 trends_by_gen(GA1_tall_tall_file, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 50000)
 
-#trends_by_gen(GA2_long_file, title="Space: Newt VS Snake Population Size GA2", subt="Gen 25sims", y_label="Mean Phenotype", x_label="Generations", 1, 50000)
+
+aggregate(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=50000),]$dif, list(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=50000),]$group), FUN=mean) 
+
+aggregate(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=50000),]$dif, list(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=50000),]$group_rep), FUN=mean) 
 
 ```
 
 
+The first thing that I noticed is that newt mean phenotype and snake mean phenotype seem to follow each other. I wonder if they are both drifting up? The second thing I noticed is that this figure is not symmetrical. The mean difference between snake and newt phenotype is not equal between the two species when their GAs are flipped. In the first row, as mutation variance goes up for the newts and stays for constant for the snakes the average difference is 0.03, 2.8, 2.7, 0.09 (first row left to right). When the mutation variance goes up for the snakes and stays the same for the newts (first column) the  average difference is 0.03, 2.0, 2.2, 0.03 (first row left to right). This indicates that there might be different selection pressure for newts and snakes, which is similar describes other works that discuss predator-prey interactions. Snakes really only had a higher phenotype when newts had a low mutation variance. Even when snakes had a higher mutational variance, newts still had a higher phenotype on average (the entire length of the simulation). I had predicted that a higher mutational variance would lead to a higher mean phenotype, but that seems not to be the case. Now there are some caveats to this observation; 1) these observations change over time, like pre 10,000 generations things look a lot different and different conclusions can be made (discussed lower). 2) There is a cost to having a high phenotype. In the last row & column mutations that arise might have too high of a phenotype and die out quickly (making the cost higher might change some of the results, it would be cool to see if the top right difference between newt and snake mean phenotype grows with a more relaxed cost). This observation is interesting to me for two reasons 1) in the real newt-snake example snakes always seem to have a higher phenotype and 2) snakes seem to have more of a genetic architecture with a few mutations of high effect size. There are some other real factors that I think about like the difference between life history factors of newts and snake (reproduction 1-2 years vs 5-6 years or the ability to move around) 
 
 
+### Mean Phenotype Beggining Simulation
+
+I like to focus on the beginning of the simulation when newts and snakes are first starting to co-evolve right before some of the slopes start to flat line (15,000 generations).
+
+
+
+```{r, graphing by gen}
+trends_by_gen(GA1_tall_tall_file, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 15000)
+
+
+aggregate(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=15000),]$dif, list(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=15000),]$group), FUN=mean) 
+
+aggregate(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=15000),]$dif, list(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=15000),]$group_rep), FUN=mean) 
+
+```
+
+After looking at this section of the data, newts have a higher phenotype on average. Snakes often only have a higher phenotype when the GA of newts has low mutational variance. Is there a way to measure the mutational variance within my species? This would help determine if the cost function was limiting the number of fixing mutations in the GA with the highest mutational variance. Another thing I would like to note, is that when the GA of newts and snakes are the same newts usually end up with a higher phenotype. The case of the third GA for snakes and the 4 GA for newts is extremely weird (is it the only instance where snakes end up with a higher phenotype that is consistently higher through out the simulation and not in the first column).
+
+### Connection between higher phenotype and population
+
+The next few figures in this write up depict the connection between higher phenotype and higher population size. I predicted that the species with a higher phenotype would have a larger population size. My thought process was that if newts were really toxic and snakes tried to eat them, lots of snakes would die. And if snakes were really resistant lots of newts would get eaten. But how would this work in real life? I.E. Population sizes might not depend on resistance & toxicity.
 
 ```{r, whale}
 min_gen=5000
@@ -672,12 +728,28 @@ whale_gen(GA1_tall_tall_file, title="Space: Newt VS Snake Population Size Color=
 
 #pheno_dif_hist(GA1_tall_tall_file, title="Snake-Newt Phenotype Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype",  min_gen=min_gen, max_gen=max_gen, rep=rep )
 
-two_hist(GA1_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype/100 (green) & Snake-Newt Popsize (purple)",  min_gen=min_gen, max_gen=max_gen, rep=rep )
+two_hist(GA1_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Popsize/100 (green) & Snake-Newt Phenotype (purple)",  min_gen=min_gen, max_gen=max_gen, rep=rep )
 
-two_hist_all_rep(GA1_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype/100 (green) & Snake-Newt Popsize (purple)",  min_gen=min_gen, max_gen=max_gen)
+two_hist_all_rep(GA1_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Popsize/100 (green) & Snake-Newt Phenotype (purple)",  min_gen=min_gen, max_gen=max_gen)
 
 
 ```
+
+I looked at the results between 5,000 - 10,000 generations where I saw most of the increase in newt and snake phenotype. The first figure plot newt population size by snake population size with the color representing the difference between snake and newt mean phenotype (red=newts have a higher mean phenotype, blue=snakes have a higher mean phenotype). The there is GA (an intermediate one) seems to do better then all of the other GAs (blue row, red column). However, this is dependent on the point in the simulation you focus on. The next two plots show the difference between snake and newt population size (green) and phenotype (purple). For the most part these suggest that when the mean phenotype is higher so is the population size. This also shows the asymmetrical nature between the predator-prey interaction (higher max population sizes seen in snakes). 
+
+### Correlation
+
+The next section I aim to look at how correlated newt and snakes are at local populations across the geographical area. I am examining correlation between newt and snake phenotypes, population sizes newts and snakes, amount of toxin and snake population, and the amount of resistance and newt population size. I predicted that there would be a positive correlation between the phenotypes, and a negative correlation between population sizes, and the amount of toxin/resistance and population size. Below is a legend for the first two plots. The third plot is colored by trial
+
+Legend:
+
+- "CA" = mean_newt_pheno_By_mean_snake_pheno (Pink)
+- "CB" = num_newts_By_num_snakes (Green)
+- "CC" = sum_newt_pheno_By_num_snake (Blue)
+- "CD" = sum_snake_pheno_By_num_newt (Purple)
+
+
+I first look at the correlation between mean newt phenotype and mean snake phenotype for each of the four trials in every GA combination from 10,000-15,000 generations. The solid line is a 0 with a dashed line at the level of correlation seen in natural newt-snake population(s). The second figure shows the the results of all 4 trials for each correlation measurement I made from 10,000-15,000 generations. The third plot takes the information from the fist plot and shows the distribution of correlation values by each trial (solid line at 0, dashed line at real newt-snake correlation).
 
 ```{r, combo myplots}
 #files
@@ -696,13 +768,72 @@ four_types_boxplot_cors_by_gen(GA1_cor_tall_file, "Simulation four Correlation",
 
 
 
-hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
 
 
 
-hist_cors_by_gen_col_rep_nofill(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+#hist_cors_by_gen_col_rep_nofill(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 
 ```
+
+The first thing that I noticed in the first figure, was that most of the correlation values were not as positive as the real newt-snake correlation. This could change depending on which generation window we look through (see figure set below). I also wonder if correlation occurs more when one of the species has a higher phenotype (like newt phenotype drive snake phenotype, but snake phenotype does not drive newt phenotype). When looking a figure 2 it seems like most values are no different from 0. This troubles me, but I have some thoughts. 1) These simulations are very stochastic and having high and low values averaged together might be 0. 2) Results might be 0. 3) Results are not 0 but close. 4) It might depend on generation window. 5) What is happen in my simulation leading to correlation/no correlation (maybe not getting good local measurements)? I wonder if we only used some of the grids (like the corners) if the correlation values would change. The most informative figure to me in this set was the third one. The color represents the simulation trial, and it really displays the stochastic nature of my simulation. I think there are distinct differences between the GA combinations, but its hard to make a solid description between them. 
+
+
+I decided to look at the trial correlation distributions for different windows of time for all 16 GA combination. Each of these figures are over a 5,000 generation window. They start at the beginning of the simulation a move through the conclusion of my simulation. There are four independant (msprime/slim) trials for each GA combination.
+
+
+```{r, ga1 cor by dif windows}
+
+ginmin = 0
+ginmax = 5000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 5000
+ginmax = 10000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 10000
+ginmax = 15000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 15000
+ginmax = 20000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 20000
+ginmax = 25000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 25000
+ginmax = 30000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 30000
+ginmax = 35000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 35000
+ginmax = 40000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 40000
+ginmax = 45000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 45000
+ginmax = 50000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+```
+
+
+Flipping through the 10 figures is like looking through a cartoon flip book. Things seem to be moving like waves in different directions (more positive or negative?). The only GA simulation that matches the real newt-snake data is the first one (high mutation rate- low effect size). These simulations reach an area of high correlation, because the change in phenotype occurs rapidly in small effects. I wondered if given more time or more space if any other of the GA combination would become more correlated? How are the mean phenotypes for the entire population getting higher without there being correlation at the local level? What do the local population distribution of newts and snakes look like (is there some avoidance or weird density effect)? How are NAs changing this measurement? Is there a difference in the local correlation when a certain species is driving convolution?  
+
+### Correlation across time
+
+In this section I plot the mean phenotype of newts, the mean phenotype of snakes, and there local correlation values across 50,000 generations. There are 4 trials for each GA combination. I also print out some correlation values; 1) whole population mean snake phenotype and local correlation, 2) whole population mean newt phenotype and local correlation, 3) difference between mean snake and mean newt phenotype and local correlation, and 4) correlation between mean snake and newt phenotype. My thoughts on looking at these correlations were that it might be possible that the local correlations might be more correlated to one of the species. 
+
+
 
 ```{r, ga1 cor and pheno}
 GA1_pattern <- unique(paste0(GA1_tall_tall_file$snake_mu_rate, "_", GA1_tall_tall_file$snake_mu_effect_sd,"_",GA1_tall_tall_file$newt_mu_rate, "_", GA1_tall_tall_file$newt_mu_effect_sd, "_", GA1_tall_tall_file$rep))
@@ -713,6 +844,50 @@ for(i in 1:length(GA1_pattern)){
 
 ```
 
+
+The results from all of the correlations and mean phenotypes are very messy! The correlation values range from 0.99 to -0.62, but lets take a deeper look into the correlation values based on GA combination. (must be careful when thinking about the correlation sign with difference)
+
+Results by Pattern:
+
+* 1.0e-08_0.005_1.0e-08_0.005 
+  + Newt ans snake mean phenotype is positively correlated (68-91)
+  + Local phenotype correlation is not consistently correlated to snake mean phenotype, newt mean phenotype, or the difference (snake-newt mean phenotype)
+* 1.0e-08_0.005_1.0e-09_0.05 
+  + Newt ans snake mean phenotype is correlated (72-88)
+  + Local phenotype correlation is not consistently correlated to snake mean phenotype, newt mean phenotype, or the difference (snake-newt mean phenotype)
+* 1.0e-08_0.005_1.0e-10_0.5 
+  + Newt ans snake mean phenotype is a bit less positively correlated (49-62)
+  + Local phenotype correlation is not consistently correlated to snake mean phenotype, newt mean phenotype, or the difference (snake-newt mean phenotype)
+* 1.0e-08_0.005_1.0e-11_5.0 
+  + Newt ans snake mean phenotype is positively correlated in 3 trials (80-83)
+  + Newt ans snake mean phenotype is negatively correlated in one trial where newt mean phenotype is 0 (-0.44)
+  + Local phenotype correlation is not consistently correlated to snake mean phenotype, newt mean phenotype, or the difference (snake-newt mean phenotype)
+* 1.0e-09_0.05_1.0e-08_0.005 
+  + Newt ans snake mean phenotype is positively correlated (69-93)
+  + Local phenotype correlation is not consistently correlated to snake mean phenotype, newt mean phenotype, or the difference (snake-newt mean phenotype)
+  + Possibly random, but the correlation between snake & local and difference & local were nearly identical for all four trials.
+* 1.0e-09_0.05_1.0e-09_0.05 
+  + 
+* 1.0e-09_0.05_1.0e-10_0.5 
+  + 
+* 1.0e-09_0.05_1.0e-11_5.0 
+  + 
+* 1.0e-10_0.5_1.0e-08_0.005 
+  + 
+* 1.0e-10_0.5_1.0e-09_0.05 
+  + 
+* 1.0e-10_0.5_1.0e-10_0.5 
+  + 
+* 1.0e-10_0.5_1.0e-11_5.0 
+  + 
+* 1.0e-11_5.0_1.0e-08_0.005 
+  + 
+* 1.0e-11_5.0_1.0e-09_0.05 
+  + 
+* 1.0e-11_5.0_1.0e-10_0.5 
+  + 
+* 1.0e-11_5.0_1.0e-11_5.0 
+  + 
 
 ```{r, early plots}
 
@@ -805,7 +980,7 @@ build_heatmap(GA1_tall_tall_file, min_gen=5000, max_gen=10000, fill_line="dif", 
 
 ```
 
-## What is up with the corilations
+## What is up with the correlations
 
 
 ```{r, cor grid by location}
