@@ -1132,8 +1132,11 @@ data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_
 
 data_long_mean_short<-data_long_mean
 
-data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+#data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+#data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(2, 2)),20)
+data_long_mean_short$x_loc<-c(rep.int(1, 10),rep.int(2, 10),rep.int(3, 10),rep.int(4, 10),rep.int(5, 10),rep.int(6, 10),rep.int(7, 10),rep.int(8, 10),rep.int(9, 10),rep.int(10, 10),rep.int(11, 10),rep.int(12, 10),rep.int(13, 10),rep.int(14, 10),rep.int(15, 10),rep.int(16, 10),rep.int(17, 10),rep.int(18, 10),rep.int(19, 10),rep.int(20, 10))
 
 main_plot<-ggplot(data_long_mean_short)+
   labs(title = "Mean Phenotype of Locations",
@@ -1150,9 +1153,11 @@ newt<-data_long_mean_short[which(data_long_mean_short$species=="newt"),]
 newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
+newt$info[newt$location %in% list(0, 4, 95, 99)] <- "corner"
+newt$info[newt$location %in% list(1,2,3,5, 9,10, 14,15, 19,20, 24,25, 29,30, 34,35, 39,40, 44,45, 49,50, 54,55, 59,60, 64,65, 69,70, 74,75, 79,80, 84,85, 89,90, 94, 96, 97,98)]   <- "edge"
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+#newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+#newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -1195,8 +1200,11 @@ data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_
 
 data_long_mean_short<-data_long_mean
 
-data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+#data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+#data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(2, 2)),20)
+data_long_mean_short$x_loc<-c(rep.int(1, 10),rep.int(2, 10),rep.int(3, 10),rep.int(4, 10),rep.int(5, 10),rep.int(6, 10),rep.int(7, 10),rep.int(8, 10),rep.int(9, 10),rep.int(10, 10),rep.int(11, 10),rep.int(12, 10),rep.int(13, 10),rep.int(14, 10),rep.int(15, 10),rep.int(16, 10),rep.int(17, 10),rep.int(18, 10),rep.int(19, 10),rep.int(20, 10))
 
 main_plot<-ggplot(data_long_mean_short)+
   labs(title = "Mean Phenotype of Locations",
@@ -1214,8 +1222,11 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(0, 4, 95, 99)] <- "corner"
+newt$info[newt$location %in% list(1,2,3,5, 9,10, 14,15, 19,20, 24,25, 29,30, 34,35, 39,40, 44,45, 49,50, 54,55, 59,60, 64,65, 69,70, 74,75, 79,80, 84,85, 89,90, 94, 96, 97,98)]   <- "edge"
+
+#newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+#newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -1262,8 +1273,11 @@ data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_
 
 data_long_mean_short<-data_long_mean
 
-data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+#data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+#data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(2, 2)),20)
+data_long_mean_short$x_loc<-c(rep.int(1, 10),rep.int(2, 10),rep.int(3, 10),rep.int(4, 10),rep.int(5, 10),rep.int(6, 10),rep.int(7, 10),rep.int(8, 10),rep.int(9, 10),rep.int(10, 10),rep.int(11, 10),rep.int(12, 10),rep.int(13, 10),rep.int(14, 10),rep.int(15, 10),rep.int(16, 10),rep.int(17, 10),rep.int(18, 10),rep.int(19, 10),rep.int(20, 10))
 
 main_plot<-ggplot(data_long_mean_short)+
   labs(title = "Mean Phenotype of Locations",
@@ -1281,8 +1295,11 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(0, 4, 95, 99)] <- "corner"
+newt$info[newt$location %in% list(1,2,3,5, 9,10, 14,15, 19,20, 24,25, 29,30, 34,35, 39,40, 44,45, 49,50, 54,55, 59,60, 64,65, 69,70, 74,75, 79,80, 84,85, 89,90, 94, 96, 97,98)]   <- "edge"
+
+#newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+#newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -1326,8 +1343,11 @@ data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_
 
 data_long_mean_short<-data_long_mean
 
-data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+#data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+#data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(2, 2)),20)
+data_long_mean_short$x_loc<-c(rep.int(1, 10),rep.int(2, 10),rep.int(3, 10),rep.int(4, 10),rep.int(5, 10),rep.int(6, 10),rep.int(7, 10),rep.int(8, 10),rep.int(9, 10),rep.int(10, 10),rep.int(11, 10),rep.int(12, 10),rep.int(13, 10),rep.int(14, 10),rep.int(15, 10),rep.int(16, 10),rep.int(17, 10),rep.int(18, 10),rep.int(19, 10),rep.int(20, 10))
 
 main_plot<-ggplot(data_long_mean_short)+
   labs(title = "Mean Phenotype of Locations",
@@ -1345,8 +1365,11 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(0, 4, 95, 99)] <- "corner"
+newt$info[newt$location %in% list(1,2,3,5, 9,10, 14,15, 19,20, 24,25, 29,30, 34,35, 39,40, 44,45, 49,50, 54,55, 59,60, 64,65, 69,70, 74,75, 79,80, 84,85, 89,90, 94, 96, 97,98)]   <- "edge"
+
+#newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+#newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -1382,8 +1405,6 @@ library(gapminder)
 
 
 file_name= "Snake_1.0e-09_0.05_Newt_1.0e-09_0.05_2"
-spegen=25001
-
 
 plotty_mean <- gather(grid_tall_file[which(grid_tall_file$snake_newt_rep==file_name),][,grepl("generation|mean", names(grid_tall_file)) ], condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
 
@@ -1398,14 +1419,17 @@ plotty_mean[,c("species","type", "type2","location")]<- str_split_fixed(plotty_m
 plotty_mean_min<-plotty_mean
 plotty_mean_min_s<-plotty_mean_min[which(plotty_mean_min$species=="snake"),]
 plotty_mean_min_s$newt_values<-plotty_mean_min[which(plotty_mean_min$species=="newt"),"measurement"]
-plotty_mean_min_s$edge <- "not edge"
-plotty_mean_min_s$edge <- plotty_mean_min_s$location %in% list(0, 1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20, 39, 40, 59, 60, 79, 80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99)
+plotty_mean_min_s$edge <- "FALSE"
+#plotty_mean_min_s$edge <- plotty_mean_min_s$location %in% list(0, 1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20, 39, 40, 59, 60, 79, 80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99)
+
+plotty_mean_min_s$edge <- plotty_mean_min_s$location %in% list(1,2,3,5, 9,10, 14,15, 19,20, 24,25, 29,30, 34,35, 39,40, 44,45, 49,50, 54,55, 59,60, 64,65, 69,70, 74,75, 79,80, 84,85, 89,90, 94, 96, 97,98) 
+
 
 
 plotty_mean_min_s$info[plotty_mean_min_s$edge=="TRUE"]  <- "edge"
 plotty_mean_min_s$info[plotty_mean_min_s$edge=="FALSE"]  <- "middle"
-plotty_mean_min_s$info[plotty_mean_min_s$location %in% list(0, 19, 80, 99)] <- "corner"
-
+#plotty_mean_min_s$info[plotty_mean_min_s$location %in% list(0, 19, 80, 99)] <- "corner"
+plotty_mean_min_s$info[plotty_mean_min_s$location %in% list(0, 4, 95, 99)] <- "corner"
 p <- plotty_mean_min_s %>%
   plot_ly(
     x = ~as.numeric(newt_values), 

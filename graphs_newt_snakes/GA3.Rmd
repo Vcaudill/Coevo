@@ -1,0 +1,17 @@
+---
+title: "GA3"
+output: html_document
+date: '2022-07-21'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+GA3 file will be the slow evolution file.
+
+
+- 1e-8*(0.005)^2 = 2.5e-13
+- 1e-9*(0.0158)^2 = 2.5e-13
+- 1e-10*(0.05)^2 = 2.5e-13
+- 1e-11*(0.158)^2 = 2.5e-13
