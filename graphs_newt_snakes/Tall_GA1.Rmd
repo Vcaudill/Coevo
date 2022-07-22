@@ -1419,24 +1419,26 @@ plotty_mean[,c("species","type", "type2","location")]<- str_split_fixed(plotty_m
 plotty_mean_min<-plotty_mean
 plotty_mean_min_s<-plotty_mean_min[which(plotty_mean_min$species=="snake"),]
 plotty_mean_min_s$newt_values<-plotty_mean_min[which(plotty_mean_min$species=="newt"),"measurement"]
-plotty_mean_min_s$edge <- "FALSE"
+#plotty_mean_min_s$edge <- "FALSE"
 #plotty_mean_min_s$edge <- plotty_mean_min_s$location %in% list(0, 1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20, 39, 40, 59, 60, 79, 80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99)
 
-plotty_mean_min_s$edge <- plotty_mean_min_s$location %in% list(1,2,3,5, 9,10, 14,15, 19,20, 24,25, 29,30, 34,35, 39,40, 44,45, 49,50, 54,55, 59,60, 64,65, 69,70, 74,75, 79,80, 84,85, 89,90, 94, 96, 97,98) 
+#plotty_mean_min_s$edge <- plotty_mean_min_s$location %in% list(1,2,3,5, 9,10, 14,15, 19,20, 24,25, 29,30, 34,35, 39,40, 44,45, 49,50, 54,55, 59,60, 64,65, 69,70, 74,75, 79,80, 84,85, 89,90, 94, 96, 97,98) 
 
 
 
-plotty_mean_min_s$info[plotty_mean_min_s$edge=="TRUE"]  <- "edge"
-plotty_mean_min_s$info[plotty_mean_min_s$edge=="FALSE"]  <- "middle"
-#plotty_mean_min_s$info[plotty_mean_min_s$location %in% list(0, 19, 80, 99)] <- "corner"
-plotty_mean_min_s$info[plotty_mean_min_s$location %in% list(0, 4, 95, 99)] <- "corner"
+#plotty_mean_min_s$info[plotty_mean_min_s$edge=="TRUE"]  <- "edge"
+#plotty_mean_min_s$info[plotty_mean_min_s$edge=="FALSE"]  <- "middle"
+plotty_mean_min_s$info[plotty_mean_min_s$location %in% list(0, 19, 80, 99)] <- "corner"
+plotty_mean_min_s$info[plotty_mean_min_s$location %in% list(1,2,3,5, 9,10, 14,15, 19,20, 24,25, 29,30, 34,35, 39,40, 44,45, 49,50, 54,55, 59,60, 64,65, 69,70, 74,75, 79,80, 84,85, 89,90, 94, 96, 97,98)] <- "edge"
+plotty_mean_min_s$info[is.na(plotty_mean_min_s$info)]<- "middle"
+#unique(plotty_mean_min_s$info)
 p <- plotty_mean_min_s %>%
   plot_ly(
-    x = ~as.numeric(newt_values), 
-    y = ~as.numeric(measurement), 
+    x = ~as.numeric(newt_values), # newt pheno
+    y = ~as.numeric(measurement), #snake pheno
     frame = ~generation, 
     text = ~factor(location), 
-    color = ~factor(info), 
+    color = ~info, 
     hoverinfo = "text",
     type = 'scatter',
     mode = 'markers'

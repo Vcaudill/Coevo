@@ -347,6 +347,35 @@ early() {
 
 }
 
+	// Section about allel caculations
+	// slim manual pg 255
+//late(){
+//	
+//	// get the QTL mutations and their frequencies
+
+//	m2muts = sim.mutationsOfType(m2);
+//	m2freqs = sim.mutationFrequencies(NULL, m2muts);
+
+//	// sort those vectors by frequency
+//	o = order(m2freqs, ascending=F);
+//	m2muts = m2muts[o];
+//	m2freqs = m2freqs[o];
+
+//	// get the effect sizes
+
+
+//	m2e0 = m2muts.getValue("e0");
+//	m2e1 = m2muts.getValue("e1");
+
+//	// now output a list of the QTL mutations and their effect sizes
+
+//	catn("\nQTL mutations (f: e0, e1):");
+//	for (i in seqAlong(m2muts))
+//		catn(m2freqs[i] + ": " + m2e0[i] + ", " + m2e1[i]);
+// //finding the number of indivduals with a particular mutation 
+//inds_m2 = inds.countOfMutationsOfType(m2);
+//nds_m3 = inds.countOfMutationsOfType(m3);
+//}
 
 
 //Snake a Newt display 
@@ -463,9 +492,9 @@ early() {
 	// maybe it should be transposed?
 	// standorize the colors 
 	//p1.defineSpatialMap('newts', 'xy', newt_means, interpolate=F,
-		//valueRange=range(p1.individuals.z), colors=c("#FFFFFF", "#FF0000"));//"#000000", "#FFFFFF"
+	//valueRange=range(p1.individuals.z), colors=c("#FFFFFF", "#FF0000"));//"#000000", "#FFFFFF"
 	//p0.defineSpatialMap('snakes', 'xy', snake_means, interpolate=F,
-		//valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
+	//valueRange=range(p0.individuals.z), colors=c("#FFFFFF", "#0000FF"));//"#000000", "#FFFFFF"
 	//p2.defineSpatialMap('snakes-newts', 'xy', snake_newt , interpolate=F,
 	//valueRange=range(snake_newt), colors=c("#FFFFFF", "#0000FF"));//more blue more resistance
 	
@@ -473,13 +502,13 @@ early() {
 		operation="individuals.size();", empty=0.0, perUnitArea=T);
 	snake_mean_pheno_calc = snake_mean_pheno_calc / max(snake_mean_pheno_calc);
 	//p2.defineSpatialMap("snake_mean_pheno_calc", "xy", snake_mean_pheno_calc, F,
-		//range(snake_mean_pheno_calc), c("black", "orange", "red")); //looking at snake mean phenotype by section
+	//range(snake_mean_pheno_calc), c("black", "orange", "red")); //looking at snake mean phenotype by section
 	
 	newt_mean_pheno_calc = summarizeIndividuals(p1.individuals, grid_res, bounds,
 		operation="individuals.size();", empty=0.0, perUnitArea=T);
 	newt_mean_pheno_calc = newt_mean_pheno_calc / max(newt_mean_pheno_calc);
 	//p3.defineSpatialMap("newt_mean_pheno_calc", "xy", newt_mean_pheno_calc, F,
-		//range(newt_mean_pheno_calc), c("black", "orange", "red")); //looking at newt mean phenotype by section
+	//range(newt_mean_pheno_calc), c("black", "orange", "red")); //looking at newt mean phenotype by section
 	
 	//p2.defineSpatialMap("snake_cov", "xy", snake_cov, F, c(-0.1,0.1), colors=c("red", "white", "blue")); // showing the cov of snakes the range can make the colors lighter and darker depending on the cor values
 	
@@ -505,8 +534,8 @@ early() {
 	mytextfile="~/Desktop/text_file.txt";
 	log_t = sim.createLogFile(mytextfile, logInterval=20);
 	log_t.addGeneration();
-
-		
+	
+	
 	log_t.addCustomColumn("Newt_age","mean(p1.individuals.age);");
 	log_t.addCustomColumn("Snake_age","mean(p0.individuals.age);");
 	log_t.addCustomColumn("Newt_density","p1.individualCount/W^2;");
@@ -536,15 +565,15 @@ early() {
 	//phenotype file
 	//This is not a log file because I am recording all of the ind each generation and that would require a loop
 	
-		//myphenotypefile=outpath+tag+"_GA"+grid_val+grid_val+"_litbyind_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+seed + "_cost_" + setCOST + "_interaction_rate_" + interaction_rate + "_late_" + NUMGENS + "_.text"; //file name
-		outpath="~/Desktop/";
-		myphenotypefile=outpath+"phenotype.txt";
-		defineGlobal("myphenotypefile", myphenotypefile);
+	//myphenotypefile=outpath+tag+"_GA"+grid_val+grid_val+"_litbyind_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+seed + "_cost_" + setCOST + "_interaction_rate_" + interaction_rate + "_late_" + NUMGENS + "_.text"; //file name
+	outpath="~/Desktop/";
+	myphenotypefile=outpath+"phenotype.txt";
+	defineGlobal("myphenotypefile", myphenotypefile);
 	myphenotypefileheader="gen" + "    " + "phenotype" + "    " + "fitness" + "    " + "age"+ "    " + "species"+ "    " + "loc_x" + "    " + "loc_y";
-if (sim.generation == 1) {
-	
+	if (sim.generation == 1) {
+		
 		writeFile(myphenotypefile, myphenotypefileheader , append = T);
-//writing info about the newt "N"		
+		//writing info about the newt "N"		
 		myphenotypefileinfo = sim.generation + "    "  + asString(inds_n.getValue("pheno"))+ "    " + asString(inds_n.fitnessScaling)+"    "  +asString(inds_n.age)+ "    " + "N"+ "    " + asString(inds_n.x) + "    " + asString(inds_n.y);
 		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
 		//writing info about the snakes "S"
@@ -552,7 +581,7 @@ if (sim.generation == 1) {
 		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
 	
 	}
-		
+	
 	//grid space file
 	log = sim.createLogFile("~/Desktop/grid_space.txt", logInterval=10);
 	log.addGeneration();
@@ -564,16 +593,16 @@ if (sim.generation == 1) {
 		
 		//summarize_max_pheno
 		log.addCustomColumn(paste0("newt_max_pheno_", element), paste0("summarize_max_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt max pheno');"));
-		log.addCustomColumn(paste0("snake_max_pheno_", element), paste0("summarize_max_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake max pheno');"));		
+		log.addCustomColumn(paste0("snake_max_pheno_", element), paste0("summarize_max_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake max pheno');"));
 		//summarize_mean_pheno
 		log.addCustomColumn(paste0("newt_mean_pheno_", element), paste0("summarize_mean_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt mean pheno');"));
-		log.addCustomColumn(paste0("snake_mean_pheno_", element), paste0("summarize_mean_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake mean pheno');"));	
+		log.addCustomColumn(paste0("snake_mean_pheno_", element), paste0("summarize_mean_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake mean pheno');"));
 		//summarize_sd_pheno
-				log.addCustomColumn(paste0("newt_sd_pheno_", element), paste0("summarize_sd_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt sd pheno');"));
-		log.addCustomColumn(paste0("snake_sd_pheno_", element), paste0("summarize_sd_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake sd pheno');"));	
+		log.addCustomColumn(paste0("newt_sd_pheno_", element), paste0("summarize_sd_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt sd pheno');"));
+		log.addCustomColumn(paste0("snake_sd_pheno_", element), paste0("summarize_sd_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake sd pheno');"));
 		//summarize_min_pheno
 		log.addCustomColumn(paste0("newt_min_pheno_", element), paste0("summarize_min_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt min pheno');"));
-		log.addCustomColumn(paste0("snake_min_pheno_", element), paste0("summarize_min_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake min pheno');"));	
+		log.addCustomColumn(paste0("snake_min_pheno_", element), paste0("summarize_min_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake min pheno');"));
 	}
 }
 
@@ -587,24 +616,24 @@ if (sim.generation == 1) {
 		//writing info about the snakes "S"
 		myphenotypefileinfo = sim.generation + "    "  + asString(inds_s.getValue("pheno"))+ "    " + asString(inds_s.fitnessScaling)+"    "  +asString(inds_s.age)+ "    " + "S"+ "    " + asString(inds_s.x) + "    " + asString(inds_s.y);
 		writeFile(myphenotypefile, myphenotypefileinfo , append = T);
-			
+	
 	}}
 
 2 early(){
-
-		//Cor Log file
-//mycorfile=outpath+tag+"_GA"+grid_val+grid_val+"_cor_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+seed + "_cost_" + setCOST + "_interaction_rate_" + interaction_rate + "_late_" + NUMGENS + "_.text"; //file name
-		outpath="~/Desktop/";
-		mycorfile=outpath+"cor_file.txt";
 	
-		log_c = sim.createLogFile(mycorfile, logInterval=10);
-		log_c.addGeneration();
-		log_c.addCustomColumn("mean_newt_pheno_By_mean_snake_pheno","mean_newt_pheno_By_mean_snake_pheno;");
-log_c.addCustomColumn("num_newts_By_num_snakes","num_newts_By_num_snakes;");
-log_c.addCustomColumn("sum_newt_pheno_By_num_snake","sum_newt_pheno_By_num_snake;");
-log_c.addCustomColumn("sum_snake_pheno_By_num_newt","sum_snake_pheno_By_num_newt;");
-log_c.addCustomColumn("sum_newt_pheno_By_num_newt","sum_newt_pheno_By_num_newt;");
-log_c.addCustomColumn("sum_snake_pheno_By_snake_newt","sum_snake_pheno_By_snake_newt;");
+	//Cor Log file
+	//mycorfile=outpath+tag+"_GA"+grid_val+grid_val+"_cor_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+seed + "_cost_" + setCOST + "_interaction_rate_" + interaction_rate + "_late_" + NUMGENS + "_.text"; //file name
+	outpath="~/Desktop/";
+	mycorfile=outpath+"cor_file.txt";
+	
+	log_c = sim.createLogFile(mycorfile, logInterval=10);
+	log_c.addGeneration();
+	log_c.addCustomColumn("mean_newt_pheno_By_mean_snake_pheno","mean_newt_pheno_By_mean_snake_pheno;");
+	log_c.addCustomColumn("num_newts_By_num_snakes","num_newts_By_num_snakes;");
+	log_c.addCustomColumn("sum_newt_pheno_By_num_snake","sum_newt_pheno_By_num_snake;");
+	log_c.addCustomColumn("sum_snake_pheno_By_num_newt","sum_snake_pheno_By_num_newt;");
+	log_c.addCustomColumn("sum_newt_pheno_By_num_newt","sum_newt_pheno_By_num_newt;");
+	log_c.addCustomColumn("sum_snake_pheno_By_snake_newt","sum_snake_pheno_By_snake_newt;");
 
 }
 
