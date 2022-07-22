@@ -5,13 +5,145 @@ date: '2022-07-21'
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library(knitr)
+library(kableExtra)
+library("reshape")
+library(ggplot2)
+library(ggpubr)
+theme_set(theme_pubr())
+library(stringr)
+library(patchwork)
 ```
 
-GA3 file will be the slow evolution file.
+GA3 file will be the slow evolution file. The main goal will be testing to see if there is an effect caused by mutation rate or effect size when the mutational variance between two species is the same.
 
+Prediction: Higher mutation rate will be advantages in the beginning of a simulation. A higher effect size might lead to more spatial co-evolution. Space might separate the effects.
+
+For the initial part of this experiment I will only be running one trial per GA combination
+
+GA combinations:
 
 - 1e-8*(0.005)^2 = 2.5e-13
 - 1e-9*(0.0158)^2 = 2.5e-13
 - 1e-10*(0.05)^2 = 2.5e-13
 - 1e-11*(0.158)^2 = 2.5e-13
+
+
+
+```{r, data gathering}
+
+snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
+
+GA1_tall <- list.files(path="~/Desktop/tall_map", pattern="_lit_", full.names=TRUE, recursive=FALSE)
+GA1_tall_cor_files <- list.files(path="~/Desktop/tall_map", pattern="_cor_", full.names=TRUE, recursive=FALSE)
+grid_tall_files <- list.files(path="~/Desktop/tall_map", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+
+
+GA1_tall_tall_file<- data.frame()
+GA1_cor_tall_file<- data.frame()
+grid_tall_file<-data.frame()
+
+oldstand=0
+letter=0
+newt_unique=0
+newt_numb = 0
+for(i in seq(1, length(GA1_tall), 1)){
+  stand <- unlist(str_split(unlist(str_split(GA1_tall[i],"newt_mu_rate_"))[2], "_"))[1]
+  up <- unlist(str_split(unlist(str_split(GA1_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  phrase = paste0(stand, "_", up)
+  if (stand!=oldstand){
+    oldstand=stand
+    letter = letter + 1
+  }
+
+    if (phrase=="1.0e-08_0.05" ){
+    newt_numb =  1
+   }
+    if (phrase=="1.0e-09_0.158114"){
+    newt_numb =  2
+   }
+      if (phrase=="1.0e-10_0.5"){
+    newt_numb =  3
+   }
+    if (phrase=="1.0e-11_1.58114"){
+    newt_numb =  4
+   }
+  
+      if (phrase=="1.0e-12_5.0"){
+    newt_numb =  5
+   }
+  print(newt_numb)
+  if (i<=length(GA1_tall)){
+
+  stand <- unlist(str_split(unlist(str_split(GA1_tall[i],"newt_mu_rate_"))[2], "_"))[1]
+  up <- unlist(str_split(unlist(str_split(GA1_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  phrase = paste0(stand, "_", up)
+
+   if (phrase=="1.0e-08_0.005"){
+    newt_numb =  1
+   }
+    if (phrase=="1.0e-09_0.05"){
+    newt_numb =  2
+   }
+      if (phrase=="1.0e-10_0.5"){
+    newt_numb =  3
+   }
+    if (phrase=="1.0e-11_5.0"){
+    newt_numb =  4
+   }
+   
+  GA1_temp_file <- read.csv(GA1_tall[i], header = TRUE)
+  GA1_temp_file$sim <-LETTERS[letter]
+  GA1_temp_file$size <-newt_numb
+  GA1_temp_file$rep <-unlist(str_split(unlist(str_split(GA1_tall[i],"rep_"))[3], "_"))[1]
+  GA1_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA1_tall[i],"snake_mu_rate_"))[2], "_"))[1]
+  GA1_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA1_tall[i],"newt_mu_rate_"))[2], "_"))[1]
+  GA1_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA1_tall[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  GA1_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA1_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  GA1_tall_tall_file <- rbind(GA1_tall_tall_file, GA1_temp_file)
+  
+  cor_temp_file <- read.csv(GA1_tall_cor_files[i], header = TRUE)
+  cor_temp_file$sim <-LETTERS[letter]
+  cor_temp_file$size <-newt_numb
+  cor_temp_file$rep <-unlist(str_split(unlist(str_split(GA1_tall_cor_files[i],"rep_"))[3], "_"))[1]
+  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA1_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA1_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA1_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA1_tall_cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  GA1_cor_tall_file <- rbind(GA1_cor_tall_file, cor_temp_file)
+  
+  grid_temp_file <- read.csv(grid_tall_files[i], header = TRUE)
+  grid_temp_file$sim <-LETTERS[letter]
+  grid_temp_file$size <-newt_numb
+  grid_temp_file$rep <-unlist(str_split(unlist(str_split(grid_tall_files[i],"rep_"))[3], "_"))[1]
+  grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  grid_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(grid_tall_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  grid_tall_file <- rbind(grid_tall_file, grid_temp_file)
+  
+
+  }
+  
+}
+
+GA1_tall_tall_file$dif <- GA1_tall_tall_file$Snake_mean_Pheno-GA1_tall_tall_file$Newt_mean_Pheno
+
+GA1_tall_tall_file$group_rep <- paste0(GA1_tall_tall_file$snake_mu_rate, "_", GA1_tall_tall_file$snake_mu_effect_sd,"_",GA1_tall_tall_file$newt_mu_rate, "_", GA1_tall_tall_file$newt_mu_effect_sd, "_", GA1_tall_tall_file$rep)
+
+GA1_tall_tall_file$group <- paste0(GA1_tall_tall_file$snake_mu_rate, "_", GA1_tall_tall_file$snake_mu_effect_sd,"_",GA1_tall_tall_file$newt_mu_rate, "_", GA1_tall_tall_file$newt_mu_effect_sd)
+
+grid_tall_file$snake_newt_rep <- paste0("Snake_",grid_tall_file$snake_mu_rate, "_", grid_tall_file$snake_mu_effect_sd, "_Newt_",grid_tall_file$newt_mu_rate, "_", grid_tall_file$newt_mu_effect_sd, "_", grid_tall_file$rep)
+```

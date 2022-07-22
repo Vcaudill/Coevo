@@ -204,7 +204,7 @@ reproduction(p0) {//snakes
 	
 	//Newt and snake phenotype should start at a similar point
 	//Something is not working properly so for now I turned this off
-	catn(mean(p0.individuals.getValue("pheno")) + "    " + mean(p1.individuals.getValue("pheno")));
+	//catn(mean(p0.individuals.getValue("pheno")) + "    " + mean(p1.individuals.getValue("pheno")));
 	
 	snake_mean = mean(p0.individuals.getValue("pheno"));
 	newt_mean = mean(p1.individuals.getValue("pheno"));
@@ -347,35 +347,36 @@ early() {
 
 }
 
-	// Section about allel caculations
-	// slim manual pg 255
-//late(){
-//	
-//	// get the QTL mutations and their frequencies
-
-//	m2muts = sim.mutationsOfType(m2);
-//	m2freqs = sim.mutationFrequencies(NULL, m2muts);
-
-//	// sort those vectors by frequency
-//	o = order(m2freqs, ascending=F);
-//	m2muts = m2muts[o];
-//	m2freqs = m2freqs[o];
-
-//	// get the effect sizes
-
-
-//	m2e0 = m2muts.getValue("e0");
-//	m2e1 = m2muts.getValue("e1");
-
-//	// now output a list of the QTL mutations and their effect sizes
-
-//	catn("\nQTL mutations (f: e0, e1):");
-//	for (i in seqAlong(m2muts))
-//		catn(m2freqs[i] + ": " + m2e0[i] + ", " + m2e1[i]);
-// //finding the number of indivduals with a particular mutation 
-//inds_m2 = inds.countOfMutationsOfType(m2);
-//nds_m3 = inds.countOfMutationsOfType(m3);
-//}
+// Section about allel caculations
+// slim manual pg 255
+late(){
+	//	
+	//	// get the QTL mutations and their frequencies
+	
+	m2muts = sim.mutationsOfType(m2); //snake excempt newts might also have this one...
+	catn(m2muts);
+	//	m2freqs = sim.mutationFrequencies(NULL, m2muts);
+	
+	//	// sort those vectors by frequency
+	//	o = order(m2freqs, ascending=F);
+	//	m2muts = m2muts[o];
+	//	m2freqs = m2freqs[o];
+	
+	//	// get the effect sizes
+	
+	
+	//	m2e0 = m2muts.getValue("e0");
+	//	m2e1 = m2muts.getValue("e1");
+	
+	//	// now output a list of the QTL mutations and their effect sizes
+	
+	//	catn("\nQTL mutations (f: e0, e1):");
+	//	for (i in seqAlong(m2muts))
+	//		catn(m2freqs[i] + ": " + m2e0[i] + ", " + m2e1[i]);
+	// //finding the number of indivduals with a particular mutation 
+	//inds_m2 = inds.countOfMutationsOfType(m2);
+	//nds_m3 = inds.countOfMutationsOfType(m3);
+}
 
 
 //Snake a Newt display 
@@ -471,8 +472,8 @@ early() {
 	//correlations 	
 	newt_mean_pheno=newt_mean_pheno[];
 	snake_mean_pheno=snake_mean_pheno[];
-	catn(newt_mean_pheno);
-	catn(snake_mean_pheno);
+	//catn(newt_mean_pheno);
+	//catn(snake_mean_pheno);
 	u=isFinite(newt_mean_pheno)&isFinite(snake_mean_pheno);
 	mean_newt_pheno_By_mean_snake_pheno = cor(c(newt_mean_pheno[u]), c(snake_mean_pheno[u])); // mean should not be devied by the area and the things it gives back should be "nan"
 	num_newts_By_num_snakes = cor(c(snake_sum_ind), c(newt_sum_ind));

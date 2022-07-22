@@ -1135,7 +1135,7 @@ data_long_mean_short<-data_long_mean
 #data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
 #data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
 
-data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(2, 2)),20)
+data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),20)
 data_long_mean_short$x_loc<-c(rep.int(1, 10),rep.int(2, 10),rep.int(3, 10),rep.int(4, 10),rep.int(5, 10),rep.int(6, 10),rep.int(7, 10),rep.int(8, 10),rep.int(9, 10),rep.int(10, 10),rep.int(11, 10),rep.int(12, 10),rep.int(13, 10),rep.int(14, 10),rep.int(15, 10),rep.int(16, 10),rep.int(17, 10),rep.int(18, 10),rep.int(19, 10),rep.int(20, 10))
 
 main_plot<-ggplot(data_long_mean_short)+
@@ -1203,7 +1203,7 @@ data_long_mean_short<-data_long_mean
 #data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
 #data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
 
-data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(2, 2)),20)
+data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),20)
 data_long_mean_short$x_loc<-c(rep.int(1, 10),rep.int(2, 10),rep.int(3, 10),rep.int(4, 10),rep.int(5, 10),rep.int(6, 10),rep.int(7, 10),rep.int(8, 10),rep.int(9, 10),rep.int(10, 10),rep.int(11, 10),rep.int(12, 10),rep.int(13, 10),rep.int(14, 10),rep.int(15, 10),rep.int(16, 10),rep.int(17, 10),rep.int(18, 10),rep.int(19, 10),rep.int(20, 10))
 
 main_plot<-ggplot(data_long_mean_short)+
@@ -1276,7 +1276,7 @@ data_long_mean_short<-data_long_mean
 #data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
 #data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
 
-data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(2, 2)),20)
+data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),20)
 data_long_mean_short$x_loc<-c(rep.int(1, 10),rep.int(2, 10),rep.int(3, 10),rep.int(4, 10),rep.int(5, 10),rep.int(6, 10),rep.int(7, 10),rep.int(8, 10),rep.int(9, 10),rep.int(10, 10),rep.int(11, 10),rep.int(12, 10),rep.int(13, 10),rep.int(14, 10),rep.int(15, 10),rep.int(16, 10),rep.int(17, 10),rep.int(18, 10),rep.int(19, 10),rep.int(20, 10))
 
 main_plot<-ggplot(data_long_mean_short)+
@@ -1346,7 +1346,7 @@ data_long_mean_short<-data_long_mean
 #data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
 #data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
 
-data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(2, 2)),20)
+data_long_mean_short$y_loc<- rep(c(rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),20)
 data_long_mean_short$x_loc<-c(rep.int(1, 10),rep.int(2, 10),rep.int(3, 10),rep.int(4, 10),rep.int(5, 10),rep.int(6, 10),rep.int(7, 10),rep.int(8, 10),rep.int(9, 10),rep.int(10, 10),rep.int(11, 10),rep.int(12, 10),rep.int(13, 10),rep.int(14, 10),rep.int(15, 10),rep.int(16, 10),rep.int(17, 10),rep.int(18, 10),rep.int(19, 10),rep.int(20, 10))
 
 main_plot<-ggplot(data_long_mean_short)+
@@ -1393,6 +1393,8 @@ main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, 
 ```
 
 At a later point in this simulation there is still some stripe action, but there is also a bit of a gradient. It seems like the snake phenotype is higher on the edges than in the center. There some grey patches in the left, so there might not be a bunch of newts on the left side of the map. There is no noticeable difference between the corner, edge, or middle section of my simulation map. The stripe-ness still bewilders me...
+
+I had rows and columns flipped. After correcting for that everything looks better!
 
 
 ## Animation of correlation
