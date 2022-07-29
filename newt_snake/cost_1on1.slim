@@ -32,7 +32,7 @@ initialize() {
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.07);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.15);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
@@ -117,6 +117,26 @@ function (float)summarize_min_pheno(o<Subpopulation>$ subpop, i$ grid_res_value,
 	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
 	//catn(cur_index);
 	return sum_ind[index];
+}
+
+function (float)summarize_allele(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, i$ allele, s$ sanity)
+{
+	//the min phenotype of an area 
+	grid_res= c(grid_res_value*H,grid_res_value); //dim(row, column)
+	sum_allele=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation=paste0("sum(individuals.genomes.containsMutations(sim.mutations[sim.mutations.id == ", allele, "]));")); //, perUnitArea=T
+	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	//catn(cur_index);
+	return sum_allele[index];
+}
+
+function (float)summarize_allele_eff(o<Subpopulation>$ subpop, i$ grid_res_value, i$ index, f$ allele, s$ sanity)
+{
+	//the min phenotype of an area 
+	grid_res= c(grid_res_value*H,grid_res_value); //dim(row, column)
+	sum_allele=summarizeIndividuals(subpop.individuals, grid_res, subpop.spatialBounds, operation=paste0("sum(individuals.genomes.containsMutations(sim.mutations[sim.mutations.id == ", allele, "]));")); //, perUnitArea=T
+	//catn(sanity+ "   " +index + "    " + sum_ind[index]);
+	//catn(cur_index);
+	return sum_allele[index];
 }
 
 // to make the mutions truly neutral, what is this doing?
@@ -354,7 +374,7 @@ late(){
 	//	// get the QTL mutations and their frequencies
 	
 	m2muts = sim.mutationsOfType(m2); //snake excempt newts might also have this one...
-	catn(m2muts);
+	//catn(m2muts);
 	//	m2freqs = sim.mutationFrequencies(NULL, m2muts);
 	
 	//	// sort those vectors by frequency
@@ -530,6 +550,23 @@ late(){
 	defineGlobal("beta_n", beta_n);
 	defineGlobal("beta_s", beta_s);
 	
+	// Top allele information
+	muts = sim.mutationsOfType(m1);
+	f = sim.mutationFrequencies(p1, muts);
+	s = muts.selectionCoeff;
+	v = s^2 * f * (1 - f);
+	m = muts[whichMax(v)];
+	vord = order(v, ascending=F);
+	defineGlobal("muts", muts);
+	defineGlobal("v", vord);
+	
+	muts_s = sim.mutationsOfType(m2);
+	f_s = sim.mutationFrequencies(p0, muts_s);
+	s_s = muts_s.selectionCoeff;
+	v_s = s_s^2 * f_s * (1 - f_s);
+	m_s = muts_s[whichMax(v_s)];
+	vord_s = order(v_s, ascending=F);
+	
 	// text file
 	//mytextfile=outpath+tag+"_GA"+grid_val+grid_val+"_lit_"+"snake_mu_rate_"+snake_mu_rate+ "_newt_mu_rate_"+newt_mu_rate + "_snake_mu_effect_sd_"+ snake_mu_effect_sd +"_newt_mu_effect_sd_" +newt_mu_effect_sd+"_sigma_"+SD+ "_ID_"+seed + "_interaction_rate_" + interaction_rate + "_cost_" + setCOST + "_late_" + NUMGENS + "_.text"; //file name
 	mytextfile="~/Desktop/text_file.txt";
@@ -561,6 +598,9 @@ late(){
 	log_t.addCustomColumn("newt_found","newt_found;");
 	log_t.addCustomColumn("snake_deaths","snake_deaths;");
 	log_t.addCustomColumn("newt_deaths","newt_deaths;");
+	log_t.addCustomColumn(paste0("newt_top_allele_", 1),"muts[v[0]].selectionCoeff;");
+	log_t.addCustomColumn(paste0("newt_top_allele_", 2),"muts[v[1]].selectionCoeff;");
+	log_t.addCustomColumn(paste0("newt_top_allele_", 3),"muts[v[2]].selectionCoeff;");
 	log_t.addCustomColumn("time","clock();");
 	
 	//phenotype file
@@ -586,25 +626,38 @@ late(){
 	//grid space file
 	log = sim.createLogFile("~/Desktop/grid_space.txt", logInterval=10);
 	log.addGeneration();
+	log_a = sim.createLogFile("~/Desktop/grid_allele.txt", logInterval=10);
+	log_a.addGeneration();
+	
+	
 	//loop for the different spaces in the grid 
-	for (element in 0:(grid_val*grid_val*H-1)){
-		//summarize_ind_num
-		log.addCustomColumn(paste0("newt_num_ind_", element), paste0("summarize_ind_num(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt num ind');"));
-		log.addCustomColumn(paste0("snake_num_ind_", element), paste0("summarize_ind_num(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake num ind');"));
-		
-		//summarize_max_pheno
-		log.addCustomColumn(paste0("newt_max_pheno_", element), paste0("summarize_max_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt max pheno');"));
-		log.addCustomColumn(paste0("snake_max_pheno_", element), paste0("summarize_max_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake max pheno');"));
-		//summarize_mean_pheno
-		log.addCustomColumn(paste0("newt_mean_pheno_", element), paste0("summarize_mean_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt mean pheno');"));
-		log.addCustomColumn(paste0("snake_mean_pheno_", element), paste0("summarize_mean_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake mean pheno');"));
-		//summarize_sd_pheno
-		log.addCustomColumn(paste0("newt_sd_pheno_", element), paste0("summarize_sd_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt sd pheno');"));
-		log.addCustomColumn(paste0("snake_sd_pheno_", element), paste0("summarize_sd_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake sd pheno');"));
-		//summarize_min_pheno
-		log.addCustomColumn(paste0("newt_min_pheno_", element), paste0("summarize_min_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt min pheno');"));
-		log.addCustomColumn(paste0("snake_min_pheno_", element), paste0("summarize_min_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake min pheno');"));
-	}
+//	for (element in 0:(grid_val*grid_val*H-1)){
+//		//summarize_ind_num
+//		log.addCustomColumn(paste0("newt_num_ind_", element), paste0("summarize_ind_num(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt num ind');"));
+//		log.addCustomColumn(paste0("snake_num_ind_", element), paste0("summarize_ind_num(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake num ind');"));
+//		
+//		//summarize_max_pheno
+//		log.addCustomColumn(paste0("newt_max_pheno_", element), paste0("summarize_max_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt max pheno');"));
+//		log.addCustomColumn(paste0("snake_max_pheno_", element), paste0("summarize_max_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake max pheno');"));
+//		//summarize_mean_pheno
+//		log.addCustomColumn(paste0("newt_mean_pheno_", element), paste0("summarize_mean_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt mean pheno');"));
+//		log.addCustomColumn(paste0("snake_mean_pheno_", element), paste0("summarize_mean_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake mean pheno');"));
+//		//summarize_sd_pheno
+//		log.addCustomColumn(paste0("newt_sd_pheno_", element), paste0("summarize_sd_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt sd pheno');"));
+//		log.addCustomColumn(paste0("snake_sd_pheno_", element), paste0("summarize_sd_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake sd pheno');"));
+//		//summarize_min_pheno
+//		log.addCustomColumn(paste0("newt_min_pheno_", element), paste0("summarize_min_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt min pheno');"));
+//		log.addCustomColumn(paste0("snake_min_pheno_", element), paste0("summarize_min_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake min pheno');"));
+//		//for loop for top 10 alleles eventually 
+//		k=1;
+//		log_a.addCustomColumn(paste0("newt_allele_", k-1, "_", element), paste0("summarize_allele(p1, grid_res_value=grid_val, index=", element, ", allele=", muts[v[k]].id,", sanity='Newt allele info');"));
+//		log_a.addCustomColumn(paste0("snake_allele_", k-1, "_", element), paste0("summarize_allele(p0, grid_res_value=grid_val, index=", element, ", allele=", muts_s[v_s[k]].id,", sanity='Snake allele info');"));
+//		
+//		//log_a.addCustomColumn(paste0("newt_alleleEFF_", k, "_", element), paste0("summarize_allele_eff(p1, grid_res_value=grid_val, index=", element, ", allele=", muts[v[k]].selectionCoeff,", sanity='Newt allele effect');"));
+//		//log_a.addCustomColumn(paste0("snake_alleleEFF_", k, "_", element), paste0("summarize_allele_eff(p0, grid_res_value=grid_val, index=", element, ", allele=", muts_s[v_s[k]].selectionCoeff,", sanity='Snake allele effect');"));
+//	
+	
+//	}
 }
 
 2: early(){

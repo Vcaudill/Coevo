@@ -54,88 +54,48 @@ GA3_GA3_grid_tall_files <- list.files(path="~/Desktop/GA3", pattern="_grid_", fu
 GA3_tall_tall_file<- data.frame()
 GA3_cor_tall_file<- data.frame()
 GA3_GA3_grid_tall_file<-data.frame()
-
-#oldstand=0
-letter=0
-#newt_unique=0
-#newt_numb = 0
+name_list<-c()
+cor_name_list<-c()
+grid_name_list<-c()
 for(i in seq(1, length(GA3_tall), 1)){
-  stand <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_rate_"))[2], "_"))[1]
-  up <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  phrase = paste0(stand, "_", up)
-  letter = letter +1
-  # if (stand!=oldstand){
-  #   oldstand=stand
-  #   letter = letter + 1
-  # }
-  # 
-  #   if (phrase=="1.0e-08_0.05" ){
-  #   newt_numb =  1
-  #  }
-  #   if (phrase=="1.0e-09_0.158114"){
-  #   newt_numb =  2
-  #  }
-  #     if (phrase=="1.0e-10_0.5"){
-  #   newt_numb =  3
-  #  }
-  #   if (phrase=="1.0e-11_1.58114"){
-  #   newt_numb =  4
-  #  }
-  # 
-  #     if (phrase=="1.0e-12_5.0"){
-  #   newt_numb =  5
-  #  }
-  # print(newt_numb)
-  # 
-  # if (i<=length(GA3_tall)){
-
-  # stand <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_rate_"))[2], "_"))[1]
-  # up <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  # phrase = paste0(stand, "_", up)
-  # 
-  #  if (phrase=="1.0e-08_0.005"){
-  #   newt_numb =  1
-  #  }
-  #   if (phrase=="1.0e-09_0.05"){
-  #   newt_numb =  2
-  #  }
-  #     if (phrase=="1.0e-10_0.5"){
-  #   newt_numb =  3
-  #  }
-  #   if (phrase=="1.0e-11_5.0"){
-  #   newt_numb =  4
-  #  }
-   
+  print(i)
+  #sim
+ 
+  
   GA3_temp_file <- read.csv(GA3_tall[i], header = TRUE)
-  GA3_temp_file$sim <-LETTERS[letter]
-  #GA3_temp_file$size <-newt_numb
-  GA3_temp_file$rep <-unlist(str_split(unlist(str_split(GA3_tall[i],"rep_"))[3], "_"))[1]
+  GA3_temp_file$rep <- unlist(str_split(unlist(str_split(GA3_tall[i],"rep_"))[3], "_"))[1]
   GA3_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall[i],"snake_mu_rate_"))[2], "_"))[1]
   GA3_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_rate_"))[2], "_"))[1]
   GA3_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall[i],"snake_mu_effect_sd_"))[2], "_"))[1]
   GA3_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  name_list<-c(paste0(GA3_temp_file$snake_mu_rate[1], GA3_temp_file$newt_mu_rate[1], GA3_temp_file$snake_mu_effect_sd[1], GA3_temp_file$newt_mu_effect_sd[1]),name_list)
+  GA3_temp_file$sim <- LETTERS[length(unique(name_list))]
   GA3_tall_tall_file <- rbind(GA3_tall_tall_file, GA3_temp_file)
+  print(GA3_temp_file$sim[1])
   
   cor_temp_file <- read.csv(GA3_tall_cor_files[i], header = TRUE)
-  cor_temp_file$sim <-LETTERS[letter]
-  #cor_temp_file$size <-newt_numb
+  cor_temp_file$sim <-
   cor_temp_file$rep <-unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"rep_"))[3], "_"))[1]
   cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
   cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
   cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
   cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  cor_name_list<-c(paste0(cor_temp_file$snake_mu_rate[1], cor_temp_file$newt_mu_rate[1], cor_temp_file$snake_mu_effect_sd[1], cor_temp_file$newt_mu_effect_sd[1]),cor_name_list)
+  cor_temp_file$sim <- LETTERS[length(unique(cor_name_list))]
   GA3_cor_tall_file <- rbind(GA3_cor_tall_file, cor_temp_file)
+  print(cor_temp_file$sim[1])
   
   GA3_grid_temp_file <- read.csv(GA3_GA3_grid_tall_files[i], header = TRUE)
-  GA3_grid_temp_file$sim <-LETTERS[letter]
-  #GA3_grid_temp_file$size <-newt_numb
+  GA3_grid_temp_file$sim <-
   GA3_grid_temp_file$rep <-unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"rep_"))[3], "_"))[1]
   GA3_grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
   GA3_grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
   GA3_grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
   GA3_grid_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  grid_name_list<-c(paste0(GA3_grid_temp_file$snake_mu_rate[1], GA3_grid_temp_file$newt_mu_rate[1], GA3_grid_temp_file$snake_mu_effect_sd[1], GA3_grid_temp_file$newt_mu_effect_sd[1]),grid_name_list)
+  GA3_grid_temp_file$sim <- LETTERS[length(unique(grid_name_list))]
   GA3_GA3_grid_tall_file <- rbind(GA3_GA3_grid_tall_file, GA3_grid_temp_file)
-  
+   print(GA3_grid_temp_file$sim[1])
 
   }
   
@@ -957,7 +917,7 @@ file_name= "Snake_1.0e-11_0.158_Newt_1.0e-10_0.05_0"
 
 spegen=20001
 #unique(GA3_grid_tall_file$snake_newt_rep)
-GA3<-GA3_grid_tall_file[which(GA3_grid_tall_file$snake_newt_rep==file_name & GA3_grid_tall_file$generation==spegen),]
+GA3<-GA3_GA3_grid_tall_file[which(GA3_GA3_grid_tall_file$snake_newt_rep==file_name & GA3_GA3_grid_tall_file$generation==spegen),]
 
 GA3_mean = GA3[,grepl("generation|mean", names(GA3)) ]
 
@@ -1025,7 +985,7 @@ file_name= "Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0"
 
 spegen=30001
 #unique(GA3_grid_tall_file$snake_newt_rep)
-GA3<-GA3_grid_tall_file[which(GA3_grid_tall_file$snake_newt_rep==file_name & GA3_grid_tall_file$generation==spegen),]
+GA3<-GA3_GA3_grid_tall_file[which(GA3_GA3_grid_tall_file$snake_newt_rep==file_name & GA3_GA3_grid_tall_file$generation==spegen),]
 
 GA3_mean = GA3[,grepl("generation|mean", names(GA3)) ]
 
@@ -1062,6 +1022,213 @@ newt_GA3$info[is.na(newt_GA3$info)]<- "middle"
 
 extra_plot <- ggplot(newt_GA3)+
   ggtitle("Mean Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+    
+```
+
+
+
+```{r, cor grid by location}
+
+#GA3_grid_tall_file
+
+
+file_name= "Snake_1.0e-10_0.05_Newt_1.0e-11_0.158_3"
+#Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
+
+spegen=14001
+#unique(GA3_grid_tall_file$snake_newt_rep)
+GA3<-GA3_GA3_grid_tall_file[which(GA3_GA3_grid_tall_file$snake_newt_rep==file_name & GA3_GA3_grid_tall_file$generation==spegen),]
+
+GA3_mean = GA3[,grepl("generation|mean", names(GA3)) ]
+
+GA3_data_long_mean <- gather(GA3_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+
+GA3_data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(GA3_data_long_mean$condition, "_", 4)
+
+GA3_data_long_mean_short<-GA3_data_long_mean
+
+GA3_data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+GA3_data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+
+main_plot<-ggplot(GA3_data_long_mean_short)+
+  labs(title = "Mean Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = GA3_data_long_mean_short[which(GA3_data_long_mean_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = GA3_data_long_mean_short[which(GA3_data_long_mean_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-GA3_data_long_mean_short[which(GA3_data_long_mean_short$species=="snake"),]
+newt_GA3<-GA3_data_long_mean_short[which(GA3_data_long_mean_short$species=="newt"),]
+newt_GA3$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt_GA3$measurement), use="complete.obs")
+
+
+
+newt_GA3$info[newt_GA3$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt_GA3$info[newt_GA3$location %in% list(0, 19, 80, 99)] <- "corner"
+newt_GA3$info[is.na(newt_GA3$info)]<- "middle"
+
+extra_plot <- ggplot(newt_GA3)+
+  ggtitle("Mean Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+    
+```
+
+
+
+```{r, cor grid by location}
+
+#GA3_grid_tall_file
+
+
+file_name= "Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0"
+#Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
+
+spegen=1001
+#spegen=30001
+#unique(GA3_grid_tall_file$snake_newt_rep)
+GA3<-GA3_GA3_grid_tall_file[which(GA3_GA3_grid_tall_file$snake_newt_rep==file_name & GA3_GA3_grid_tall_file$generation==spegen),]
+
+GA3_ind = GA3[,grepl("generation|num_ind", names(GA3)) ]
+
+GA3_data_long_ind <- gather(GA3_ind, condition, measurement, newt_num_ind_0:snake_num_ind_99, factor_key=TRUE)
+
+GA3_data_long_ind[,c("species","type", "type2","location")]<- str_split_fixed(GA3_data_long_ind$condition, "_", 4)
+
+GA3_data_long_ind_short<-GA3_data_long_ind
+
+GA3_data_long_ind_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+GA3_data_long_ind_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+GA3_data_long_ind_short$measurement[GA3_data_long_ind_short$measurement == 0]  <- NA
+
+main_plot<-ggplot(GA3_data_long_ind_short)+
+  labs(title = "Locations of Ind",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Number of Individuals")+
+  geom_point(data = GA3_data_long_ind_short[which(GA3_data_long_ind_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = GA3_data_long_ind_short[which(GA3_data_long_ind_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c(option = "plasma")+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-GA3_data_long_ind_short[which(GA3_data_long_ind_short$species=="snake"),]
+newt_GA3<-GA3_data_long_ind_short[which(GA3_data_long_ind_short$species=="newt"),]
+newt_GA3$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt_GA3$measurement), use="complete.obs")
+
+
+
+newt_GA3$info[newt_GA3$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt_GA3$info[newt_GA3$location %in% list(0, 19, 80, 99)] <- "corner"
+newt_GA3$info[is.na(newt_GA3$info)]<- "middle"
+
+extra_plot <- ggplot(newt_GA3)+
+  ggtitle("Num of Ind") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+    
+```
+
+
+```{r, cor grid by location}
+
+#GA3_grid_tall_file
+
+
+file_name= "Snake_1.0e-10_0.05_Newt_1.0e-09_0.0158_1"
+
+#Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
+
+#Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
+
+spegen=49991
+#spegen=30001
+#unique(GA3_grid_tall_file$snake_newt_rep)
+GA3<-GA3_GA3_grid_tall_file[which(GA3_GA3_grid_tall_file$snake_newt_rep==file_name & GA3_GA3_grid_tall_file$generation==spegen),]
+
+GA3_ind = GA3[,grepl("generation|num_ind", names(GA3)) ]
+
+GA3_data_long_ind <- gather(GA3_ind, condition, measurement, newt_num_ind_0:snake_num_ind_99, factor_key=TRUE)
+
+GA3_data_long_ind[,c("species","type", "type2","location")]<- str_split_fixed(GA3_data_long_ind$condition, "_", 4)
+
+GA3_data_long_ind_short<-GA3_data_long_ind
+
+GA3_data_long_ind_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+GA3_data_long_ind_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+GA3_data_long_ind_short$measurement[GA3_data_long_ind_short$measurement == 0]  <- NA
+
+main_plot<-ggplot(GA3_data_long_ind_short)+
+  labs(title = "Locations of Ind",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Number of Individuals")+
+  geom_point(data = GA3_data_long_ind_short[which(GA3_data_long_ind_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = GA3_data_long_ind_short[which(GA3_data_long_ind_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c(option = "plasma")+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-GA3_data_long_ind_short[which(GA3_data_long_ind_short$species=="snake"),]
+newt_GA3<-GA3_data_long_ind_short[which(GA3_data_long_ind_short$species=="newt"),]
+newt_GA3$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt_GA3$measurement), use="complete.obs")
+
+
+
+newt_GA3$info[newt_GA3$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt_GA3$info[newt_GA3$location %in% list(0, 19, 80, 99)] <- "corner"
+newt_GA3$info[is.na(newt_GA3$info)]<- "middle"
+
+extra_plot <- ggplot(newt_GA3)+
+  ggtitle("Num of Ind") +
   xlab("Newt") + ylab("Snake")+
   geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
   theme_bw()+
