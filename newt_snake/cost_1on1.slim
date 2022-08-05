@@ -155,7 +155,7 @@ reproduction(p1) {//newts
 				offspring = subpop.addCrossed(individual, mate);
 				offspring.setSpatialPosition(p1.pointReflected(pos));
 				offspring.setValue("snakes_killed",0);
-				offspring.setValue("pheno",exp(offspring.sumOfMutationsOfType(m1)/10));
+				offspring.setValue("pheno",exp(offspring.sumOfMutationsOfType(m1)/10));//rnorm(1, 3, 2)
 			}
 		}
 	}
@@ -173,7 +173,7 @@ reproduction(p0) {//snakes
 				offspring = subpop.addCrossed(individual, mate);
 				offspring.setSpatialPosition(p0.pointReflected(pos));
 				offspring.setValue("newts_killed",0);
-				offspring.setValue("pheno",exp(offspring.sumOfMutationsOfType(m2)/10));
+				offspring.setValue("pheno",exp(offspring.sumOfMutationsOfType(m2)/10));//rnorm(1, 3, 2)
 			}
 		}
 	}
@@ -200,12 +200,12 @@ reproduction(p0) {//snakes
 	for (ind in p1.individuals) { //newt
 		ind.setSpatialPosition(p1.pointUniform());
 		ind.setValue("snakes_killed",0);
-		ind.setValue("pheno",exp(ind.sumOfMutationsOfType(m1)/10));
+		ind.setValue("pheno",exp(ind.sumOfMutationsOfType(m1)/10));//rnorm(1, 3, 2)
 	}
 	for (ind in p0.individuals) { //snake
 		ind.setSpatialPosition(p0.pointUniform());
 		ind.setValue("newts_killed",0);
-		ind.setValue("pheno",exp(ind.sumOfMutationsOfType(m2)/10));
+		ind.setValue("pheno",exp(ind.sumOfMutationsOfType(m2)/10));//rnorm(1, 3, 2)
 	
 	}
 	sim.addSubpop("p2", 1);
@@ -476,7 +476,7 @@ late(){
 	
 	snake_mean_pheno=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>0)mean(individuals.getValue('pheno')); else length(individuals); ", empty=NAN, perUnitArea=F);
 	
-	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>0)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=T);
+	snake_sum_ind=summarizeIndividuals(p0.individuals, grid_res, p0.spatialBounds, operation="if (length(individuals)>0)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=F);
 	
 	
 	//newt
@@ -487,7 +487,7 @@ late(){
 	newt_mean_pheno=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>0)mean(individuals.getValue('pheno')); else length(individuals); ", empty=NAN, perUnitArea=F);
 	
 	
-	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>0)length(individuals); else length(individuals); ", empty=NAN, perUnitArea=T);
+	newt_sum_ind=summarizeIndividuals(p1.individuals, grid_res, p1.spatialBounds, operation="if (length(individuals)>0)length(individuals); else length(individuals); ", empty=0.0, perUnitArea=F);
 	
 	//correlations 	
 	newt_mean_pheno=newt_mean_pheno[];
