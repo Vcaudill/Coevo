@@ -65,7 +65,7 @@ for(i in seq(1, length(inter_tall), 1)){
   
   cor_temp_file <- read.csv(inter_tall_cor_files[i], header = TRUE)
   cor_temp_file$sim <-
-  cor_temp_file$rep <-unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"rep_"))[3], "_"))[1]
+  cor_temp_file$rep <-unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"rep_"))[2], "_"))[1]
   cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
   cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
   cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
@@ -77,7 +77,7 @@ for(i in seq(1, length(inter_tall), 1)){
   
   inter_grid_temp_file <- read.csv(inter_inter_grid_tall_files[i], header = TRUE)
   inter_grid_temp_file$sim <-
-  inter_grid_temp_file$rep <-unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"rep_"))[3], "_"))[1]
+  inter_grid_temp_file$rep <-unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"rep_"))[2], "_"))[1]
   inter_grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
   inter_grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
   inter_grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
@@ -221,8 +221,11 @@ var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen
 
 
 cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern){
+ #file=inter_tall_tall_file
+#cfile=inter_cor_tall_file 
+  #pattern="1.0e-08_0.005_1.0e-09_0.0158_2"
  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
-  cfile$snake_newt_rep <- paste0(cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
+  cfile$snake_newt_rep <- paste0(cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$rep)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
     #geom_line(aes(generation, dif, group=rep, col="dif"))+
       ggtitle(title, subtitle = paste0(subt," pattern ", pattern, " From ", min_gen, " gen to ", max_gen, " gen"))+
@@ -252,8 +255,18 @@ labels = c("Snake", "Newt"))+
   
   file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]
   cfile<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]
-  toDelete <- seq(0, nrow(cfile), 2)
-  cfile_short <-  cfile[-toDelete, ]
+  
+  if(nrow(cfile)>nrow(file)){
+    toDelete <- seq(0, nrow(cfile), 2)
+    cfile_short <-  cfile[-toDelete, ]
+  }else{
+    cfile_short <-  cfile
+  }
+  
+  if(nrow(cfile_short)>nrow(file)){
+      toDelete <- seq(0, nrow(cfile_short), 2)
+      cfile_short <-  cfile_short[-toDelete, ]
+    }
   figure <- ggarrange(plot, cor_plot + font("x.text", size = 10),heights = c(2, 1.5),ncol = 1, nrow = 2, align = "v")
     print(paste0("pattern ", pattern))
   print(paste0("Cor between average snake pheno and local cor ", cor(file$Snake_mean_Pheno, cfile_short$mean_newt_pheno_By_mean_snake_pheno)))
@@ -629,7 +642,7 @@ aggregate(inter_tall_tall_file[which(inter_tall_tall_file$generation>=100 & inte
 ```{r, whale}
 min_gen=5000
 max_gen=10000
-rep=3
+rep=0
 
 whale_gen(inter_tall_tall_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake-Newt Popsize", x_label="Snake-Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
 
