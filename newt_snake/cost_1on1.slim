@@ -631,33 +631,33 @@ late(){
 	
 	
 	//loop for the different spaces in the grid 
-//	for (element in 0:(grid_val*grid_val*H-1)){
-//		//summarize_ind_num
-//		log.addCustomColumn(paste0("newt_num_ind_", element), paste0("summarize_ind_num(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt num ind');"));
-//		log.addCustomColumn(paste0("snake_num_ind_", element), paste0("summarize_ind_num(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake num ind');"));
-//		
-//		//summarize_max_pheno
-//		log.addCustomColumn(paste0("newt_max_pheno_", element), paste0("summarize_max_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt max pheno');"));
-//		log.addCustomColumn(paste0("snake_max_pheno_", element), paste0("summarize_max_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake max pheno');"));
-//		//summarize_mean_pheno
-//		log.addCustomColumn(paste0("newt_mean_pheno_", element), paste0("summarize_mean_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt mean pheno');"));
-//		log.addCustomColumn(paste0("snake_mean_pheno_", element), paste0("summarize_mean_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake mean pheno');"));
-//		//summarize_sd_pheno
-//		log.addCustomColumn(paste0("newt_sd_pheno_", element), paste0("summarize_sd_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt sd pheno');"));
-//		log.addCustomColumn(paste0("snake_sd_pheno_", element), paste0("summarize_sd_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake sd pheno');"));
-//		//summarize_min_pheno
-//		log.addCustomColumn(paste0("newt_min_pheno_", element), paste0("summarize_min_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt min pheno');"));
-//		log.addCustomColumn(paste0("snake_min_pheno_", element), paste0("summarize_min_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake min pheno');"));
-//		//for loop for top 10 alleles eventually 
-//		k=1;
-//		log_a.addCustomColumn(paste0("newt_allele_", k-1, "_", element), paste0("summarize_allele(p1, grid_res_value=grid_val, index=", element, ", allele=", muts[v[k]].id,", sanity='Newt allele info');"));
-//		log_a.addCustomColumn(paste0("snake_allele_", k-1, "_", element), paste0("summarize_allele(p0, grid_res_value=grid_val, index=", element, ", allele=", muts_s[v_s[k]].id,", sanity='Snake allele info');"));
-//		
-//		//log_a.addCustomColumn(paste0("newt_alleleEFF_", k, "_", element), paste0("summarize_allele_eff(p1, grid_res_value=grid_val, index=", element, ", allele=", muts[v[k]].selectionCoeff,", sanity='Newt allele effect');"));
-//		//log_a.addCustomColumn(paste0("snake_alleleEFF_", k, "_", element), paste0("summarize_allele_eff(p0, grid_res_value=grid_val, index=", element, ", allele=", muts_s[v_s[k]].selectionCoeff,", sanity='Snake allele effect');"));
-//	
+	//	for (element in 0:(grid_val*grid_val*H-1)){
+	//		//summarize_ind_num
+	//		log.addCustomColumn(paste0("newt_num_ind_", element), paste0("summarize_ind_num(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt num ind');"));
+	//		log.addCustomColumn(paste0("snake_num_ind_", element), paste0("summarize_ind_num(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake num ind');"));
+	//		
+	//		//summarize_max_pheno
+	//		log.addCustomColumn(paste0("newt_max_pheno_", element), paste0("summarize_max_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt max pheno');"));
+	//		log.addCustomColumn(paste0("snake_max_pheno_", element), paste0("summarize_max_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake max pheno');"));
+	//		//summarize_mean_pheno
+	//		log.addCustomColumn(paste0("newt_mean_pheno_", element), paste0("summarize_mean_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt mean pheno');"));
+	//		log.addCustomColumn(paste0("snake_mean_pheno_", element), paste0("summarize_mean_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake mean pheno');"));
+	//		//summarize_sd_pheno
+	//		log.addCustomColumn(paste0("newt_sd_pheno_", element), paste0("summarize_sd_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt sd pheno');"));
+	//		log.addCustomColumn(paste0("snake_sd_pheno_", element), paste0("summarize_sd_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake sd pheno');"));
+	//		//summarize_min_pheno
+	//		log.addCustomColumn(paste0("newt_min_pheno_", element), paste0("summarize_min_pheno(p1, grid_res_value=grid_val, index=", element, ", sanity='Newt min pheno');"));
+	//		log.addCustomColumn(paste0("snake_min_pheno_", element), paste0("summarize_min_pheno(p0, grid_res_value=grid_val, index=", element, ", sanity='Snake min pheno');"));
+	//		//for loop for top 10 alleles eventually 
+	//		k=1;
+	//		log_a.addCustomColumn(paste0("newt_allele_", k-1, "_", element), paste0("summarize_allele(p1, grid_res_value=grid_val, index=", element, ", allele=", muts[v[k]].id,", sanity='Newt allele info');"));
+	//		log_a.addCustomColumn(paste0("snake_allele_", k-1, "_", element), paste0("summarize_allele(p0, grid_res_value=grid_val, index=", element, ", allele=", muts_s[v_s[k]].id,", sanity='Snake allele info');"));
+	//		
+	//		//log_a.addCustomColumn(paste0("newt_alleleEFF_", k, "_", element), paste0("summarize_allele_eff(p1, grid_res_value=grid_val, index=", element, ", allele=", muts[v[k]].selectionCoeff,", sanity='Newt allele effect');"));
+	//		//log_a.addCustomColumn(paste0("snake_alleleEFF_", k, "_", element), paste0("summarize_allele_eff(p0, grid_res_value=grid_val, index=", element, ", allele=", muts_s[v_s[k]].selectionCoeff,", sanity='Snake allele effect');"));
+	//	
 	
-//	}
+	//	}
 }
 
 2: early(){

@@ -1,0 +1,166 @@
+---
+title: "Big_map"
+output: html_document
+date: '2022-08-18'
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library(knitr)
+library(kableExtra)
+library("reshape")
+library(ggplot2)
+library(ggpubr)
+theme_set(theme_pubr())
+library(stringr)
+library(patchwork)
+```
+
+In this markdown I would like to run my newts and snake simulation on a larger map. The prediction that is when I create a larger map there will be more opportunities for different areas to co-evolve, creating a mosaic pattern. The BIG map to be 100 times larger than the long map. The demotions would be; length=1,400 width=350. This would increase the amount of individuals and grid data-points in my simulations. 
+
+In my current simulations, there are about 6,000 individuals (combination of newts and snakes). If I increase the map's area by 100 I expect that the number of individuals would also increase by 100 (~600,000). To make these simulations work/run faster I will increase the starting population size to 2,500 per each species. I also plan on taking information from the simulations less often (e.g. taking information every 50 generations instead of 20) and for a shorter amount of time (e.g. from 50,000 generation to only 10,000 generations). 
+
+My previous simulations ran for 50,000 generations and took a day or less to run (msprime+slim). I will make some plots to see how long these larger simulations will take to run  
+
+
+
+
+
+
+```{r, data gathering}
+
+snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
+
+big_map_tall <- list.files(path="~/Desktop/big_map", pattern="_lit_", full.names=TRUE, recursive=FALSE)
+big_map_tall_cor_files <- list.files(path="~/Desktop/big_map", pattern="_cor_", full.names=TRUE, recursive=FALSE)
+big_map_grid_tall_files <- list.files(path="~/Desktop/big_map", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+
+
+big_map_tall_tall_file<- data.frame()
+big_map_cor_tall_file<- data.frame()
+big_map_grid_tall_file<-data.frame()
+name_list<-c()
+cor_name_list<-c()
+grid_name_list<-c()
+for(i in seq(1, length(big_map_tall)/2, 1)){
+  print(i)
+  #sim
+ 
+  
+  big_map_temp_file <- read.csv(big_map_tall[i], header = TRUE)
+  big_map_temp_file$rep <- unlist(str_split(unlist(str_split(big_map_tall[i],"rep_"))[3], "_"))[1]
+  big_map_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(big_map_tall[i],"snake_mu_rate_"))[2], "_"))[1]
+  big_map_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(big_map_tall[i],"newt_mu_rate_"))[2], "_"))[1]
+  big_map_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_tall[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  big_map_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  name_list<-c(paste0(big_map_temp_file$snake_mu_rate[1], big_map_temp_file$newt_mu_rate[1], big_map_temp_file$snake_mu_effect_sd[1], big_map_temp_file$newt_mu_effect_sd[1]),name_list)
+  big_map_temp_file$sim <- LETTERS[length(unique(name_list))]
+  big_map_tall_tall_file <- rbind(big_map_tall_tall_file, big_map_temp_file)
+  print(big_map_temp_file$sim[1])
+  
+  cor_temp_file <- read.csv(big_map_tall_cor_files[i], header = TRUE)
+  cor_temp_file$sim <-
+  cor_temp_file$rep <-unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"rep_"))[3], "_"))[1]
+  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  cor_name_list<-c(paste0(cor_temp_file$snake_mu_rate[1], cor_temp_file$newt_mu_rate[1], cor_temp_file$snake_mu_effect_sd[1], cor_temp_file$newt_mu_effect_sd[1]),cor_name_list)
+  cor_temp_file$sim <- LETTERS[length(unique(cor_name_list))]
+  big_map_cor_tall_file <- rbind(big_map_cor_tall_file, cor_temp_file)
+  print(cor_temp_file$sim[1])
+  
+  big_map_grid_temp_file <- read.csv(big_map_grid_tall_files[i], header = TRUE)
+  big_map_grid_temp_file$sim <-
+  big_map_grid_temp_file$rep <-unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"rep_"))[3], "_"))[1]
+  big_map_grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  big_map_grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  big_map_grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  big_map_grid_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  grid_name_list<-c(paste0(big_map_grid_temp_file$snake_mu_rate[1], big_map_grid_temp_file$newt_mu_rate[1], big_map_grid_temp_file$snake_mu_effect_sd[1], big_map_grid_temp_file$newt_mu_effect_sd[1]),grid_name_list)
+  big_map_grid_temp_file$sim <- LETTERS[length(unique(grid_name_list))]
+  big_map_grid_tall_file <- rbind(big_map_grid_tall_file, big_map_grid_temp_file)
+   print(big_map_grid_temp_file$sim[1])
+
+  }
+ ###to set first half 
+big_map_tall_tall_file_p1<- big_map_tall_tall_file
+big_map_cor_tall_file_p1<- big_map_cor_tall_file
+big_map_grid_tall_file_p1<-big_map_grid_tall_file
+
+for(i in seq((length(big_map_tall)/2+1), length(big_map_tall), 1)){
+  print(i)
+  #sim
+ 
+  
+  big_map_temp_file <- read.csv(big_map_tall[i], header = TRUE)
+  big_map_temp_file$rep <- unlist(str_split(unlist(str_split(big_map_tall[i],"rep_"))[3], "_"))[1]
+  big_map_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(big_map_tall[i],"snake_mu_rate_"))[2], "_"))[1]
+  big_map_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(big_map_tall[i],"newt_mu_rate_"))[2], "_"))[1]
+  big_map_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_tall[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  big_map_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  name_list<-c(paste0(big_map_temp_file$snake_mu_rate[1], big_map_temp_file$newt_mu_rate[1], big_map_temp_file$snake_mu_effect_sd[1], big_map_temp_file$newt_mu_effect_sd[1]),name_list)
+  big_map_temp_file$sim <- LETTERS[length(unique(name_list))]
+  big_map_tall_tall_file <- rbind(big_map_tall_tall_file, big_map_temp_file)
+  print(big_map_temp_file$sim[1])
+  
+  cor_temp_file <- read.csv(big_map_tall_cor_files[i], header = TRUE)
+  cor_temp_file$sim <-
+  cor_temp_file$rep <-unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"rep_"))[3], "_"))[1]
+  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_tall_cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  cor_name_list<-c(paste0(cor_temp_file$snake_mu_rate[1], cor_temp_file$newt_mu_rate[1], cor_temp_file$snake_mu_effect_sd[1], cor_temp_file$newt_mu_effect_sd[1]),cor_name_list)
+  cor_temp_file$sim <- LETTERS[length(unique(cor_name_list))]
+  big_map_cor_tall_file <- rbind(big_map_cor_tall_file, cor_temp_file)
+  print(cor_temp_file$sim[1])
+  
+  big_map_grid_temp_file <- read.csv(big_map_grid_tall_files[i], header = TRUE)
+  big_map_grid_temp_file$sim <-
+  big_map_grid_temp_file$rep <-unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"rep_"))[3], "_"))[1]
+  big_map_grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  big_map_grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  big_map_grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  big_map_grid_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(big_map_grid_tall_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  grid_name_list<-c(paste0(big_map_grid_temp_file$snake_mu_rate[1], big_map_grid_temp_file$newt_mu_rate[1], big_map_grid_temp_file$snake_mu_effect_sd[1], big_map_grid_temp_file$newt_mu_effect_sd[1]),grid_name_list)
+  big_map_grid_temp_file$sim <- LETTERS[length(unique(grid_name_list))]
+  big_map_grid_tall_file <- rbind(big_map_grid_tall_file, big_map_grid_temp_file)
+   print(big_map_grid_temp_file$sim[1])
+
+  }
+
+
+
+big_map_tall_tall_file$dif <- big_map_tall_tall_file$Snake_mean_Pheno-big_map_tall_tall_file$Newt_mean_Pheno
+
+big_map_tall_tall_file$group_rep <- paste0(big_map_tall_tall_file$snake_mu_rate, "_", big_map_tall_tall_file$snake_mu_effect_sd,"_",big_map_tall_tall_file$newt_mu_rate, "_", big_map_tall_tall_file$newt_mu_effect_sd, "_", big_map_tall_tall_file$rep)
+
+big_map_tall_tall_file$group <- paste0(big_map_tall_tall_file$snake_mu_rate, "_", big_map_tall_tall_file$snake_mu_effect_sd,"_",big_map_tall_tall_file$newt_mu_rate, "_", big_map_tall_tall_file$newt_mu_effect_sd)
+
+big_map_grid_tall_file$snake_newt_rep <- paste0("Snake_",big_map_grid_tall_file$snake_mu_rate, "_", big_map_grid_tall_file$snake_mu_effect_sd, "_Newt_",big_map_grid_tall_file$newt_mu_rate, "_", big_map_grid_tall_file$newt_mu_effect_sd, "_", big_map_grid_tall_file$rep)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+

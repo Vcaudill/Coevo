@@ -57,7 +57,7 @@ GA3_GA3_grid_tall_file<-data.frame()
 name_list<-c()
 cor_name_list<-c()
 grid_name_list<-c()
-for(i in seq(1, length(GA3_tall), 1)){
+for(i in seq(1, length(GA3_tall)/2, 1)){
   print(i)
   #sim
  
@@ -98,9 +98,59 @@ for(i in seq(1, length(GA3_tall), 1)){
    print(GA3_grid_temp_file$sim[1])
 
   }
+ ###to set first half 
+GA3_tall_tall_file_p1<- GA3_tall_tall_file
+GA3_cor_tall_file_p1<- GA3_cor_tall_file
+GA3_GA3_grid_tall_file_p1<-GA3_GA3_grid_tall_file
+
+for(i in seq((length(GA3_tall)/2+1), length(GA3_tall), 1)){
+  print(i)
+  #sim
+ 
   
+  GA3_temp_file <- read.csv(GA3_tall[i], header = TRUE)
+  GA3_temp_file$rep <- unlist(str_split(unlist(str_split(GA3_tall[i],"rep_"))[3], "_"))[1]
+  GA3_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall[i],"snake_mu_rate_"))[2], "_"))[1]
+  GA3_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_rate_"))[2], "_"))[1]
+  GA3_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  GA3_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  name_list<-c(paste0(GA3_temp_file$snake_mu_rate[1], GA3_temp_file$newt_mu_rate[1], GA3_temp_file$snake_mu_effect_sd[1], GA3_temp_file$newt_mu_effect_sd[1]),name_list)
+  GA3_temp_file$sim <- LETTERS[length(unique(name_list))]
+  GA3_tall_tall_file <- rbind(GA3_tall_tall_file, GA3_temp_file)
+  print(GA3_temp_file$sim[1])
+  
+  cor_temp_file <- read.csv(GA3_tall_cor_files[i], header = TRUE)
+  cor_temp_file$sim <-
+  cor_temp_file$rep <-unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"rep_"))[3], "_"))[1]
+  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  cor_name_list<-c(paste0(cor_temp_file$snake_mu_rate[1], cor_temp_file$newt_mu_rate[1], cor_temp_file$snake_mu_effect_sd[1], cor_temp_file$newt_mu_effect_sd[1]),cor_name_list)
+  cor_temp_file$sim <- LETTERS[length(unique(cor_name_list))]
+  GA3_cor_tall_file <- rbind(GA3_cor_tall_file, cor_temp_file)
+  print(cor_temp_file$sim[1])
+  
+  GA3_grid_temp_file <- read.csv(GA3_GA3_grid_tall_files[i], header = TRUE)
+  GA3_grid_temp_file$sim <-
+  GA3_grid_temp_file$rep <-unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"rep_"))[3], "_"))[1]
+  GA3_grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
+  GA3_grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
+  GA3_grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
+  GA3_grid_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
+  grid_name_list<-c(paste0(GA3_grid_temp_file$snake_mu_rate[1], GA3_grid_temp_file$newt_mu_rate[1], GA3_grid_temp_file$snake_mu_effect_sd[1], GA3_grid_temp_file$newt_mu_effect_sd[1]),grid_name_list)
+  GA3_grid_temp_file$sim <- LETTERS[length(unique(grid_name_list))]
+  GA3_GA3_grid_tall_file <- rbind(GA3_GA3_grid_tall_file, GA3_grid_temp_file)
+   print(GA3_grid_temp_file$sim[1])
 
+  }
 
+ ###to combine second half with first
+GA3_tall_tall_file<- rbind(GA3_tall_tall_file_p1, GA3_tall_tall_file)
+GA3_cor_tall_file<- rbind(GA3_cor_tall_file_p1, GA3_cor_tall_file)
+GA3_GA3_grid_tall_file<-rbind(GA3_GA3_grid_tall_file_p1, GA3_GA3_grid_tall_file)
+
+# making row edits to the dataframe for graphing
 GA3_tall_tall_file$dif <- GA3_tall_tall_file$Snake_mean_Pheno-GA3_tall_tall_file$Newt_mean_Pheno
 
 GA3_tall_tall_file$group_rep <- paste0(GA3_tall_tall_file$snake_mu_rate, "_", GA3_tall_tall_file$snake_mu_effect_sd,"_",GA3_tall_tall_file$newt_mu_rate, "_", GA3_tall_tall_file$newt_mu_effect_sd, "_", GA3_tall_tall_file$rep)
@@ -231,6 +281,8 @@ var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen
 
 
 cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern){
+
+  pattern="1.0e-08_0.005_1.0e-10_0.05_2"
  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
   cfile$snake_newt_rep <- paste0(cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
@@ -262,8 +314,13 @@ labels = c("Snake", "Newt"))+
   
   file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]
   cfile<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]
-  toDelete <- seq(0, nrow(cfile), 2)
-  cfile_short <-  cfile[-toDelete, ]
+  
+  if(nrow(cfile)>nrow(file)){
+    toDelete <- seq(0, nrow(cfile), 2)
+    cfile_short <-  cfile[-toDelete, ]
+  }else{
+    cfile_short <-  cfile
+  }
   figure <- ggarrange(plot, cor_plot + font("x.text", size = 10),heights = c(2, 1.5),ncol = 1, nrow = 2, align = "v")
     print(paste0("pattern ", pattern))
   print(paste0("Cor between average snake pheno and local cor ", cor(file$Snake_mean_Pheno, cfile_short$mean_newt_pheno_By_mean_snake_pheno)))
@@ -738,6 +795,8 @@ suppressMessages(print(hist_cors_by_gen_col_rep(GA3_cor_tall_file, "Simulation C
 
 ```{r, GA3 cor and pheno}
 GA3_pattern <- unique(paste0(GA3_tall_tall_file$snake_mu_rate, "_", GA3_tall_tall_file$snake_mu_effect_sd,"_",GA3_tall_tall_file$newt_mu_rate, "_", GA3_tall_tall_file$newt_mu_effect_sd, "_", GA3_tall_tall_file$rep))
+
+
 for(i in 1:length(GA3_pattern)){
   myine<-cor_trends_by_gen(GA3_tall_tall_file, GA3_cor_tall_file, "test", "GA3", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA3_pattern[i])
   plot(myine)
@@ -770,8 +829,6 @@ for(i in 1:length(unique(GA3_tall_tall_file$rep))){
 
 #### Summary
 
-
-
 ```{r, early plots summary}
 
 min_gen=100
@@ -780,13 +837,36 @@ max_gen=5000
 # summary
 GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
 
+min_gen=10000
+max_gen=15000
+
+# summary
+GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+min_gen=45000
+max_gen=50000
+
+# summary
+GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+min_gen=100
+max_gen=5000
+
 GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
+
+min_gen=10000
+max_gen=15000
+
+
+GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
+
+min_gen=45000
+max_gen=50000
+
+GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
+
+
 ```
-
-
-
-#### Heatmap
-
 
 
 ```{r, early plots Heatmap}
@@ -796,109 +876,35 @@ max_gen=5000
 #heatmap
 build_heatmap(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 
-build_heatmap(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
-
-```
-
-
-
-### Mid-simulation
-
-```{r, mis plots}
-
-min_gen=10000
-max_gen=15000
-rep=0
-
-for(i in 1:length(unique(GA3_tall_tall_file$rep))){
-  myine<-whale_gen(GA3_tall_tall_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize", min_gen=min_gen, max_gen=max_gen, rep=unique(GA3_tall_tall_file$rep)[i])
-  plot(myine)
-  myine<-two_hist(GA3_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype (purple) & Snake-Newt Popsize/100 (green)",  min_gen=min_gen, max_gen=max_gen, rep=unique(GA3_tall_tall_file$rep)[i] )
-suppressMessages(plot(myine))
-}
-
-```
-
-
-#### Summary
-
-```{r, mid plots summary}
-
-min_gen=10000
-max_gen=15000
-
-# summary
-GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
-
-GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
-```
-
-
-#### Heatmap
-
-```{r, mid plots Heatmap}
-
 min_gen=10000
 max_gen=15000
 #heatmap
 build_heatmap(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 
-build_heatmap(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
-
-```
-
-
-
-### Late simulation
-
-```{r, late plots}
-
-min_gen=45000
-max_gen=50000
-
-
-for(i in 1:length(unique(GA3_tall_tall_file$rep))){
-  myine<-whale_gen(GA3_tall_tall_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize", min_gen=min_gen, max_gen=max_gen, rep=unique(GA3_tall_tall_file$rep)[i])
-  plot(myine)
-  myine<-two_hist(GA3_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype (purple) & Snake-Newt Popsize/100 (green)",  min_gen=min_gen, max_gen=max_gen, rep=unique(GA3_tall_tall_file$rep)[i] )
-  suppressMessages(plot(myine))
-}
-
-
-
-
-```
-
-
-#### Summary
-
-```{r, late plots summary}
-
-min_gen=45000
-max_gen=50000
-
-# summary
-GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
-
-GA_summary(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
-```
-
-
-
-#### Heatmap
-
-```{r, late plots Heatmap}
 
 min_gen=45000
 max_gen=50000
 #heatmap
 build_heatmap(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 
+min_gen=100
+max_gen=5000
+build_heatmap(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
+
+
+min_gen=10000
+max_gen=15000
+#heatmap
+
+build_heatmap(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
+
+min_gen=45000
+max_gen=50000
+#heatmap
+
 build_heatmap(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 
 ```
-
-
 
 
 ## What is up with the correlations
@@ -986,7 +992,7 @@ file_name= "Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0"
 spegen=30001
 #unique(GA3_grid_tall_file$snake_newt_rep)
 GA3<-GA3_GA3_grid_tall_file[which(GA3_GA3_grid_tall_file$snake_newt_rep==file_name & GA3_GA3_grid_tall_file$generation==spegen),]
-
+GA3<-GA3[1,]
 GA3_mean = GA3[,grepl("generation|mean", names(GA3)) ]
 
 GA3_data_long_mean <- gather(GA3_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
@@ -1121,7 +1127,7 @@ spegen=1001
 #spegen=30001
 #unique(GA3_grid_tall_file$snake_newt_rep)
 GA3<-GA3_GA3_grid_tall_file[which(GA3_GA3_grid_tall_file$snake_newt_rep==file_name & GA3_GA3_grid_tall_file$generation==spegen),]
-
+GA3<-GA3[1,]
 GA3_ind = GA3[,grepl("generation|num_ind", names(GA3)) ]
 
 GA3_data_long_ind <- gather(GA3_ind, condition, measurement, newt_num_ind_0:snake_num_ind_99, factor_key=TRUE)
