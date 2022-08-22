@@ -924,7 +924,73 @@ inter<-inter_inter_grid_tall_file[which(inter_inter_grid_tall_file$snake_newt_re
 
 inter_mean = inter[,grepl("generation|mean", names(inter)) ]
 
-inter_data_long_mean <- gatinter(inter_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+inter_data_long_mean <- gather(inter_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+
+inter_data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(inter_data_long_mean$condition, "_", 4)
+
+inter_data_long_mean_short<-inter_data_long_mean
+
+inter_data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+inter_data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+
+main_plot<-ggplot(inter_data_long_mean_short)+
+  labs(title = "Mean Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = inter_data_long_mean_short[which(inter_data_long_mean_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = inter_data_long_mean_short[which(inter_data_long_mean_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-inter_data_long_mean_short[which(inter_data_long_mean_short$species=="snake"),]
+newt_inter<-inter_data_long_mean_short[which(inter_data_long_mean_short$species=="newt"),]
+newt_inter$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt_inter$measurement), use="complete.obs")
+
+
+
+newt_inter$info[newt_inter$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt_inter$info[newt_inter$location %in% list(0, 19, 80, 99)] <- "corner"
+newt_inter$info[is.na(newt_inter$info)]<- "middle"
+
+extra_plot <- ggplot(newt_inter)+
+  ggtitle("Mean Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+    
+```
+
+
+```{r, cor grid by location}
+
+#inter_grid_tall_file
+
+
+file_name= "Snake_1.0e-08_0.005_Newt_1.0e-08_0.005_3"
+#Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
+
+spegen=13001
+#unique(inter_grid_tall_file$snake_newt_rep)
+inter<-inter_inter_grid_tall_file[which(inter_inter_grid_tall_file$snake_newt_rep==file_name & inter_inter_grid_tall_file$generation==spegen),]
+
+inter_mean = inter[,grepl("generation|mean", names(inter)) ]
+
+inter_data_long_mean <- gather(inter_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
 
 inter_data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(inter_data_long_mean$condition, "_", 4)
 
