@@ -42,121 +42,98 @@ GA combinations:
 
 
 
+```{bash, data file gathering}
+#!/usr/bin/env bash
+
+# Run these comands while in The the folder that contains the file you would like to condence
+# Goal is to condence all the text files into one file 
+# Requirements: need to have the same name and need to add additional columns
+foldername=bash_test
+thefolder=/Users/victoria/Desktop/${foldername}/*
+#echo ${thefolder}
+
+#test -f /Users/victoria/Desktop/bash_test/all_lit.txt && echo "all lit file exists."
+#test -f /Users/victoria/Desktop/bash_test/all_grid.txt && echo "all grid file exists."
+#test -f /Users/victoria/Desktop/bash_test/all_cor.txt && echo "all cor file exists."
+
+if [[ -f /Users/victoria/Desktop/bash_test/all_lit.txt ]] && [[ -f /Users/victoria/Desktop/bash_test/all_grid.txt ]] && [[ -f /Users/victoria/Desktop/bash_test/all_cor.txt ]]
+then
+  echo "All cor, lit, and grid files exist!"
+  echo "This program will now end!"
+  exit 0
+fi
+
+#creating the files
+echo 'generation,Newt_age,Snake_age,Newt_density,Snake_density,Newt_min_Pheno,Newt_max_Pheno,Newt_mean_Pheno,Newt_sd_Pheno,Snake_min_Pheno,Snake_max_Pheno,Snake_mean_Pheno,Snake_sd_Pheno,Newt_pop_size,Snake_pop_size,mean_newts_eaten,sd_newts_eaten,mean_snakes_eaten,sd_snakes_eaten,beta_n,beta_s,snake_found_newt,newt_found,snake_deaths,newt_deaths,time,rep,snake_mu_rate,snake_mu_effect_sd,newt_mu_rate,newt_mu_effect_sd' > /Users/victoria/Desktop/bash_test/all_lit.txt
+echo 'generation,newt_num_ind_0,snake_num_ind_0,newt_max_pheno_0,snake_max_pheno_0,newt_mean_pheno_0,snake_mean_pheno_0,newt_sd_pheno_0,snake_sd_pheno_0,newt_min_pheno_0,snake_min_pheno_0,newt_num_ind_1,snake_num_ind_1,newt_max_pheno_1,snake_max_pheno_1,newt_mean_pheno_1,snake_mean_pheno_1,newt_sd_pheno_1,snake_sd_pheno_1,newt_min_pheno_1,snake_min_pheno_1,newt_num_ind_2,snake_num_ind_2,newt_max_pheno_2,snake_max_pheno_2,newt_mean_pheno_2,snake_mean_pheno_2,newt_sd_pheno_2,snake_sd_pheno_2,newt_min_pheno_2,snake_min_pheno_2,newt_num_ind_3,snake_num_ind_3,newt_max_pheno_3,snake_max_pheno_3,newt_mean_pheno_3,snake_mean_pheno_3,newt_sd_pheno_3,snake_sd_pheno_3,newt_min_pheno_3,snake_min_pheno_3,newt_num_ind_4,snake_num_ind_4,newt_max_pheno_4,snake_max_pheno_4,newt_mean_pheno_4,snake_mean_pheno_4,newt_sd_pheno_4,snake_sd_pheno_4,newt_min_pheno_4,snake_min_pheno_4,newt_num_ind_5,snake_num_ind_5,newt_max_pheno_5,snake_max_pheno_5,newt_mean_pheno_5,snake_mean_pheno_5,newt_sd_pheno_5,snake_sd_pheno_5,newt_min_pheno_5,snake_min_pheno_5,newt_num_ind_6,snake_num_ind_6,newt_max_pheno_6,snake_max_pheno_6,newt_mean_pheno_6,snake_mean_pheno_6,newt_sd_pheno_6,snake_sd_pheno_6,newt_min_pheno_6,snake_min_pheno_6,newt_num_ind_7,snake_num_ind_7,newt_max_pheno_7,snake_max_pheno_7,newt_mean_pheno_7,snake_mean_pheno_7,newt_sd_pheno_7,snake_sd_pheno_7,newt_min_pheno_7,snake_min_pheno_7,newt_num_ind_8,snake_num_ind_8,newt_max_pheno_8,snake_max_pheno_8,newt_mean_pheno_8,snake_mean_pheno_8,newt_sd_pheno_8,snake_sd_pheno_8,newt_min_pheno_8,snake_min_pheno_8,newt_num_ind_9,snake_num_ind_9,newt_max_pheno_9,snake_max_pheno_9,newt_mean_pheno_9,snake_mean_pheno_9,newt_sd_pheno_9,snake_sd_pheno_9,newt_min_pheno_9,snake_min_pheno_9,newt_num_ind_10,snake_num_ind_10,newt_max_pheno_10,snake_max_pheno_10,newt_mean_pheno_10,snake_mean_pheno_10,newt_sd_pheno_10,snake_sd_pheno_10,newt_min_pheno_10,snake_min_pheno_10,newt_num_ind_11,snake_num_ind_11,newt_max_pheno_11,snake_max_pheno_11,newt_mean_pheno_11,snake_mean_pheno_11,newt_sd_pheno_11,snake_sd_pheno_11,newt_min_pheno_11,snake_min_pheno_11,newt_num_ind_12,snake_num_ind_12,newt_max_pheno_12,snake_max_pheno_12,newt_mean_pheno_12,snake_mean_pheno_12,newt_sd_pheno_12,snake_sd_pheno_12,newt_min_pheno_12,snake_min_pheno_12,newt_num_ind_13,snake_num_ind_13,newt_max_pheno_13,snake_max_pheno_13,newt_mean_pheno_13,snake_mean_pheno_13,newt_sd_pheno_13,snake_sd_pheno_13,newt_min_pheno_13,snake_min_pheno_13,newt_num_ind_14,snake_num_ind_14,newt_max_pheno_14,snake_max_pheno_14,newt_mean_pheno_14,snake_mean_pheno_14,newt_sd_pheno_14,snake_sd_pheno_14,newt_min_pheno_14,snake_min_pheno_14,newt_num_ind_15,snake_num_ind_15,newt_max_pheno_15,snake_max_pheno_15,newt_mean_pheno_15,snake_mean_pheno_15,newt_sd_pheno_15,snake_sd_pheno_15,newt_min_pheno_15,snake_min_pheno_15,newt_num_ind_16,snake_num_ind_16,newt_max_pheno_16,snake_max_pheno_16,newt_mean_pheno_16,snake_mean_pheno_16,newt_sd_pheno_16,snake_sd_pheno_16,newt_min_pheno_16,snake_min_pheno_16,newt_num_ind_17,snake_num_ind_17,newt_max_pheno_17,snake_max_pheno_17,newt_mean_pheno_17,snake_mean_pheno_17,newt_sd_pheno_17,snake_sd_pheno_17,newt_min_pheno_17,snake_min_pheno_17,newt_num_ind_18,snake_num_ind_18,newt_max_pheno_18,snake_max_pheno_18,newt_mean_pheno_18,snake_mean_pheno_18,newt_sd_pheno_18,snake_sd_pheno_18,newt_min_pheno_18,snake_min_pheno_18,newt_num_ind_19,snake_num_ind_19,newt_max_pheno_19,snake_max_pheno_19,newt_mean_pheno_19,snake_mean_pheno_19,newt_sd_pheno_19,snake_sd_pheno_19,newt_min_pheno_19,snake_min_pheno_19,newt_num_ind_20,snake_num_ind_20,newt_max_pheno_20,snake_max_pheno_20,newt_mean_pheno_20,snake_mean_pheno_20,newt_sd_pheno_20,snake_sd_pheno_20,newt_min_pheno_20,snake_min_pheno_20,newt_num_ind_21,snake_num_ind_21,newt_max_pheno_21,snake_max_pheno_21,newt_mean_pheno_21,snake_mean_pheno_21,newt_sd_pheno_21,snake_sd_pheno_21,newt_min_pheno_21,snake_min_pheno_21,newt_num_ind_22,snake_num_ind_22,newt_max_pheno_22,snake_max_pheno_22,newt_mean_pheno_22,snake_mean_pheno_22,newt_sd_pheno_22,snake_sd_pheno_22,newt_min_pheno_22,snake_min_pheno_22,newt_num_ind_23,snake_num_ind_23,newt_max_pheno_23,snake_max_pheno_23,newt_mean_pheno_23,snake_mean_pheno_23,newt_sd_pheno_23,snake_sd_pheno_23,newt_min_pheno_23,snake_min_pheno_23,newt_num_ind_24,snake_num_ind_24,newt_max_pheno_24,snake_max_pheno_24,newt_mean_pheno_24,snake_mean_pheno_24,newt_sd_pheno_24,snake_sd_pheno_24,newt_min_pheno_24,snake_min_pheno_24,newt_num_ind_25,snake_num_ind_25,newt_max_pheno_25,snake_max_pheno_25,newt_mean_pheno_25,snake_mean_pheno_25,newt_sd_pheno_25,snake_sd_pheno_25,newt_min_pheno_25,snake_min_pheno_25,newt_num_ind_26,snake_num_ind_26,newt_max_pheno_26,snake_max_pheno_26,newt_mean_pheno_26,snake_mean_pheno_26,newt_sd_pheno_26,snake_sd_pheno_26,newt_min_pheno_26,snake_min_pheno_26,newt_num_ind_27,snake_num_ind_27,newt_max_pheno_27,snake_max_pheno_27,newt_mean_pheno_27,snake_mean_pheno_27,newt_sd_pheno_27,snake_sd_pheno_27,newt_min_pheno_27,snake_min_pheno_27,newt_num_ind_28,snake_num_ind_28,newt_max_pheno_28,snake_max_pheno_28,newt_mean_pheno_28,snake_mean_pheno_28,newt_sd_pheno_28,snake_sd_pheno_28,newt_min_pheno_28,snake_min_pheno_28,newt_num_ind_29,snake_num_ind_29,newt_max_pheno_29,snake_max_pheno_29,newt_mean_pheno_29,snake_mean_pheno_29,newt_sd_pheno_29,snake_sd_pheno_29,newt_min_pheno_29,snake_min_pheno_29,newt_num_ind_30,snake_num_ind_30,newt_max_pheno_30,snake_max_pheno_30,newt_mean_pheno_30,snake_mean_pheno_30,newt_sd_pheno_30,snake_sd_pheno_30,newt_min_pheno_30,snake_min_pheno_30,newt_num_ind_31,snake_num_ind_31,newt_max_pheno_31,snake_max_pheno_31,newt_mean_pheno_31,snake_mean_pheno_31,newt_sd_pheno_31,snake_sd_pheno_31,newt_min_pheno_31,snake_min_pheno_31,newt_num_ind_32,snake_num_ind_32,newt_max_pheno_32,snake_max_pheno_32,newt_mean_pheno_32,snake_mean_pheno_32,newt_sd_pheno_32,snake_sd_pheno_32,newt_min_pheno_32,snake_min_pheno_32,newt_num_ind_33,snake_num_ind_33,newt_max_pheno_33,snake_max_pheno_33,newt_mean_pheno_33,snake_mean_pheno_33,newt_sd_pheno_33,snake_sd_pheno_33,newt_min_pheno_33,snake_min_pheno_33,newt_num_ind_34,snake_num_ind_34,newt_max_pheno_34,snake_max_pheno_34,newt_mean_pheno_34,snake_mean_pheno_34,newt_sd_pheno_34,snake_sd_pheno_34,newt_min_pheno_34,snake_min_pheno_34,newt_num_ind_35,snake_num_ind_35,newt_max_pheno_35,snake_max_pheno_35,newt_mean_pheno_35,snake_mean_pheno_35,newt_sd_pheno_35,snake_sd_pheno_35,newt_min_pheno_35,snake_min_pheno_35,newt_num_ind_36,snake_num_ind_36,newt_max_pheno_36,snake_max_pheno_36,newt_mean_pheno_36,snake_mean_pheno_36,newt_sd_pheno_36,snake_sd_pheno_36,newt_min_pheno_36,snake_min_pheno_36,newt_num_ind_37,snake_num_ind_37,newt_max_pheno_37,snake_max_pheno_37,newt_mean_pheno_37,snake_mean_pheno_37,newt_sd_pheno_37,snake_sd_pheno_37,newt_min_pheno_37,snake_min_pheno_37,newt_num_ind_38,snake_num_ind_38,newt_max_pheno_38,snake_max_pheno_38,newt_mean_pheno_38,snake_mean_pheno_38,newt_sd_pheno_38,snake_sd_pheno_38,newt_min_pheno_38,snake_min_pheno_38,newt_num_ind_39,snake_num_ind_39,newt_max_pheno_39,snake_max_pheno_39,newt_mean_pheno_39,snake_mean_pheno_39,newt_sd_pheno_39,snake_sd_pheno_39,newt_min_pheno_39,snake_min_pheno_39,newt_num_ind_40,snake_num_ind_40,newt_max_pheno_40,snake_max_pheno_40,newt_mean_pheno_40,snake_mean_pheno_40,newt_sd_pheno_40,snake_sd_pheno_40,newt_min_pheno_40,snake_min_pheno_40,newt_num_ind_41,snake_num_ind_41,newt_max_pheno_41,snake_max_pheno_41,newt_mean_pheno_41,snake_mean_pheno_41,newt_sd_pheno_41,snake_sd_pheno_41,newt_min_pheno_41,snake_min_pheno_41,newt_num_ind_42,snake_num_ind_42,newt_max_pheno_42,snake_max_pheno_42,newt_mean_pheno_42,snake_mean_pheno_42,newt_sd_pheno_42,snake_sd_pheno_42,newt_min_pheno_42,snake_min_pheno_42,newt_num_ind_43,snake_num_ind_43,newt_max_pheno_43,snake_max_pheno_43,newt_mean_pheno_43,snake_mean_pheno_43,newt_sd_pheno_43,snake_sd_pheno_43,newt_min_pheno_43,snake_min_pheno_43,newt_num_ind_44,snake_num_ind_44,newt_max_pheno_44,snake_max_pheno_44,newt_mean_pheno_44,snake_mean_pheno_44,newt_sd_pheno_44,snake_sd_pheno_44,newt_min_pheno_44,snake_min_pheno_44,newt_num_ind_45,snake_num_ind_45,newt_max_pheno_45,snake_max_pheno_45,newt_mean_pheno_45,snake_mean_pheno_45,newt_sd_pheno_45,snake_sd_pheno_45,newt_min_pheno_45,snake_min_pheno_45,newt_num_ind_46,snake_num_ind_46,newt_max_pheno_46,snake_max_pheno_46,newt_mean_pheno_46,snake_mean_pheno_46,newt_sd_pheno_46,snake_sd_pheno_46,newt_min_pheno_46,snake_min_pheno_46,newt_num_ind_47,snake_num_ind_47,newt_max_pheno_47,snake_max_pheno_47,newt_mean_pheno_47,snake_mean_pheno_47,newt_sd_pheno_47,snake_sd_pheno_47,newt_min_pheno_47,snake_min_pheno_47,newt_num_ind_48,snake_num_ind_48,newt_max_pheno_48,snake_max_pheno_48,newt_mean_pheno_48,snake_mean_pheno_48,newt_sd_pheno_48,snake_sd_pheno_48,newt_min_pheno_48,snake_min_pheno_48,newt_num_ind_49,snake_num_ind_49,newt_max_pheno_49,snake_max_pheno_49,newt_mean_pheno_49,snake_mean_pheno_49,newt_sd_pheno_49,snake_sd_pheno_49,newt_min_pheno_49,snake_min_pheno_49,newt_num_ind_50,snake_num_ind_50,newt_max_pheno_50,snake_max_pheno_50,newt_mean_pheno_50,snake_mean_pheno_50,newt_sd_pheno_50,snake_sd_pheno_50,newt_min_pheno_50,snake_min_pheno_50,newt_num_ind_51,snake_num_ind_51,newt_max_pheno_51,snake_max_pheno_51,newt_mean_pheno_51,snake_mean_pheno_51,newt_sd_pheno_51,snake_sd_pheno_51,newt_min_pheno_51,snake_min_pheno_51,newt_num_ind_52,snake_num_ind_52,newt_max_pheno_52,snake_max_pheno_52,newt_mean_pheno_52,snake_mean_pheno_52,newt_sd_pheno_52,snake_sd_pheno_52,newt_min_pheno_52,snake_min_pheno_52,newt_num_ind_53,snake_num_ind_53,newt_max_pheno_53,snake_max_pheno_53,newt_mean_pheno_53,snake_mean_pheno_53,newt_sd_pheno_53,snake_sd_pheno_53,newt_min_pheno_53,snake_min_pheno_53,newt_num_ind_54,snake_num_ind_54,newt_max_pheno_54,snake_max_pheno_54,newt_mean_pheno_54,snake_mean_pheno_54,newt_sd_pheno_54,snake_sd_pheno_54,newt_min_pheno_54,snake_min_pheno_54,newt_num_ind_55,snake_num_ind_55,newt_max_pheno_55,snake_max_pheno_55,newt_mean_pheno_55,snake_mean_pheno_55,newt_sd_pheno_55,snake_sd_pheno_55,newt_min_pheno_55,snake_min_pheno_55,newt_num_ind_56,snake_num_ind_56,newt_max_pheno_56,snake_max_pheno_56,newt_mean_pheno_56,snake_mean_pheno_56,newt_sd_pheno_56,snake_sd_pheno_56,newt_min_pheno_56,snake_min_pheno_56,newt_num_ind_57,snake_num_ind_57,newt_max_pheno_57,snake_max_pheno_57,newt_mean_pheno_57,snake_mean_pheno_57,newt_sd_pheno_57,snake_sd_pheno_57,newt_min_pheno_57,snake_min_pheno_57,newt_num_ind_58,snake_num_ind_58,newt_max_pheno_58,snake_max_pheno_58,newt_mean_pheno_58,snake_mean_pheno_58,newt_sd_pheno_58,snake_sd_pheno_58,newt_min_pheno_58,snake_min_pheno_58,newt_num_ind_59,snake_num_ind_59,newt_max_pheno_59,snake_max_pheno_59,newt_mean_pheno_59,snake_mean_pheno_59,newt_sd_pheno_59,snake_sd_pheno_59,newt_min_pheno_59,snake_min_pheno_59,newt_num_ind_60,snake_num_ind_60,newt_max_pheno_60,snake_max_pheno_60,newt_mean_pheno_60,snake_mean_pheno_60,newt_sd_pheno_60,snake_sd_pheno_60,newt_min_pheno_60,snake_min_pheno_60,newt_num_ind_61,snake_num_ind_61,newt_max_pheno_61,snake_max_pheno_61,newt_mean_pheno_61,snake_mean_pheno_61,newt_sd_pheno_61,snake_sd_pheno_61,newt_min_pheno_61,snake_min_pheno_61,newt_num_ind_62,snake_num_ind_62,newt_max_pheno_62,snake_max_pheno_62,newt_mean_pheno_62,snake_mean_pheno_62,newt_sd_pheno_62,snake_sd_pheno_62,newt_min_pheno_62,snake_min_pheno_62,newt_num_ind_63,snake_num_ind_63,newt_max_pheno_63,snake_max_pheno_63,newt_mean_pheno_63,snake_mean_pheno_63,newt_sd_pheno_63,snake_sd_pheno_63,newt_min_pheno_63,snake_min_pheno_63,newt_num_ind_64,snake_num_ind_64,newt_max_pheno_64,snake_max_pheno_64,newt_mean_pheno_64,snake_mean_pheno_64,newt_sd_pheno_64,snake_sd_pheno_64,newt_min_pheno_64,snake_min_pheno_64,newt_num_ind_65,snake_num_ind_65,newt_max_pheno_65,snake_max_pheno_65,newt_mean_pheno_65,snake_mean_pheno_65,newt_sd_pheno_65,snake_sd_pheno_65,newt_min_pheno_65,snake_min_pheno_65,newt_num_ind_66,snake_num_ind_66,newt_max_pheno_66,snake_max_pheno_66,newt_mean_pheno_66,snake_mean_pheno_66,newt_sd_pheno_66,snake_sd_pheno_66,newt_min_pheno_66,snake_min_pheno_66,newt_num_ind_67,snake_num_ind_67,newt_max_pheno_67,snake_max_pheno_67,newt_mean_pheno_67,snake_mean_pheno_67,newt_sd_pheno_67,snake_sd_pheno_67,newt_min_pheno_67,snake_min_pheno_67,newt_num_ind_68,snake_num_ind_68,newt_max_pheno_68,snake_max_pheno_68,newt_mean_pheno_68,snake_mean_pheno_68,newt_sd_pheno_68,snake_sd_pheno_68,newt_min_pheno_68,snake_min_pheno_68,newt_num_ind_69,snake_num_ind_69,newt_max_pheno_69,snake_max_pheno_69,newt_mean_pheno_69,snake_mean_pheno_69,newt_sd_pheno_69,snake_sd_pheno_69,newt_min_pheno_69,snake_min_pheno_69,newt_num_ind_70,snake_num_ind_70,newt_max_pheno_70,snake_max_pheno_70,newt_mean_pheno_70,snake_mean_pheno_70,newt_sd_pheno_70,snake_sd_pheno_70,newt_min_pheno_70,snake_min_pheno_70,newt_num_ind_71,snake_num_ind_71,newt_max_pheno_71,snake_max_pheno_71,newt_mean_pheno_71,snake_mean_pheno_71,newt_sd_pheno_71,snake_sd_pheno_71,newt_min_pheno_71,snake_min_pheno_71,newt_num_ind_72,snake_num_ind_72,newt_max_pheno_72,snake_max_pheno_72,newt_mean_pheno_72,snake_mean_pheno_72,newt_sd_pheno_72,snake_sd_pheno_72,newt_min_pheno_72,snake_min_pheno_72,newt_num_ind_73,snake_num_ind_73,newt_max_pheno_73,snake_max_pheno_73,newt_mean_pheno_73,snake_mean_pheno_73,newt_sd_pheno_73,snake_sd_pheno_73,newt_min_pheno_73,snake_min_pheno_73,newt_num_ind_74,snake_num_ind_74,newt_max_pheno_74,snake_max_pheno_74,newt_mean_pheno_74,snake_mean_pheno_74,newt_sd_pheno_74,snake_sd_pheno_74,newt_min_pheno_74,snake_min_pheno_74,newt_num_ind_75,snake_num_ind_75,newt_max_pheno_75,snake_max_pheno_75,newt_mean_pheno_75,snake_mean_pheno_75,newt_sd_pheno_75,snake_sd_pheno_75,newt_min_pheno_75,snake_min_pheno_75,newt_num_ind_76,snake_num_ind_76,newt_max_pheno_76,snake_max_pheno_76,newt_mean_pheno_76,snake_mean_pheno_76,newt_sd_pheno_76,snake_sd_pheno_76,newt_min_pheno_76,snake_min_pheno_76,newt_num_ind_77,snake_num_ind_77,newt_max_pheno_77,snake_max_pheno_77,newt_mean_pheno_77,snake_mean_pheno_77,newt_sd_pheno_77,snake_sd_pheno_77,newt_min_pheno_77,snake_min_pheno_77,newt_num_ind_78,snake_num_ind_78,newt_max_pheno_78,snake_max_pheno_78,newt_mean_pheno_78,snake_mean_pheno_78,newt_sd_pheno_78,snake_sd_pheno_78,newt_min_pheno_78,snake_min_pheno_78,newt_num_ind_79,snake_num_ind_79,newt_max_pheno_79,snake_max_pheno_79,newt_mean_pheno_79,snake_mean_pheno_79,newt_sd_pheno_79,snake_sd_pheno_79,newt_min_pheno_79,snake_min_pheno_79,newt_num_ind_80,snake_num_ind_80,newt_max_pheno_80,snake_max_pheno_80,newt_mean_pheno_80,snake_mean_pheno_80,newt_sd_pheno_80,snake_sd_pheno_80,newt_min_pheno_80,snake_min_pheno_80,newt_num_ind_81,snake_num_ind_81,newt_max_pheno_81,snake_max_pheno_81,newt_mean_pheno_81,snake_mean_pheno_81,newt_sd_pheno_81,snake_sd_pheno_81,newt_min_pheno_81,snake_min_pheno_81,newt_num_ind_82,snake_num_ind_82,newt_max_pheno_82,snake_max_pheno_82,newt_mean_pheno_82,snake_mean_pheno_82,newt_sd_pheno_82,snake_sd_pheno_82,newt_min_pheno_82,snake_min_pheno_82,newt_num_ind_83,snake_num_ind_83,newt_max_pheno_83,snake_max_pheno_83,newt_mean_pheno_83,snake_mean_pheno_83,newt_sd_pheno_83,snake_sd_pheno_83,newt_min_pheno_83,snake_min_pheno_83,newt_num_ind_84,snake_num_ind_84,newt_max_pheno_84,snake_max_pheno_84,newt_mean_pheno_84,snake_mean_pheno_84,newt_sd_pheno_84,snake_sd_pheno_84,newt_min_pheno_84,snake_min_pheno_84,newt_num_ind_85,snake_num_ind_85,newt_max_pheno_85,snake_max_pheno_85,newt_mean_pheno_85,snake_mean_pheno_85,newt_sd_pheno_85,snake_sd_pheno_85,newt_min_pheno_85,snake_min_pheno_85,newt_num_ind_86,snake_num_ind_86,newt_max_pheno_86,snake_max_pheno_86,newt_mean_pheno_86,snake_mean_pheno_86,newt_sd_pheno_86,snake_sd_pheno_86,newt_min_pheno_86,snake_min_pheno_86,newt_num_ind_87,snake_num_ind_87,newt_max_pheno_87,snake_max_pheno_87,newt_mean_pheno_87,snake_mean_pheno_87,newt_sd_pheno_87,snake_sd_pheno_87,newt_min_pheno_87,snake_min_pheno_87,newt_num_ind_88,snake_num_ind_88,newt_max_pheno_88,snake_max_pheno_88,newt_mean_pheno_88,snake_mean_pheno_88,newt_sd_pheno_88,snake_sd_pheno_88,newt_min_pheno_88,snake_min_pheno_88,newt_num_ind_89,snake_num_ind_89,newt_max_pheno_89,snake_max_pheno_89,newt_mean_pheno_89,snake_mean_pheno_89,newt_sd_pheno_89,snake_sd_pheno_89,newt_min_pheno_89,snake_min_pheno_89,newt_num_ind_90,snake_num_ind_90,newt_max_pheno_90,snake_max_pheno_90,newt_mean_pheno_90,snake_mean_pheno_90,newt_sd_pheno_90,snake_sd_pheno_90,newt_min_pheno_90,snake_min_pheno_90,newt_num_ind_91,snake_num_ind_91,newt_max_pheno_91,snake_max_pheno_91,newt_mean_pheno_91,snake_mean_pheno_91,newt_sd_pheno_91,snake_sd_pheno_91,newt_min_pheno_91,snake_min_pheno_91,newt_num_ind_92,snake_num_ind_92,newt_max_pheno_92,snake_max_pheno_92,newt_mean_pheno_92,snake_mean_pheno_92,newt_sd_pheno_92,snake_sd_pheno_92,newt_min_pheno_92,snake_min_pheno_92,newt_num_ind_93,snake_num_ind_93,newt_max_pheno_93,snake_max_pheno_93,newt_mean_pheno_93,snake_mean_pheno_93,newt_sd_pheno_93,snake_sd_pheno_93,newt_min_pheno_93,snake_min_pheno_93,newt_num_ind_94,snake_num_ind_94,newt_max_pheno_94,snake_max_pheno_94,newt_mean_pheno_94,snake_mean_pheno_94,newt_sd_pheno_94,snake_sd_pheno_94,newt_min_pheno_94,snake_min_pheno_94,newt_num_ind_95,snake_num_ind_95,newt_max_pheno_95,snake_max_pheno_95,newt_mean_pheno_95,snake_mean_pheno_95,newt_sd_pheno_95,snake_sd_pheno_95,newt_min_pheno_95,snake_min_pheno_95,newt_num_ind_96,snake_num_ind_96,newt_max_pheno_96,snake_max_pheno_96,newt_mean_pheno_96,snake_mean_pheno_96,newt_sd_pheno_96,snake_sd_pheno_96,newt_min_pheno_96,snake_min_pheno_96,newt_num_ind_97,snake_num_ind_97,newt_max_pheno_97,snake_max_pheno_97,newt_mean_pheno_97,snake_mean_pheno_97,newt_sd_pheno_97,snake_sd_pheno_97,newt_min_pheno_97,snake_min_pheno_97,newt_num_ind_98,snake_num_ind_98,newt_max_pheno_98,snake_max_pheno_98,newt_mean_pheno_98,snake_mean_pheno_98,newt_sd_pheno_98,snake_sd_pheno_98,newt_min_pheno_98,snake_min_pheno_98,newt_num_ind_99,snake_num_ind_99,newt_max_pheno_99,snake_max_pheno_99,newt_mean_pheno_99,snake_mean_pheno_99,newt_sd_pheno_99,snake_sd_pheno_99,newt_min_pheno_99,snake_min_pheno_99,rep,snake_mu_rate,snake_mu_effect_sd,newt_mu_rate,newt_mu_effect_sd' > /Users/victoria/Desktop/bash_test/all_grid.txt
+echo 'generation,mean_newt_pheno_By_mean_snake_pheno,num_newts_By_num_snakes,sum_newt_pheno_By_num_snake,sum_snake_pheno_By_num_newt,sum_newt_pheno_By_num_newt,sum_snake_pheno_By_snake_newt,rep,snake_mu_rate,snake_mu_effect_sd,newt_mu_rate,newt_mu_effect_sd' > /Users/victoria/Desktop/bash_test/all_cor.txt
+
+for filename in $thefolder*.text;
+  do 
+#getting the variables 
+my_type=$(echo ${filename} |sed 's/.*GA205_//; s/_.*//')
+my_other_type=$(echo ${filename} |sed 's/.*GA520_//; s/_.*//')
+snake_mu_rate=$(echo ${filename} |sed 's/.*snake_mu_rate_//; s/_.*//')
+snake_mu_effect_sd=$(echo ${filename} |sed 's/.*snake_mu_effect_sd_//; s/_.*//')
+newt_mu_rate=$(echo ${filename} |sed 's/.*newt_mu_rate_//; s/_.*//')
+newt_mu_effect_sd=$(echo ${filename} |sed 's/.*newt_mu_effect_sd_//; s/_.*//')
+rep=$(echo ${filename} | sed "s/.*rep_//; s/_.*//")
+#echo ${newt_mu_rate}	
+# echo $my_type
+# echo $my_other_type
+# these new columns adding them to the data
+sed -i '' -e 's/$/,'${rep}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_effect_sd}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_effect_sd}'/' $filename
+#infile >outfile
+if [[ $my_type == "lit" ]]
+then
+    tail -n +2 -q $filename >> /Users/victoria/Desktop/bash_test/all_lit.txt
+fi
+
+if [[ $my_type == "grid" ]]
+then
+    tail -n +2 -q $filename >> /Users/victoria/Desktop/bash_test/all_grid.txt
+fi
+
+if [[ $my_other_type == "cor" ]]
+then
+    tail -n +2 -q $filename >> /Users/victoria/Desktop/bash_test/all_cor.txt
+fi
+
+done
+
+```
+
+
+
 ```{r, data gathering}
 
 snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
 
-GA3_tall <- list.files(path="~/Desktop/GA3", pattern="_lit_", full.names=TRUE, recursive=FALSE)
-GA3_tall_cor_files <- list.files(path="~/Desktop/GA3", pattern="_cor_", full.names=TRUE, recursive=FALSE)
-GA3_GA3_grid_tall_files <- list.files(path="~/Desktop/GA3", pattern="_grid_", full.names=TRUE, recursive=FALSE)
-
-
-GA3_tall_tall_file<- data.frame()
-GA3_cor_tall_file<- data.frame()
-GA3_GA3_grid_tall_file<-data.frame()
-name_list<-c()
-cor_name_list<-c()
-grid_name_list<-c()
-for(i in seq(1, length(GA3_tall)/2, 1)){
-  print(i)
-  #sim
- 
-  
-  GA3_temp_file <- read.csv(GA3_tall[i], header = TRUE)
-  GA3_temp_file$rep <- unlist(str_split(unlist(str_split(GA3_tall[i],"rep_"))[3], "_"))[1]
-  GA3_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall[i],"snake_mu_rate_"))[2], "_"))[1]
-  GA3_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_rate_"))[2], "_"))[1]
-  GA3_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  GA3_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  name_list<-c(paste0(GA3_temp_file$snake_mu_rate[1], GA3_temp_file$newt_mu_rate[1], GA3_temp_file$snake_mu_effect_sd[1], GA3_temp_file$newt_mu_effect_sd[1]),name_list)
-  GA3_temp_file$sim <- LETTERS[length(unique(name_list))]
-  GA3_tall_tall_file <- rbind(GA3_tall_tall_file, GA3_temp_file)
-  print(GA3_temp_file$sim[1])
-  
-  cor_temp_file <- read.csv(GA3_tall_cor_files[i], header = TRUE)
-  cor_temp_file$sim <-
-  cor_temp_file$rep <-unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"rep_"))[3], "_"))[1]
-  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
-  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
-  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  cor_name_list<-c(paste0(cor_temp_file$snake_mu_rate[1], cor_temp_file$newt_mu_rate[1], cor_temp_file$snake_mu_effect_sd[1], cor_temp_file$newt_mu_effect_sd[1]),cor_name_list)
-  cor_temp_file$sim <- LETTERS[length(unique(cor_name_list))]
-  GA3_cor_tall_file <- rbind(GA3_cor_tall_file, cor_temp_file)
-  print(cor_temp_file$sim[1])
-  
-  GA3_grid_temp_file <- read.csv(GA3_GA3_grid_tall_files[i], header = TRUE)
-  GA3_grid_temp_file$sim <-
-  GA3_grid_temp_file$rep <-unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"rep_"))[3], "_"))[1]
-  GA3_grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
-  GA3_grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
-  GA3_grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  GA3_grid_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  grid_name_list<-c(paste0(GA3_grid_temp_file$snake_mu_rate[1], GA3_grid_temp_file$newt_mu_rate[1], GA3_grid_temp_file$snake_mu_effect_sd[1], GA3_grid_temp_file$newt_mu_effect_sd[1]),grid_name_list)
-  GA3_grid_temp_file$sim <- LETTERS[length(unique(grid_name_list))]
-  GA3_GA3_grid_tall_file <- rbind(GA3_GA3_grid_tall_file, GA3_grid_temp_file)
-   print(GA3_grid_temp_file$sim[1])
-
-  }
- ###to set first half 
-GA3_tall_tall_file_p1<- GA3_tall_tall_file
-GA3_cor_tall_file_p1<- GA3_cor_tall_file
-GA3_GA3_grid_tall_file_p1<-GA3_GA3_grid_tall_file
-
-for(i in seq((length(GA3_tall)/2+1), length(GA3_tall), 1)){
-  print(i)
-  #sim
- 
-  
-  GA3_temp_file <- read.csv(GA3_tall[i], header = TRUE)
-  GA3_temp_file$rep <- unlist(str_split(unlist(str_split(GA3_tall[i],"rep_"))[3], "_"))[1]
-  GA3_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall[i],"snake_mu_rate_"))[2], "_"))[1]
-  GA3_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_rate_"))[2], "_"))[1]
-  GA3_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  GA3_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  name_list<-c(paste0(GA3_temp_file$snake_mu_rate[1], GA3_temp_file$newt_mu_rate[1], GA3_temp_file$snake_mu_effect_sd[1], GA3_temp_file$newt_mu_effect_sd[1]),name_list)
-  GA3_temp_file$sim <- LETTERS[length(unique(name_list))]
-  GA3_tall_tall_file <- rbind(GA3_tall_tall_file, GA3_temp_file)
-  print(GA3_temp_file$sim[1])
-  
-  cor_temp_file <- read.csv(GA3_tall_cor_files[i], header = TRUE)
-  cor_temp_file$sim <-
-  cor_temp_file$rep <-unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"rep_"))[3], "_"))[1]
-  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
-  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
-  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_tall_cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  cor_name_list<-c(paste0(cor_temp_file$snake_mu_rate[1], cor_temp_file$newt_mu_rate[1], cor_temp_file$snake_mu_effect_sd[1], cor_temp_file$newt_mu_effect_sd[1]),cor_name_list)
-  cor_temp_file$sim <- LETTERS[length(unique(cor_name_list))]
-  GA3_cor_tall_file <- rbind(GA3_cor_tall_file, cor_temp_file)
-  print(cor_temp_file$sim[1])
-  
-  GA3_grid_temp_file <- read.csv(GA3_GA3_grid_tall_files[i], header = TRUE)
-  GA3_grid_temp_file$sim <-
-  GA3_grid_temp_file$rep <-unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"rep_"))[3], "_"))[1]
-  GA3_grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
-  GA3_grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
-  GA3_grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  GA3_grid_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(GA3_GA3_grid_tall_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  grid_name_list<-c(paste0(GA3_grid_temp_file$snake_mu_rate[1], GA3_grid_temp_file$newt_mu_rate[1], GA3_grid_temp_file$snake_mu_effect_sd[1], GA3_grid_temp_file$newt_mu_effect_sd[1]),grid_name_list)
-  GA3_grid_temp_file$sim <- LETTERS[length(unique(grid_name_list))]
-  GA3_GA3_grid_tall_file <- rbind(GA3_GA3_grid_tall_file, GA3_grid_temp_file)
-   print(GA3_grid_temp_file$sim[1])
-
-  }
-
- ###to combine second half with first
-GA3_tall_tall_file<- rbind(GA3_tall_tall_file_p1, GA3_tall_tall_file)
-GA3_cor_tall_file<- rbind(GA3_cor_tall_file_p1, GA3_cor_tall_file)
-GA3_GA3_grid_tall_file<-rbind(GA3_GA3_grid_tall_file_p1, GA3_GA3_grid_tall_file)
-
-# making row edits to the dataframe for graphing
-GA3_tall_tall_file$dif <- GA3_tall_tall_file$Snake_mean_Pheno-GA3_tall_tall_file$Newt_mean_Pheno
+GA3_tall_tall_file<- read.csv("~/Desktop/bash_test/all_lit.txt" , header = TRUE)
 
 GA3_tall_tall_file$group_rep <- paste0(GA3_tall_tall_file$snake_mu_rate, "_", GA3_tall_tall_file$snake_mu_effect_sd,"_",GA3_tall_tall_file$newt_mu_rate, "_", GA3_tall_tall_file$newt_mu_effect_sd, "_", GA3_tall_tall_file$rep)
 
 GA3_tall_tall_file$group <- paste0(GA3_tall_tall_file$snake_mu_rate, "_", GA3_tall_tall_file$snake_mu_effect_sd,"_",GA3_tall_tall_file$newt_mu_rate, "_", GA3_tall_tall_file$newt_mu_effect_sd)
 
+GA3_tall_tall_file$sim=LETTERS[factor(GA3_tall_tall_file$group)]
+GA3_tall_tall_file$dif <- GA3_tall_tall_file$Snake_mean_Pheno-GA3_tall_tall_file$Newt_mean_Pheno
+
+
+
+GA3_cor_tall_file<- read.csv("~/Desktop/bash_test/all_cor.txt" , header = TRUE)
+GA3_cor_tall_file$group_rep <- paste0(GA3_cor_tall_file$snake_mu_rate, "_", GA3_cor_tall_file$snake_mu_effect_sd,"_",GA3_cor_tall_file$newt_mu_rate, "_", GA3_cor_tall_file$newt_mu_effect_sd, "_", GA3_cor_tall_file$rep)
+GA3_cor_tall_file$group <- paste0(GA3_cor_tall_file$snake_mu_rate, "_", GA3_cor_tall_file$snake_mu_effect_sd,"_",GA3_cor_tall_file$newt_mu_rate, "_", GA3_cor_tall_file$newt_mu_effect_sd)
+GA3_cor_tall_file$sim=LETTERS[factor(GA3_cor_tall_file$group)]
+
+GA3_GA3_grid_tall_file<-read.csv("~/Desktop/bash_test/all_grid.txt" , header = TRUE)
+GA3_GA3_grid_tall_file$group <- paste0(GA3_GA3_grid_tall_file$snake_mu_rate, "_", GA3_GA3_grid_tall_file$snake_mu_effect_sd,"_",GA3_GA3_grid_tall_file$newt_mu_rate, "_", GA3_GA3_grid_tall_file$newt_mu_effect_sd)
+GA3_GA3_grid_tall_file$group_rep <- paste0(GA3_GA3_grid_tall_file$snake_mu_rate, "_", GA3_GA3_grid_tall_file$snake_mu_effect_sd,"_",GA3_GA3_grid_tall_file$newt_mu_rate, "_", GA3_GA3_grid_tall_file$newt_mu_effect_sd, "_", GA3_GA3_grid_tall_file$rep)
+
+GA3_GA3_grid_tall_file$sim=LETTERS[factor(GA3_GA3_grid_tall_file$group)]
 GA3_GA3_grid_tall_file$snake_newt_rep <- paste0("Snake_",GA3_GA3_grid_tall_file$snake_mu_rate, "_", GA3_GA3_grid_tall_file$snake_mu_effect_sd, "_Newt_",GA3_GA3_grid_tall_file$newt_mu_rate, "_", GA3_GA3_grid_tall_file$newt_mu_effect_sd, "_", GA3_GA3_grid_tall_file$rep)
 
 ```
@@ -167,8 +144,7 @@ GA3_GA3_grid_tall_file$snake_newt_rep <- paste0("Snake_",GA3_GA3_grid_tall_file$
 boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ylim(-1.1, 1.1)+
@@ -181,7 +157,7 @@ boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, ma
   #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -194,13 +170,12 @@ boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, ma
 hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
-  unique(file$sim)
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  #unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
   xlab(x_label) + ylab(y_label)+
-  geom_histogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=rep))+
+  geom_histogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(rep)))+
   geom_vline(xintercept=real_snewt_cor, linetype="dashed")+
   geom_vline(xintercept=0, linetype="solid")+
   #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
@@ -208,7 +183,7 @@ hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_ge
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
   xlim(-1.1, 1.1)+
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -221,8 +196,7 @@ hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_ge
 hist_cors_by_gen_col_rep_nofill <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
@@ -235,7 +209,7 @@ hist_cors_by_gen_col_rep_nofill <- function(file, title, subt, x_label, y_label,
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
   #stat_bin(bins=30)+
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -250,14 +224,13 @@ suppressMessages(print(plot))
 var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen){
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
   real_snewt_var = var(snewt$dif)
-  cfile$newt_snake_rep <- paste0("Newt_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_Snake_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
   var_cor_table=data.frame()
 
   
-  for(i in 1:length(unique(file$newt_snake_rep))){
-    pattern<-unique(file$newt_snake_rep)[i]
-    temp_file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep==pattern),]
-    temp_cor_file<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$newt_snake_rep==pattern),]
+  for(i in 1:length(unique(file$snake_newt_rep))){
+    pattern<-unique(file$snake_newt_rep)[i]
+    temp_file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]
+    temp_cor_file<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]
     
     var_cor_table_temp<- data.frame("pattern"=pattern, "var"= var(temp_file$dif),"cor" = cor(temp_file$newt_toxin, temp_file$snake_res), "mean_corr" = mean(temp_cor_file$mean_newt_pheno_By_mean_snake_pheno))
     var_cor_table <- rbind(var_cor_table, var_cor_table_temp)
@@ -338,7 +311,7 @@ labels = c("Snake", "Newt"))+
 
 
 four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, min_gen, max_gen){
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ylim(-1.1, 1.1)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
@@ -349,7 +322,7 @@ four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, m
   geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   geom_hline(yintercept=0, linetype="solid")+
   theme(plot.title = element_text(size=5)) +
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -369,10 +342,10 @@ four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, m
 create_parm_file <- function(file, min_gen, max_gen){
 params <- data_frame()
 
-for(i in 1:length(unique(file$newt_snake_rep))){
+for(i in 1:length(unique(file$snake_newt_rep))){
 
-  pattern=unique(file$newt_snake_rep)[i]
-  sumitup <- file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep ==pattern),]
+  pattern=unique(file$snake_newt_rep)[i]
+  sumitup <- file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep ==pattern),]
  
   params_temp<- data_frame(Newt_mean_Pheno=mean(sumitup$Newt_mean_Pheno),
                            Snake_mean_Pheno=mean(sumitup$Snake_mean_Pheno), 
@@ -393,13 +366,13 @@ for(i in 1:length(unique(file$newt_snake_rep))){
 
 params$snake <- paste0(params$snake_mu_rate, "_",params$snake_mu_effect_sd)
 params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
-params$newt_snake <- paste0(params$newt, "_", params$snake)
+params$snake_newt <- paste0(params$snake, "_", params$newt)
 return(params)
 }
 
 GA_summary <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label){
 
-file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
 
 params<-create_parm_file(file, min_gen, max_gen)
 
@@ -419,8 +392,7 @@ return(my_plot)
 }
 
 build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, title, subt, y_label, x_label, red_blue=F){
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  
+  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
   params<-create_parm_file(file, min_gen, max_gen)
   
  my_plot <- ggplot(params, aes(newt, paste0(snake, "_", rep))) +    # Create heatmap with ggplot2
@@ -924,7 +896,8 @@ build_heatmap(GA3_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="d
 #GA3_grid_tall_file
 
 
-file_name= "Snake_1.0e-11_0.158_Newt_1.0e-10_0.05_0"
+file_name= "Snake_1e-11_0.158_Newt_1e-10_0.05_0"
+
 #Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
 
 spegen=20001
@@ -992,7 +965,7 @@ main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, 
 #GA3_grid_tall_file
 
 
-file_name= "Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0"
+file_name= "Snake_1e-08_0.005_Newt_1e-11_0.158_0"
 #Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
 
 spegen=30001
@@ -1059,7 +1032,7 @@ main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, 
 #GA3_grid_tall_file
 
 
-file_name= "Snake_1.0e-10_0.05_Newt_1.0e-11_0.158_3"
+file_name= "Snake_1e-10_0.05_Newt_1e-11_0.158_3"
 #Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
 
 spegen=14001
@@ -1124,7 +1097,7 @@ main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, 
 ```{r, cor grid by location 4}
 
 #GA3_grid_tall_file
-file_name= "Snake_1.0e-08_0.005_Newt_1.0e-08_0.005_0"
+file_name= "Snake_1e-08_0.005_Newt_1e-08_0.005_0"
 #Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
 
 spegen=15001
@@ -1246,7 +1219,7 @@ main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, 
 #GA3_grid_tall_file
 
 
-file_name= "Snake_1.0e-10_0.05_Newt_1.0e-09_0.0158_1"
+file_name= "Snake_1e-10_0.05_Newt_1e-09_0.0158_1"
 
 #Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
 
