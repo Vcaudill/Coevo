@@ -178,8 +178,8 @@ grid_tall_file$snake_newt_rep <- paste0("Snake_",grid_tall_file$snake_mu_rate, "
 boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  #file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+  file$snake_newt <- paste0( file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ylim(-1.1, 1.1)+
@@ -192,7 +192,7 @@ boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, ma
   #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -205,8 +205,8 @@ boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, ma
 hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  #file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+  file$snake_newt <- paste0( file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
@@ -219,7 +219,7 @@ hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_ge
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
   xlim(-1.1, 1.1)+
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -232,8 +232,8 @@ hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_ge
 hist_cors_by_gen_col_rep_nofill <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  #file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+  file$snake_newt <- paste0( file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
@@ -246,7 +246,7 @@ hist_cors_by_gen_col_rep_nofill <- function(file, title, subt, x_label, y_label,
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
   #stat_bin(bins=30)+
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -261,14 +261,14 @@ suppressMessages(print(plot))
 var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen){
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
   real_snewt_var = var(snewt$dif)
-  cfile$newt_snake_rep <- paste0("Newt_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_Snake_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
+  #cfile$snake_newt_rep <- paste0("Newt_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_Snake_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
   var_cor_table=data.frame()
 
   
-  for(i in 1:length(unique(file$newt_snake_rep))){
-    pattern<-unique(file$newt_snake_rep)[i]
-    temp_file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep==pattern),]
-    temp_cor_file<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$newt_snake_rep==pattern),]
+  for(i in 1:length(unique(file$snake_newt_rep))){
+    pattern<-unique(file$snake_newt_rep)[i]
+    temp_file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]
+    temp_cor_file<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]
     
     var_cor_table_temp<- data.frame("pattern"=pattern, "var"= var(temp_file$dif),"cor" = cor(temp_file$newt_toxin, temp_file$snake_res), "mean_corr" = mean(temp_cor_file$mean_newt_pheno_By_mean_snake_pheno))
     var_cor_table <- rbind(var_cor_table, var_cor_table_temp)
@@ -336,7 +336,7 @@ labels = c("Snake", "Newt"))+
 
 
 four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, min_gen, max_gen){
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$snake_newt <- paste0( file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ylim(-1.1, 1.1)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
@@ -347,7 +347,7 @@ four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, m
   geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   geom_hline(yintercept=0, linetype="solid")+
   theme(plot.title = element_text(size=5)) +
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -367,10 +367,10 @@ four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, m
 create_parm_file <- function(file, min_gen, max_gen){
 params <- data_frame()
 
-for(i in 1:length(unique(file$newt_snake_rep))){
+for(i in 1:length(unique(file$snake_newt_rep))){
 
-  pattern=unique(file$newt_snake_rep)[i]
-  sumitup <- file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep ==pattern),]
+  pattern=unique(file$snake_newt_rep)[i]
+  sumitup <- file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep ==pattern),]
  
   params_temp<- data_frame(Newt_mean_Pheno=mean(sumitup$Newt_mean_Pheno),
                            Snake_mean_Pheno=mean(sumitup$Snake_mean_Pheno), 
@@ -391,13 +391,13 @@ for(i in 1:length(unique(file$newt_snake_rep))){
 
 params$snake <- paste0(params$snake_mu_rate, "_",params$snake_mu_effect_sd)
 params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
-params$newt_snake <- paste0(params$newt, "_", params$snake)
+params$snake_newt_rep <- paste0(params$snake, "_", params$newt)
 return(params)
 }
 
 GA_summary <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label){
 
-file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
 
 params<-create_parm_file(file, min_gen, max_gen)
 
@@ -417,7 +417,7 @@ return(my_plot)
 }
 
 build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, title, subt, y_label, x_label, red_blue=F){
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
+  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
   
   params<-create_parm_file(file, min_gen, max_gen)
   
@@ -1049,7 +1049,6 @@ build_heatmap(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="d
 
 ```
 
-
 Both of these heatmaps show major similarities between the trials. When newts have a GA of #2 and #3 the newt phenotype and population size is larger. When the newt GA is #3 there is an even larger newt advantage. When the newts have a GA of #1 or #4 snakes have a larger population size and phenotype. This result hold regardless of the snakes GA. Although, snakes with GA #3 have a large advantage over newts with GA #1 or #4.
 
 ### Late simulation
@@ -1071,6 +1070,7 @@ for(i in 1:length(unique(GA1_tall_tall_file$rep))){
 
 
 ```
+
 In the later stages of my simulation things have been running for a while and hopefully populations will be in equilibrium. Space makes getting to an equilibrium state difficult to define. Hypothetically, there could be areas that are co-evolving and areas that are not, an individuals can move between different areas, leading to a steady sate that cycles. When looking at the scatter plots I noticed that there was only one row and one column that had consistently had one species with higher population sizes and phenotypes. The species that had the first GA would typically be losing in a co-evolutionary arms race. The species that ended up with the lowest mutation variance ended up being left behind. When both species had GA #1 the phenotype was neutral while snakes had a larger population size. Most of the scatter plots have slight blue and red dotes, with the histograms having small phenotype differences, and larger snake population size. Snakes having a GA of #4 also still had them at a disadvantage (newts had a larger phenotype and population size). 
 
 #### Summary
