@@ -107,8 +107,7 @@ inter_inter_grid_tall_file$snake_newt_rep <- paste0("Snake_",inter_inter_grid_ta
 boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ylim(-1.1, 1.1)+
@@ -121,7 +120,7 @@ boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, ma
   #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -134,13 +133,12 @@ boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, ma
 hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
-  unique(file$sim)
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  #unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
   xlab(x_label) + ylab(y_label)+
-  geom_histogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=rep))+
+  geom_histogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(rep)))+
   geom_vline(xintercept=real_snewt_cor, linetype="dashed")+
   geom_vline(xintercept=0, linetype="solid")+
   #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
@@ -148,7 +146,7 @@ hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_ge
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
   xlim(-1.1, 1.1)+
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -161,8 +159,7 @@ hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_ge
 hist_cors_by_gen_col_rep_nofill <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
-  file$newt_snake_rep <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$rep)
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
@@ -175,7 +172,7 @@ hist_cors_by_gen_col_rep_nofill <- function(file, title, subt, x_label, y_label,
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
   #stat_bin(bins=30)+
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -190,14 +187,13 @@ suppressMessages(print(plot))
 var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen){
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
   real_snewt_var = var(snewt$dif)
-  cfile$newt_snake_rep <- paste0("Newt_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_Snake_", cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$rep)
   var_cor_table=data.frame()
 
   
-  for(i in 1:length(unique(file$newt_snake_rep))){
-    pattern<-unique(file$newt_snake_rep)[i]
-    temp_file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$newt_snake_rep==pattern),]
-    temp_cor_file<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$newt_snake_rep==pattern),]
+  for(i in 1:length(unique(file$snake_newt_rep))){
+    pattern<-unique(file$snake_newt_rep)[i]
+    temp_file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]
+    temp_cor_file<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]
     
     var_cor_table_temp<- data.frame("pattern"=pattern, "var"= var(temp_file$dif),"cor" = cor(temp_file$newt_toxin, temp_file$snake_res), "mean_corr" = mean(temp_cor_file$mean_newt_pheno_By_mean_snake_pheno))
     var_cor_table <- rbind(var_cor_table, var_cor_table_temp)
@@ -221,9 +217,9 @@ var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen
 
 
 cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern){
- #file=inter_tall_tall_file
-#cfile=inter_cor_tall_file 
-  #pattern="1.0e-08_0.005_1.0e-09_0.0158_2"
+#file=GA3_tall_tall_file
+#cfile=GA3_cor_tall_file 
+ # pattern="1.0e-10_0.05_1.0e-08_0.005_3"
  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
   cfile$snake_newt_rep <- paste0(cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$rep)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
@@ -278,7 +274,7 @@ labels = c("Snake", "Newt"))+
 
 
 four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, min_gen, max_gen){
-  file$newt_snake <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ylim(-1.1, 1.1)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
@@ -289,7 +285,7 @@ four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, m
   geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   geom_hline(yintercept=0, linetype="solid")+
   theme(plot.title = element_text(size=5)) +
-  facet_wrap(~newt_snake)+
+  facet_wrap(~snake_newt)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -298,6 +294,325 @@ four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, m
 
   return(plot)
 }
+
+```
+
+
+```{r, general file and graph making}
+
+#the functions to make the params file and the summary and heatmap figures 
+
+create_parm_file <- function(file, min_gen, max_gen){
+params <- data_frame()
+
+for(i in 1:length(unique(file$snake_newt_rep))){
+
+  pattern=unique(file$snake_newt_rep)[i]
+  sumitup <- file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep ==pattern),]
+ 
+  params_temp<- data_frame(Newt_mean_Pheno=mean(sumitup$Newt_mean_Pheno),
+                           Snake_mean_Pheno=mean(sumitup$Snake_mean_Pheno), 
+                           Newt_mean_Pheno_sd=sd(sumitup$Newt_mean_Pheno),
+                           Snake_mean_Pheno_sd=sd(sumitup$Snake_mean_Pheno),
+                           Newt_pop_size=mean(sumitup$Newt_pop_size),
+                           Snake_pop_size=mean(sumitup$Snake_pop_size),
+                           dif=mean(sumitup$dif),
+                           snake_mu_rate=sumitup$snake_mu_rate[1],
+                           newt_mu_rate=sumitup$newt_mu_rate[1],
+                           snake_mu_effect_sd=sumitup$snake_mu_effect_sd[1],
+                           newt_mu_effect_sd=sumitup$newt_mu_effect_sd[1],
+                           rep=sumitup$rep[1])
+  
+  
+  params <- rbind(params, params_temp)
+}
+
+params$snake <- paste0(params$snake_mu_rate, "_",params$snake_mu_effect_sd)
+params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
+params$snake_newt <- paste0(params$snake, "_", params$newt)
+return(params)
+}
+
+GA_summary <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label){
+
+file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
+
+params<-create_parm_file(file, min_gen, max_gen)
+
+my_plot <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(get(x_line)), y=as.numeric(get(y_line)), color = factor(snake), shape=factor(newt)),size=3)+
+#  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)))+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text( hjust=1, size = 8))
+
+return(my_plot)
+}
+
+build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, title, subt, y_label, x_label, red_blue=F){
+  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
+  params<-create_parm_file(file, min_gen, max_gen)
+  
+ my_plot <- ggplot(params, aes(newt, paste0(snake, "_", rep))) +    # Create heatmap with ggplot2
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_tile(aes(fill = get(fill_line)))+theme(axis.text.x = element_text(angle = 45, hjust=1, size = 10), axis.text.y = element_text(size = 10))
+ 
+ if(red_blue==FALSE){
+  my_plot<- my_plot + scale_fill_viridis_c(name = fill_line_text) + theme(legend.text=element_text(angle = 45, hjust=1, size=10))
+  }
+ if(red_blue==TRUE){
+  my_plot<- my_plot + scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = fill_line_text) + theme(legend.text=element_text(size=5))
+ }
+ 
+  return(my_plot)
+}
+
+trends_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+ 
+  plot <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen),]) +
+    facet_wrap(~sim)+
+    geom_line(aes(generation, dif, group=rep, col="dif"))+
+    ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+    geom_line(aes(generation, Snake_mean_Pheno, group=rep, color="Snake_mean_Pheno"),)+
+    geom_line(aes(generation, Newt_mean_Pheno, group=rep, color="Newt_mean_Pheno"))+
+    geom_hline(yintercept=0, linetype="dashed", color="gray54")+
+    ylim(-1.,2.5)+
+    xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+  return(plot)
+}
+
+whale_gen <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+dif <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen, rep ",rep)) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = dif))+
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+
+pop_size_hist <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]
+  themin <- min(file$Snake_pop_size-file$Newt_pop_size) 
+  themax <- max(file$Snake_pop_size-file$Newt_pop_size)
+  true_max <- max(abs(themin), abs(themax))
+dif <- ggplot(file) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(Snake_pop_size-Newt_pop_size), fill="darkolivegreen4")+
+  xlim((-1*themax)-5, themax+5)+
+  theme(plot.title = element_text(size=5)) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+}
+
+pheno_dif_hist <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]
+  
+  themin <- min(file$dif) 
+  themax <- max(file$dif)
+  true_max <- max(abs(themin), abs(themax))
+dif <- ggplot(file) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen, rep ",rep)) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(dif), fill="aquamarine4")+
+  xlim((-1*true_max)-1, true_max+1)+
+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+
+
+
+two_hist <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]
+  
+  thepopmin <- min(file$Snake_pop_size-file$Newt_pop_size)/100 
+  thepopmax <- max(file$Snake_pop_size-file$Newt_pop_size)/100
+  thedifmin <- min(file$dif) 
+  thedifmax <- max(file$dif)
+  true_max <- max(abs(thepopmin), abs(thepopmax),abs(thedifmin), abs(thedifmax))
+
+  data_points <- nrow(file[which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep &  file$snake_GA==file$snake_GA[1] &  file$newt_GA==file$newt_GA[1]),])
+dif <- ggplot(file) +
+  
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen, rep ",rep)) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=dif, y=..count../data_points), fill="#8B008B",  alpha = 0.65)+
+  geom_histogram(aes(x=(Snake_pop_size-Newt_pop_size)/100, y=..count../data_points), fill="#008B00",  alpha = 0.65)+
+  scale_y_continuous(labels = scales::percent)+
+  xlim((-1*true_max)-1, true_max+1)+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+two_hist_all_rep <- function(file, title, subt, x_label, y_label,min_gen, max_gen){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen),]
+  
+  thepopmin <- min(file$Snake_pop_size-file$Newt_pop_size)/100 
+  thepopmax <- max(file$Snake_pop_size-file$Newt_pop_size)/100
+  thedifmin <- min(file$dif) 
+  thedifmax <- max(file$dif)
+  true_max <- max(abs(thepopmin), abs(thepopmax),abs(thedifmin), abs(thedifmax))
+
+  data_points <- nrow(file[which(file$generation>=min_gen & file$generation<=max_gen  &  file$snake_GA==file$snake_GA[1] &  file$newt_GA==file$newt_GA[1]),])
+  
+dif <- ggplot(file) +
+  
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=dif, y=..count../data_points), fill="#8B008B",  alpha = 0.65, bins = 20)+ #purple
+  geom_histogram(aes(x=(Snake_pop_size-Newt_pop_size)/100, y=..count../data_points), fill="#008B00",  alpha = 0.65, bins = 20)+ #green
+  scale_y_continuous(labels = scales::percent)+
+  xlim((-1*true_max)-1, true_max+1)+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      #strip.background = element_blank(), 
+                      strip.text.x = element_blank(), 
+                      #panel.grid.major = element_blank(), 
+                      #panel.grid.minor = element_blank(),
+                      #panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+two_hist_death_all_rep <- function(file, title, subt, x_label, y_label,min_gen, max_gen){
+  #file=GA3_tall_tall_file
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen),]
+  
+  thepopmin <- min(file$newt_deaths)
+  thepopmax <- max(file$newt_deaths)
+  thedifmin <- min(file$snake_deaths) 
+  thedifmax <- max(file$snake_deaths)
+  true_max <- max(abs(thepopmin), abs(thepopmax),abs(thedifmin), abs(thedifmax))
+
+  data_points <- nrow(file[which(file$generation>=min_gen & file$generation<=max_gen  &  file$snake_GA==file$snake_GA[1] &  file$newt_GA==file$newt_GA[1]),])
+  
+dif <- ggplot(file) +
+  
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=newt_deaths), fill="red",  alpha = 0.65, bins = 20)+
+  geom_histogram(aes(x=snake_deaths), fill="blue",  alpha = 0.65, bins = 20)+
+  #scale_y_continuous(labels = scales::percent)+
+  #xlim((-1*true_max)-1, true_max+1)+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  #geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      #strip.background = element_blank(), 
+                      strip.text.x = element_blank(), 
+                      #panel.grid.major = element_blank(), 
+                      #panel.grid.minor = element_blank(),
+                      #panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+#two_hist_death_all_rep(GA3_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype (purple) & Snake-Newt Popsize/100 (green)",  min_gen=20000, max_gen=25000)
 
 ```
 
@@ -1040,3 +1355,24 @@ main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, 
 
     
 ```
+
+```{r, time}
+
+min_gen=0
+max_gen=10000
+x_label="generation"
+y_label="time (hours)"
+subt="test"
+title="time test"
+plot <- ggplot(inter_tall_tall_file[ which(inter_tall_tall_file$generation>=min_gen & inter_tall_tall_file$generation<=max_gen),]) +
+    facet_wrap(~sim)+
+    geom_line(aes(generation, time/3600, group=rep), col="grey")+
+    ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+    xlab(x_label) + ylab(y_label)+
+    theme_bw()  +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),strip.background = element_blank(), strip.text.x = element_blank())
+
+plot
+
+```
+
+
