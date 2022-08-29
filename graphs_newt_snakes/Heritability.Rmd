@@ -32,74 +32,123 @@ What happens when a co-evolving trait is not heritable?
 
 ## Background
 
+```{bash, data file gathering}
+#!/usr/bin/env bash
+
+# Run these comands while in The the folder that contains the file you would like to condence
+# Goal is to condence all the text files into one file 
+# Requirements: need to have the same name and need to add additional columns
+thepath=/Users/victoria/Desktop/
+foldername=no_hair
+thefolder=${thepath}${foldername}/*
+
+add_in_column=",rep,snake_mu_rate,snake_mu_effect_sd,newt_mu_rate,newt_mu_effect_sd"
+
+cor_head_file=$(find ${thepath}${foldername} -name "*_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+grid_head_file=$(find ${thepath}${foldername} -name "*_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+lit_head_file=$(find ${thepath}${foldername} -name "*_lit_*" | head -n 1)
+lit_head=$(head -n 1 "${lit_head_file}")
+
+
+
+
+#test -f /Users/victoria/Desktop/bash_test/all_lit.txt && echo "all lit file exists."
+#test -f /Users/victoria/Desktop/bash_test/all_grid.txt && echo "all grid file exists."
+#test -f /Users/victoria/Desktop/bash_test/all_cor.txt && echo "all cor file exists."
+
+if [[ -f ${thepath}${foldername}/all_lit.txt ]] && [[ -f ${thepath}${foldername}/all_grid.txt ]] && [[ -f ${thepath}${foldername}/all_cor.txt ]]
+then
+  echo "All cor, lit, and grid files exist!"
+  echo "This program will now end!"
+  exit 0
+fi
+
+#creating the files
+echo ${lit_head}${add_in_column} > ${thepath}${foldername}/all_lit.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor.txt
+
+
+
+for filename in $thefolder*.text;
+  do 
+#getting the variables 
+my_type=$(echo ${filename} |sed 's/.*GA205_//; s/_.*//')
+snake_mu_rate=$(echo ${filename} |sed 's/.*snake_mu_rate_//; s/_.*//')
+snake_mu_effect_sd=$(echo ${filename} |sed 's/.*snake_mu_effect_sd_//; s/_.*//')
+newt_mu_rate=$(echo ${filename} |sed 's/.*newt_mu_rate_//; s/_.*//')
+newt_mu_effect_sd=$(echo ${filename} |sed 's/.*newt_mu_effect_sd_//; s/_.*//')
+rep=$(echo ${filename} | sed "s/.*rep_//; s/_.*//")
+#echo ${newt_mu_rate}	
+# echo $my_type
+# echo $my_other_type
+# these new columns adding them to the data
+sed -i '' -e 's/$/,'${rep}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_effect_sd}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_effect_sd}'/' $filename
+#infile >outfile
+if [[ $my_type == "lit" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_lit.txt
+fi
+
+if [[ $my_type == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid.txt
+fi
+
+if [[ $my_type == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor.txt
+fi
+
+done
+
+```
+
+
+
 ```{r, data gathering}
 
 snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
 
-her_tall <- list.files(path="~/Desktop/no_hair", pattern="_lit_", full.names=TRUE, recursive=FALSE)
-her_tall_cor_files <- list.files(path="~/Desktop/no_hair", pattern="_cor_", full.names=TRUE, recursive=FALSE)
-her_her_grid_tall_files <- list.files(path="~/Desktop/no_hair", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+folder="no_hair"
+filelocation=paste0("~/Desktop/",folder)
 
 
-her_tall_tall_file<- data.frame()
-her_cor_tall_file<- data.frame()
-her_her_grid_tall_file<-data.frame()
-name_list<-c()
-cor_name_list<-c()
-grid_name_list<-c()
-for(i in seq(1, length(her_tall), 1)){
-  print(i)
-  #sim
- 
-  
-  her_temp_file <- read.csv(her_tall[i], header = TRUE)
-  her_temp_file$rep <- unlist(str_split(unlist(str_split(her_tall[i],"rep_"))[3], "_"))[1]
-  her_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(her_tall[i],"snake_mu_rate_"))[2], "_"))[1]
-  her_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(her_tall[i],"newt_mu_rate_"))[2], "_"))[1]
-  her_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(her_tall[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  her_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(her_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  name_list<-c(paste0(her_temp_file$snake_mu_rate[1], her_temp_file$newt_mu_rate[1], her_temp_file$snake_mu_effect_sd[1], her_temp_file$newt_mu_effect_sd[1]),name_list)
-  her_temp_file$sim <- LETTERS[length(unique(name_list))]
-  her_tall_tall_file <- rbind(her_tall_tall_file, her_temp_file)
-  print(her_temp_file$sim[1])
-  
-  cor_temp_file <- read.csv(her_tall_cor_files[i], header = TRUE)
-  cor_temp_file$sim <-
-  cor_temp_file$rep <-unlist(str_split(unlist(str_split(her_tall_cor_files[i],"rep_"))[3], "_"))[1]
-  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(her_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
-  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(her_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
-  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(her_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(her_tall_cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  cor_name_list<-c(paste0(cor_temp_file$snake_mu_rate[1], cor_temp_file$newt_mu_rate[1], cor_temp_file$snake_mu_effect_sd[1], cor_temp_file$newt_mu_effect_sd[1]),cor_name_list)
-  cor_temp_file$sim <- LETTERS[length(unique(cor_name_list))]
-  her_cor_tall_file <- rbind(her_cor_tall_file, cor_temp_file)
-  print(cor_temp_file$sim[1])
-  
-  her_grid_temp_file <- read.csv(her_her_grid_tall_files[i], header = TRUE)
-  her_grid_temp_file$sim <-
-  her_grid_temp_file$rep <-unlist(str_split(unlist(str_split(her_her_grid_tall_files[i],"rep_"))[3], "_"))[1]
-  her_grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(her_her_grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
-  her_grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(her_her_grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
-  her_grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(her_her_grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  her_grid_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(her_her_grid_tall_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  grid_name_list<-c(paste0(her_grid_temp_file$snake_mu_rate[1], her_grid_temp_file$newt_mu_rate[1], her_grid_temp_file$snake_mu_effect_sd[1], her_grid_temp_file$newt_mu_effect_sd[1]),grid_name_list)
-  her_grid_temp_file$sim <- LETTERS[length(unique(grid_name_list))]
-  her_her_grid_tall_file <- rbind(her_her_grid_tall_file, her_grid_temp_file)
-   print(her_grid_temp_file$sim[1])
-
-  }
-  
-
-
-her_tall_tall_file$dif <- her_tall_tall_file$Snake_mean_Pheno-her_tall_tall_file$Newt_mean_Pheno
+her_tall_tall_file<- read.csv(paste0(filelocation, "/all_lit.txt") , header = TRUE)
 
 her_tall_tall_file$group_rep <- paste0(her_tall_tall_file$snake_mu_rate, "_", her_tall_tall_file$snake_mu_effect_sd,"_",her_tall_tall_file$newt_mu_rate, "_", her_tall_tall_file$newt_mu_effect_sd, "_", her_tall_tall_file$rep)
 
 her_tall_tall_file$group <- paste0(her_tall_tall_file$snake_mu_rate, "_", her_tall_tall_file$snake_mu_effect_sd,"_",her_tall_tall_file$newt_mu_rate, "_", her_tall_tall_file$newt_mu_effect_sd)
 
+her_tall_tall_file$sim=LETTERS[factor(her_tall_tall_file$group)]
+her_tall_tall_file$dif <- her_tall_tall_file$Snake_mean_Pheno-her_tall_tall_file$Newt_mean_Pheno
+
+
+her_cor_tall_file<- read.csv(paste0(filelocation,"/all_cor.txt") , header = TRUE)
+her_cor_tall_file$group_rep <- paste0(her_cor_tall_file$snake_mu_rate, "_", her_cor_tall_file$snake_mu_effect_sd,"_",her_cor_tall_file$newt_mu_rate, "_", her_cor_tall_file$newt_mu_effect_sd, "_", her_cor_tall_file$rep)
+her_cor_tall_file$group <- paste0(her_cor_tall_file$snake_mu_rate, "_", her_cor_tall_file$snake_mu_effect_sd,"_",her_cor_tall_file$newt_mu_rate, "_", her_cor_tall_file$newt_mu_effect_sd)
+her_cor_tall_file$sim=LETTERS[factor(her_cor_tall_file$group)]
+
+her_her_grid_tall_file<-read.csv(paste0(filelocation,"/all_grid.txt") , header = TRUE)
+her_her_grid_tall_file$group <- paste0(her_her_grid_tall_file$snake_mu_rate, "_", her_her_grid_tall_file$snake_mu_effect_sd,"_",her_her_grid_tall_file$newt_mu_rate, "_", her_her_grid_tall_file$newt_mu_effect_sd)
+her_her_grid_tall_file$group_rep <- paste0(her_her_grid_tall_file$snake_mu_rate, "_", her_her_grid_tall_file$snake_mu_effect_sd,"_",her_her_grid_tall_file$newt_mu_rate, "_", her_her_grid_tall_file$newt_mu_effect_sd, "_", her_her_grid_tall_file$rep)
+
+her_her_grid_tall_file$sim=LETTERS[factor(her_her_grid_tall_file$group)]
 her_her_grid_tall_file$snake_newt_rep <- paste0("Snake_",her_her_grid_tall_file$snake_mu_rate, "_", her_her_grid_tall_file$snake_mu_effect_sd, "_Newt_",her_her_grid_tall_file$newt_mu_rate, "_", her_her_grid_tall_file$newt_mu_effect_sd, "_", her_her_grid_tall_file$rep)
 
+
+
 ```
+
+
 
 
 ```{r, cor box set up}
@@ -219,7 +268,7 @@ var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen
 cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern){
 #file=GA3_tall_tall_file
 #cfile=GA3_cor_tall_file 
- # pattern="1.0e-10_0.05_1.0e-08_0.005_3"
+ # pattern="1e-10_0.05_1e-08_0.005_3"
  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
   cfile$snake_newt_rep <- paste0(cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$rep)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
@@ -910,8 +959,9 @@ build_heatmap(her_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="d
 #her_grid_tall_file
 
 
-file_name= "Snake_1.0e-11_5.0_Newt_1.0e-11_5.0_0"
-#Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
+file_name= "Snake_1e-11_5_Newt_1e-11_5_0"
+#Snake_1e-09_0.05_Newt_1e-09_0.05_2
+#Snake_1e-08_0.005_Newt_1e-11_0.158_0
 
 spegen=20001
 #unique(her_grid_tall_file$snake_newt_rep)

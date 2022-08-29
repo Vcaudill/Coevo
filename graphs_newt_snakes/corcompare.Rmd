@@ -1,0 +1,237 @@
+---
+title: "Cor Compare"
+output: html_document
+date: '2022-08-26'
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library(knitr)
+library("reshape")
+
+```
+
+## Corilation Compare!
+
+I have run four separate experiments and now I will compare their different correlations to see if I can tell the difference between each of the four experiments.
+
+Experiments:
+
+- tall map with 5 sections
+- tall map with 7 sections
+- tall map with 5 sections no heritability
+- tall map with 5 sections no interaction
+
+I am investigating the correlation calculations. I predicted that though co-evolution (interaction & evolution) species' phenotypes would become spatially correlated. I saw some very high correlations (around 0.5) in some of these simulations. To see if there is a difference between the correlations in my experiment I will create some comparative histograms.
+
+Predictions:
+
+-  5 sections & 7 sections will have *similar* correlation distributions
+- no heritability & no interaction correlation distributions will look *very different* from 5 sections & 7 sections
+
+
+```{r, loading in the data}
+
+GA1_cor_tall_file<- read.csv("~/Desktop/GA1_tall_redo/all_cor.txt" , header = TRUE)
+GA1_cor_tall_file$group_rep <- paste0(GA1_cor_tall_file$snake_mu_rate, "_", GA1_cor_tall_file$snake_mu_effect_sd,"_",GA1_cor_tall_file$newt_mu_rate, "_", GA1_cor_tall_file$newt_mu_effect_sd, "_", GA1_cor_tall_file$rep)
+GA1_cor_tall_file$group <- paste0(GA1_cor_tall_file$snake_mu_rate, "_", GA1_cor_tall_file$snake_mu_effect_sd,"_",GA1_cor_tall_file$newt_mu_rate, "_", GA1_cor_tall_file$newt_mu_effect_sd)
+GA1_cor_tall_file$sim=LETTERS[factor(GA1_cor_tall_file$group)]
+GA1_cor_tall_file$experiment = "A"
+
+GA1_cor_tall_7_file<- read.csv("~/Desktop/GA1_tall_redo/all_cor_7.txt" , header = TRUE)
+GA1_cor_tall_7_file$group_rep <- paste0(GA1_cor_tall_7_file$snake_mu_rate, "_", GA1_cor_tall_7_file$snake_mu_effect_sd,"_",GA1_cor_tall_7_file$newt_mu_rate, "_", GA1_cor_tall_7_file$newt_mu_effect_sd, "_", GA1_cor_tall_7_file$rep)
+GA1_cor_tall_7_file$group <- paste0(GA1_cor_tall_7_file$snake_mu_rate, "_", GA1_cor_tall_7_file$snake_mu_effect_sd,"_",GA1_cor_tall_7_file$newt_mu_rate, "_", GA1_cor_tall_7_file$newt_mu_effect_sd)
+GA1_cor_tall_7_file$sim=LETTERS[factor(GA1_cor_tall_7_file$group)]
+GA1_cor_tall_7_file$experiment = "B"
+
+her_cor_tall_file<- read.csv(paste0(filelocation,"/all_cor.txt") , header = TRUE)
+her_cor_tall_file$group_rep <- paste0(her_cor_tall_file$snake_mu_rate, "_", her_cor_tall_file$snake_mu_effect_sd,"_",her_cor_tall_file$newt_mu_rate, "_", her_cor_tall_file$newt_mu_effect_sd, "_", her_cor_tall_file$rep)
+her_cor_tall_file$group <- paste0(her_cor_tall_file$snake_mu_rate, "_", her_cor_tall_file$snake_mu_effect_sd,"_",her_cor_tall_file$newt_mu_rate, "_", her_cor_tall_file$newt_mu_effect_sd)
+her_cor_tall_file$sim=LETTERS[factor(her_cor_tall_file$group)]
+her_cor_tall_file$experiment = "C"
+
+
+inter_cor_tall_file<- read.csv(paste0(filelocation,"/all_cor.txt") , header = TRUE)
+inter_cor_tall_file$group_rep <- paste0(inter_cor_tall_file$snake_mu_rate, "_", inter_cor_tall_file$snake_mu_effect_sd,"_",inter_cor_tall_file$newt_mu_rate, "_", inter_cor_tall_file$newt_mu_effect_sd, "_", inter_cor_tall_file$rep)
+inter_cor_tall_file$group <- paste0(inter_cor_tall_file$snake_mu_rate, "_", inter_cor_tall_file$snake_mu_effect_sd,"_",inter_cor_tall_file$newt_mu_rate, "_", inter_cor_tall_file$newt_mu_effect_sd)
+inter_cor_tall_file$sim=LETTERS[factor(inter_cor_tall_file$group)]
+inter_cor_tall_file$experiment = "D"
+
+all_cor_exp = rbind(GA1_cor_tall_file, GA1_cor_tall_7_file, her_cor_tall_file, inter_cor_tall_file)
+
+```
+
+```{r, making the fig}
+
+hist_cors_by_gen_col_all_exp_rep <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+ snewt$mean_res = snewt$mean_toxin+snewt$dif
+  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  #unique(file$sim)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity")+
+  geom_vline(xintercept=real_snewt_cor, linetype="dashed")+
+  geom_vline(xintercept=0, linetype="solid")+
+  #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
+  theme(plot.title = element_text(size=5)) +
+  xlim(-1.1, 1.1)+
+  facet_wrap(~snake_newt)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
+                    strip.background = element_blank(), strip.text.x = element_blank(),
+                   title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                    axis.title.y = element_blank())
+
+
+  return(plot)
+}
+
+dens_cors_by_gen_col_all_exp_rep <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+ snewt$mean_res = snewt$mean_toxin+snewt$dif
+  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  #unique(file$sim)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_density(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity")+
+  geom_vline(xintercept=real_snewt_cor, linetype="dashed")+
+  geom_vline(xintercept=0, linetype="solid")+
+  #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
+  theme(plot.title = element_text(size=5)) +
+  xlim(-1.1, 1.1)+
+  facet_wrap(~snake_newt)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
+                    strip.background = element_blank(), strip.text.x = element_blank(),
+                   title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                    axis.title.y = element_blank())
+
+
+  return(plot)
+}
+```
+
+
+
+```{r, cor com figs}
+
+
+ginmin = 0
+ginmax = 5000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 5000
+ginmax = 10000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 10000
+ginmax = 15000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 15000
+ginmax = 20000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 20000
+ginmax = 25000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 25000
+ginmax = 30000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 30000
+ginmax = 35000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 35000
+ginmax = 40000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 40000
+ginmax = 45000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 45000
+ginmax = 50000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+```
+
+```{r, density com figs}
+
+
+ginmin = 0
+ginmax = 5000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 5000
+ginmax = 10000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 10000
+ginmax = 15000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 15000
+ginmax = 20000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 20000
+ginmax = 25000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 25000
+ginmax = 30000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 30000
+ginmax = 35000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 35000
+ginmax = 40000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 40000
+ginmax = 45000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+ginmin = 45000
+ginmax = 50000
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+```
+
+
+```{r, one big one}
+
+ginmin = 0
+ginmax = 50000
+suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+
+```
+
+# next step is to count the high and the lows 
+like make a lower limit like must be above 0.3
+
+

@@ -24,7 +24,7 @@ library("reshape")
 
 ## Goal:
 
-In this experiment I am observing a co-evolving population (survival is determined by a random draw) with a non-interitable trait. I expect to see no spatial phenotype correlation 
+In this experiment I am observing a co-evolving population (survival is determined by a random draw) with a non-interactible trait. I expect to see no spatial phenotype correlation 
 
 ### Questions:
 
@@ -32,74 +32,121 @@ What happens when a co-evolving trait is not interitable?
 
 ## Background
 
-```{r, data gatintering}
+```{bash, data file gathering}
+#!/usr/bin/env bash
+
+# Run these comands while in The the folder that contains the file you would like to condence
+# Goal is to condence all the text files into one file 
+# Requirements: need to have the same name and need to add additional columns
+thepath=/Users/victoria/Desktop/
+foldername=no_interaction
+thefolder=${thepath}${foldername}/*
+
+add_in_column=",rep,snake_mu_rate,snake_mu_effect_sd,newt_mu_rate,newt_mu_effect_sd"
+
+cor_head_file=$(find ${thepath}${foldername} -name "*_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+grid_head_file=$(find ${thepath}${foldername} -name "*_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+lit_head_file=$(find ${thepath}${foldername} -name "*_lit_*" | head -n 1)
+lit_head=$(head -n 1 "${lit_head_file}")
+
+
+
+
+#test -f /Users/victoria/Desktop/bash_test/all_lit.txt && echo "all lit file exists."
+#test -f /Users/victoria/Desktop/bash_test/all_grid.txt && echo "all grid file exists."
+#test -f /Users/victoria/Desktop/bash_test/all_cor.txt && echo "all cor file exists."
+
+if [[ -f ${thepath}${foldername}/all_lit.txt ]] && [[ -f ${thepath}${foldername}/all_grid.txt ]] && [[ -f ${thepath}${foldername}/all_cor.txt ]]
+then
+  echo "All cor, lit, and grid files exist!"
+  echo "This program will now end!"
+  exit 0
+fi
+
+#creating the files
+echo ${lit_head}${add_in_column} > ${thepath}${foldername}/all_lit.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor.txt
+
+
+
+for filename in $thefolder*.text;
+  do 
+#getting the variables 
+my_type=$(echo ${filename} |sed 's/.*GA205_//; s/_.*//')
+snake_mu_rate=$(echo ${filename} |sed 's/.*snake_mu_rate_//; s/_.*//')
+snake_mu_effect_sd=$(echo ${filename} |sed 's/.*snake_mu_effect_sd_//; s/_.*//')
+newt_mu_rate=$(echo ${filename} |sed 's/.*newt_mu_rate_//; s/_.*//')
+newt_mu_effect_sd=$(echo ${filename} |sed 's/.*newt_mu_effect_sd_//; s/_.*//')
+rep=$(echo ${filename} | sed "s/.*rep_//; s/_.*//")
+#echo ${newt_mu_rate}	
+# echo $my_type
+# echo $my_other_type
+# these new columns adding them to the data
+sed -i '' -e 's/$/,'${rep}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_effect_sd}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_effect_sd}'/' $filename
+#infile >outfile
+if [[ $my_type == "lit" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_lit.txt
+fi
+
+if [[ $my_type == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid.txt
+fi
+
+if [[ $my_type == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor.txt
+fi
+
+done
+
+```
+
+
+
+```{r, data gathering}
 
 snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
 
-inter_tall <- list.files(path="~/Desktop/no_interaction", pattern="_lit_", full.names=TRUE, recursive=FALSE)
-inter_tall_cor_files <- list.files(path="~/Desktop/no_interaction", pattern="_cor_", full.names=TRUE, recursive=FALSE)
-inter_inter_grid_tall_files <- list.files(path="~/Desktop/no_interaction", pattern="_grid_", full.names=TRUE, recursive=FALSE)
+folder="no_interaction"
+filelocation=paste0("~/Desktop/",folder)
 
-
-inter_tall_tall_file<- data.frame()
-inter_cor_tall_file<- data.frame()
-inter_inter_grid_tall_file<-data.frame()
-name_list<-c()
-cor_name_list<-c()
-grid_name_list<-c()
-for(i in seq(1, length(inter_tall), 1)){
-  print(i)
-  #sim
- 
-  
-  inter_temp_file <- read.csv(inter_tall[i], header = TRUE)
-  inter_temp_file$rep <- unlist(str_split(unlist(str_split(inter_tall[i],"rep_"))[2], "_"))[1]
-  inter_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(inter_tall[i],"snake_mu_rate_"))[2], "_"))[1]
-  inter_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(inter_tall[i],"newt_mu_rate_"))[2], "_"))[1]
-  inter_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(inter_tall[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  inter_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(inter_tall[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  name_list<-c(paste0(inter_temp_file$snake_mu_rate[1], inter_temp_file$newt_mu_rate[1], inter_temp_file$snake_mu_effect_sd[1], inter_temp_file$newt_mu_effect_sd[1]),name_list)
-  inter_temp_file$sim <- LETTERS[length(unique(name_list))]
-  inter_tall_tall_file <- rbind(inter_tall_tall_file, inter_temp_file)
-  print(inter_temp_file$sim[1])
-  
-  cor_temp_file <- read.csv(inter_tall_cor_files[i], header = TRUE)
-  cor_temp_file$sim <-
-  cor_temp_file$rep <-unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"rep_"))[2], "_"))[1]
-  cor_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"snake_mu_rate_"))[2], "_"))[1]
-  cor_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"newt_mu_rate_"))[2], "_"))[1]
-  cor_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  cor_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(inter_tall_cor_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  cor_name_list<-c(paste0(cor_temp_file$snake_mu_rate[1], cor_temp_file$newt_mu_rate[1], cor_temp_file$snake_mu_effect_sd[1], cor_temp_file$newt_mu_effect_sd[1]),cor_name_list)
-  cor_temp_file$sim <- LETTERS[length(unique(cor_name_list))]
-  inter_cor_tall_file <- rbind(inter_cor_tall_file, cor_temp_file)
-  print(cor_temp_file$sim[1])
-  
-  inter_grid_temp_file <- read.csv(inter_inter_grid_tall_files[i], header = TRUE)
-  inter_grid_temp_file$sim <-
-  inter_grid_temp_file$rep <-unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"rep_"))[2], "_"))[1]
-  inter_grid_temp_file$snake_mu_rate <- unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"snake_mu_rate_"))[2], "_"))[1]
-  inter_grid_temp_file$newt_mu_rate <- unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"newt_mu_rate_"))[2], "_"))[1]
-  inter_grid_temp_file$snake_mu_effect_sd <- unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"snake_mu_effect_sd_"))[2], "_"))[1]
-  inter_grid_temp_file$newt_mu_effect_sd <- unlist(str_split(unlist(str_split(inter_inter_grid_tall_files[i],"newt_mu_effect_sd_"))[2], "_"))[1]
-  grid_name_list<-c(paste0(inter_grid_temp_file$snake_mu_rate[1], inter_grid_temp_file$newt_mu_rate[1], inter_grid_temp_file$snake_mu_effect_sd[1], inter_grid_temp_file$newt_mu_effect_sd[1]),grid_name_list)
-  inter_grid_temp_file$sim <- LETTERS[length(unique(grid_name_list))]
-  inter_inter_grid_tall_file <- rbind(inter_inter_grid_tall_file, inter_grid_temp_file)
-   print(inter_grid_temp_file$sim[1])
-
-  }
-  
-
-
-inter_tall_tall_file$dif <- inter_tall_tall_file$Snake_mean_Pheno-inter_tall_tall_file$Newt_mean_Pheno
+inter_tall_tall_file<- read.csv(paste0(filelocation, "/all_lit.txt") , header = TRUE)
 
 inter_tall_tall_file$group_rep <- paste0(inter_tall_tall_file$snake_mu_rate, "_", inter_tall_tall_file$snake_mu_effect_sd,"_",inter_tall_tall_file$newt_mu_rate, "_", inter_tall_tall_file$newt_mu_effect_sd, "_", inter_tall_tall_file$rep)
 
 inter_tall_tall_file$group <- paste0(inter_tall_tall_file$snake_mu_rate, "_", inter_tall_tall_file$snake_mu_effect_sd,"_",inter_tall_tall_file$newt_mu_rate, "_", inter_tall_tall_file$newt_mu_effect_sd)
 
+inter_tall_tall_file$sim=LETTERS[factor(inter_tall_tall_file$group)]
+inter_tall_tall_file$dif <- inter_tall_tall_file$Snake_mean_Pheno-inter_tall_tall_file$Newt_mean_Pheno
+
+
+inter_cor_tall_file<- read.csv(paste0(filelocation,"/all_cor.txt") , header = TRUE)
+inter_cor_tall_file$group_rep <- paste0(inter_cor_tall_file$snake_mu_rate, "_", inter_cor_tall_file$snake_mu_effect_sd,"_",inter_cor_tall_file$newt_mu_rate, "_", inter_cor_tall_file$newt_mu_effect_sd, "_", inter_cor_tall_file$rep)
+inter_cor_tall_file$group <- paste0(inter_cor_tall_file$snake_mu_rate, "_", inter_cor_tall_file$snake_mu_effect_sd,"_",inter_cor_tall_file$newt_mu_rate, "_", inter_cor_tall_file$newt_mu_effect_sd)
+inter_cor_tall_file$sim=LETTERS[factor(inter_cor_tall_file$group)]
+
+inter_inter_grid_tall_file<-read.csv(paste0(filelocation,"/all_grid.txt") , header = TRUE)
+inter_inter_grid_tall_file$group <- paste0(inter_inter_grid_tall_file$snake_mu_rate, "_", inter_inter_grid_tall_file$snake_mu_effect_sd,"_",inter_inter_grid_tall_file$newt_mu_rate, "_", inter_inter_grid_tall_file$newt_mu_effect_sd)
+inter_inter_grid_tall_file$group_rep <- paste0(inter_inter_grid_tall_file$snake_mu_rate, "_", inter_inter_grid_tall_file$snake_mu_effect_sd,"_",inter_inter_grid_tall_file$newt_mu_rate, "_", inter_inter_grid_tall_file$newt_mu_effect_sd, "_", inter_inter_grid_tall_file$rep)
+
+inter_inter_grid_tall_file$sim=LETTERS[factor(inter_inter_grid_tall_file$group)]
 inter_inter_grid_tall_file$snake_newt_rep <- paste0("Snake_",inter_inter_grid_tall_file$snake_mu_rate, "_", inter_inter_grid_tall_file$snake_mu_effect_sd, "_Newt_",inter_inter_grid_tall_file$newt_mu_rate, "_", inter_inter_grid_tall_file$newt_mu_effect_sd, "_", inter_inter_grid_tall_file$rep)
 
+
+
 ```
+
 
 
 ```{r, cor box set up}
@@ -1230,7 +1277,7 @@ build_heatmap(inter_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line=
 #inter_grid_tall_file
 
 
-file_name= "Snake_1.0e-11_5.0_Newt_1.0e-11_5.0_0"
+file_name= "Snake_1e-11_5_Newt_1e-11_5_0"
 #Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
 
 spegen=20001
@@ -1296,7 +1343,7 @@ main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, 
 #inter_grid_tall_file
 
 
-file_name= "Snake_1.0e-08_0.005_Newt_1.0e-08_0.005_3"
+file_name= "Snake_1e-08_0.005_Newt_1e-08_0.005_3"
 #Snake_1.0e-08_0.005_Newt_1.0e-11_0.158_0
 
 spegen=13001
