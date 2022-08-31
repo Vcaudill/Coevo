@@ -1,0 +1,1710 @@
+---
+title: "GA1 redo"
+output: html_document
+date: '2022-08-01'
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library(knitr)
+library(kableExtra)
+library("reshape")
+library(ggplot2)
+library(ggpubr)
+theme_set(theme_pubr())
+library(stringr)
+library(patchwork)
+```
+
+## Goal:
+
+Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of correlation between rectangles and squares. After fixing the row vs column error I looked at the correlation data and found that there was less correlation. So I decided to investigate why that might be and run a few more experiments. I am running an experiment to test how changing the square size might impact the calculations. I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). This file contains results discussed in Tall_GA1!
+
+### Questions:
+
+What does it mean to be correlated?
+
+## Background
+
+I investigated the correlations between snake and newt phenotypes at the local grid locations along with population level phenotype. I found there was a lot of correlation when populations slowly adapt! However, after a closer investigation I found that these correlations were from a rectangle shaped area and not a square one. Here, I rerun the experiment with he correct square grids and discuss how the results differ. I also aim to investigate how changing the area/shape of the grids will influence correlation results. I am also thinking of ways to gather and incorperate allele information. 
+
+## Experiment
+
+I created a simulation study to observe the co-evolutionary outcome of the newt-snake interaction with different genetic architectures (GAs) in a spatial setting. I hypothesized that we would see an interaction (co-evolutionary arms race) between newt and snake phenotype under some GA combinations when newts and snakes were evolving over geographical space. Each GA is paired with another GA creating 16 combinations.
+
+GA1 experiment values:
+
+- 1e-8*(0.005)^2 = 2.5e-13
+- 1e-9*(0.05)^2 = 2.5e-12
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(5.0)^2 = 2.5e-10
+
+Landscape: 20 by 5 grid. A tall map!: 35*4 H, 35 W 
+New Landscape 28 by 7 grid: 35*4 H, 35 W 
+
+
+### The data
+
+I gather text file data from different files and have to do some table wrangling to get it into a format I can graph. I use information gathered from the entire population; data containing a mean value for the entire map (lit), correlation data based off of local populations that were divided into grids (cor) and data collected from grid based populations (grid). These simulations have a msprime (coalescent/burn in/random genetic variation) and then run for 50,000 generations in SLiM (co-evolution) (all with the same GA values). I run 4 trials for every GA combination and try two different grid sizes 20 by 5 (large) and 24 by 7 (small) in SLiM. These slim simulations use the same msprime simulation, but can statistically be different. 
+
+
+```{bash, data file gathering}
+#!/usr/bin/env bash
+
+# Run these comands while in The the folder that contains the file you would like to condence
+# Goal is to condence all the text files into one file 
+# Requirements: need to have the same name and need to add additional columns
+thepath=/Users/victoria/Desktop/
+foldername=GA1_tall_redo
+thefolder=${thepath}${foldername}/*
+
+add_in_column=",rep,snake_mu_rate,snake_mu_effect_sd,newt_mu_rate,newt_mu_effect_sd"
+
+cor_head_file=$(find ${thepath}${foldername} -name "*_GA520_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+grid_head_file=$(find ${thepath}${foldername} -name "*_GA205_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+lit_head_file=$(find ${thepath}${foldername} -name "*_GA205_lit_*" | head -n 1)
+lit_head=$(head -n 1 "${lit_head_file}")
+
+cor_head_file_7=$(find ${thepath}${foldername} -name "*_GA728_cor_*" | head -n 1)
+cor_head_7=$(head -n 1 "${cor_head_file_7}")
+
+grid_head_file_7=$(find ${thepath}${foldername} -name "*_GA287_grid_*" | head -n 1)
+grid_head_7=$(head -n 1 "${grid_head_file_7}")
+
+lit_head_file_7=$(find ${thepath}${foldername} -name "*_GA287_lit_*" | head -n 1)
+lit_head_7=$(head -n 1 "${lit_head_file_7}")
+
+
+#test -f /Users/victoria/Desktop/bash_test/all_lit.txt && echo "all lit file exists."
+#test -f /Users/victoria/Desktop/bash_test/all_grid.txt && echo "all grid file exists."
+#test -f /Users/victoria/Desktop/bash_test/all_cor.txt && echo "all cor file exists."
+
+if [[ -f ${thepath}${foldername}/all_lit.txt ]] && [[ -f ${thepath}${foldername}/all_grid.txt ]] && [[ -f ${thepath}${foldername}/all_cor.txt ]]
+then
+  echo "All cor, lit, and grid files exist!"
+  echo "This program will now end!"
+  exit 0
+fi
+
+#creating the files
+echo ${lit_head}${add_in_column} > ${thepath}${foldername}/all_lit.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor.txt
+echo ${lit_head_7}${add_in_column} > ${thepath}${foldername}/all_lit_7.txt
+echo ${grid_head_7}${add_in_column} > ${thepath}${foldername}/all_grid_7.txt
+echo ${cor_head_7}${add_in_column} > ${thepath}${foldername}/all_cor_7.txt
+
+
+for filename in $thefolder*.text;
+  do 
+#getting the variables 
+my_type=$(echo ${filename} |sed 's/.*GA205_//; s/_.*//')
+my_other_type=$(echo ${filename} |sed 's/.*GA520_//; s/_.*//')
+my_type_2=$(echo ${filename} |sed 's/.*GA287_//; s/_.*//') #testing a second grid system
+my_other_type_2=$(echo ${filename} |sed 's/.*GA728_//; s/_.*//')
+snake_mu_rate=$(echo ${filename} |sed 's/.*snake_mu_rate_//; s/_.*//')
+snake_mu_effect_sd=$(echo ${filename} |sed 's/.*snake_mu_effect_sd_//; s/_.*//')
+newt_mu_rate=$(echo ${filename} |sed 's/.*newt_mu_rate_//; s/_.*//')
+newt_mu_effect_sd=$(echo ${filename} |sed 's/.*newt_mu_effect_sd_//; s/_.*//')
+rep=$(echo ${filename} | sed "s/.*rep_//; s/_.*//")
+#echo ${newt_mu_rate}	
+# echo $my_type
+# echo $my_other_type
+# these new columns adding them to the data
+sed -i '' -e 's/$/,'${rep}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_effect_sd}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_effect_sd}'/' $filename
+#infile >outfile
+if [[ $my_type == "lit" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_lit.txt
+fi
+
+if [[ $my_type == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid.txt
+fi
+
+if [[ $my_other_type == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor.txt
+fi
+
+if [[ $my_type_2 == "lit" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_lit_7.txt
+fi
+
+if [[ $my_type_2 == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid_7.txt
+fi
+
+if [[ $my_other_type_2 == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor_7.txt
+fi
+done
+
+```
+
+
+
+```{r, data gathering}
+
+snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
+
+
+GA1_tall_tall_file<- read.csv("~/Desktop/GA1_tall_redo/all_lit.txt" , header = TRUE)
+
+GA1_tall_tall_file$group_rep <- paste0(GA1_tall_tall_file$snake_mu_rate, "_", GA1_tall_tall_file$snake_mu_effect_sd,"_",GA1_tall_tall_file$newt_mu_rate, "_", GA1_tall_tall_file$newt_mu_effect_sd, "_", GA1_tall_tall_file$rep)
+
+GA1_tall_tall_file$group <- paste0(GA1_tall_tall_file$snake_mu_rate, "_", GA1_tall_tall_file$snake_mu_effect_sd,"_",GA1_tall_tall_file$newt_mu_rate, "_", GA1_tall_tall_file$newt_mu_effect_sd)
+
+GA1_tall_tall_file$sim=LETTERS[factor(GA1_tall_tall_file$group)]
+GA1_tall_tall_file$dif <- GA1_tall_tall_file$Snake_mean_Pheno-GA1_tall_tall_file$Newt_mean_Pheno
+
+
+GA1_cor_tall_file<- read.csv("~/Desktop/GA1_tall_redo/all_cor.txt" , header = TRUE)
+GA1_cor_tall_file$group_rep <- paste0(GA1_cor_tall_file$snake_mu_rate, "_", GA1_cor_tall_file$snake_mu_effect_sd,"_",GA1_cor_tall_file$newt_mu_rate, "_", GA1_cor_tall_file$newt_mu_effect_sd, "_", GA1_cor_tall_file$rep)
+GA1_cor_tall_file$group <- paste0(GA1_cor_tall_file$snake_mu_rate, "_", GA1_cor_tall_file$snake_mu_effect_sd,"_",GA1_cor_tall_file$newt_mu_rate, "_", GA1_cor_tall_file$newt_mu_effect_sd)
+GA1_cor_tall_file$sim=LETTERS[factor(GA1_cor_tall_file$group)]
+
+GA1_grid_tall_file<-read.csv("~/Desktop/GA1_tall_redo/all_grid.txt" , header = TRUE)
+GA1_grid_tall_file$group <- paste0(GA1_grid_tall_file$snake_mu_rate, "_", GA1_grid_tall_file$snake_mu_effect_sd,"_",GA1_grid_tall_file$newt_mu_rate, "_", GA1_grid_tall_file$newt_mu_effect_sd)
+GA1_grid_tall_file$group_rep <- paste0(GA1_grid_tall_file$snake_mu_rate, "_", GA1_grid_tall_file$snake_mu_effect_sd,"_",GA1_grid_tall_file$newt_mu_rate, "_", GA1_grid_tall_file$newt_mu_effect_sd, "_", GA1_grid_tall_file$rep)
+
+GA1_grid_tall_file$sim=LETTERS[factor(GA1_grid_tall_file$group)]
+GA1_grid_tall_file$snake_newt_rep <- paste0("Snake_",GA1_grid_tall_file$snake_mu_rate, "_", GA1_grid_tall_file$snake_mu_effect_sd, "_Newt_",GA1_grid_tall_file$newt_mu_rate, "_", GA1_grid_tall_file$newt_mu_effect_sd, "_", GA1_grid_tall_file$rep)
+
+
+GA1_tall_tall_7_file<- read.csv("~/Desktop/GA1_tall_redo/all_lit_7.txt" , header = TRUE)
+
+GA1_tall_tall_7_file$group_rep <- paste0(GA1_tall_tall_7_file$snake_mu_rate, "_", GA1_tall_tall_7_file$snake_mu_effect_sd,"_",GA1_tall_tall_7_file$newt_mu_rate, "_", GA1_tall_tall_7_file$newt_mu_effect_sd, "_", GA1_tall_tall_7_file$rep)
+
+GA1_tall_tall_7_file$group <- paste0(GA1_tall_tall_7_file$snake_mu_rate, "_", GA1_tall_tall_7_file$snake_mu_effect_sd,"_",GA1_tall_tall_7_file$newt_mu_rate, "_", GA1_tall_tall_7_file$newt_mu_effect_sd)
+
+GA1_tall_tall_7_file$sim=LETTERS[factor(GA1_tall_tall_7_file$group)]
+GA1_tall_tall_7_file$dif <- GA1_tall_tall_7_file$Snake_mean_Pheno-GA1_tall_tall_7_file$Newt_mean_Pheno
+
+
+GA1_cor_tall_7_file<- read.csv("~/Desktop/GA1_tall_redo/all_cor_7.txt" , header = TRUE)
+GA1_cor_tall_7_file$group_rep <- paste0(GA1_cor_tall_7_file$snake_mu_rate, "_", GA1_cor_tall_7_file$snake_mu_effect_sd,"_",GA1_cor_tall_7_file$newt_mu_rate, "_", GA1_cor_tall_7_file$newt_mu_effect_sd, "_", GA1_cor_tall_7_file$rep)
+GA1_cor_tall_7_file$group <- paste0(GA1_cor_tall_7_file$snake_mu_rate, "_", GA1_cor_tall_7_file$snake_mu_effect_sd,"_",GA1_cor_tall_7_file$newt_mu_rate, "_", GA1_cor_tall_7_file$newt_mu_effect_sd)
+GA1_cor_tall_7_file$sim=LETTERS[factor(GA1_cor_tall_7_file$group)]
+
+GA1_grid_tall_7_file<-read.csv("~/Desktop/GA1_tall_redo/all_grid_7.txt" , header = TRUE)
+GA1_grid_tall_7_file$group <- paste0(GA1_grid_tall_7_file$snake_mu_rate, "_", GA1_grid_tall_7_file$snake_mu_effect_sd,"_",GA1_grid_tall_7_file$newt_mu_rate, "_", GA1_grid_tall_7_file$newt_mu_effect_sd)
+GA1_grid_tall_7_file$group_rep <- paste0(GA1_grid_tall_7_file$snake_mu_rate, "_", GA1_grid_tall_7_file$snake_mu_effect_sd,"_",GA1_grid_tall_7_file$newt_mu_rate, "_", GA1_grid_tall_7_file$newt_mu_effect_sd, "_", GA1_grid_tall_7_file$rep)
+
+GA1_grid_tall_7_file$sim=LETTERS[factor(GA1_grid_tall_7_file$group)]
+GA1_grid_tall_7_file$snake_newt_rep <- paste0("Snake_",GA1_grid_tall_7_file$snake_mu_rate, "_", GA1_grid_tall_7_file$snake_mu_effect_sd, "_Newt_",GA1_grid_tall_7_file$newt_mu_rate, "_", GA1_grid_tall_7_file$newt_mu_effect_sd, "_", GA1_grid_tall_7_file$rep)
+
+```
+
+
+
+```{r, cor box set up}
+
+boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+ snewt$mean_res = snewt$mean_toxin+snewt$dif
+  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+  file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  unique(file$sim)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+  ylim(-1.1, 1.1)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(rep), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "CA"))+
+  geom_hline(yintercept=real_snewt_cor, linetype="dashed")+
+    geom_hline(yintercept=0, linetype="solid")+
+  #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
+  theme(plot.title = element_text(size=5)) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+
+  return(plot)
+}
+
+hist_cors_by_gen_col_rep <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+ snewt$mean_res = snewt$mean_toxin+snewt$dif
+  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  #unique(file$sim)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(rep)))+
+  geom_vline(xintercept=real_snewt_cor, linetype="dashed")+
+  geom_vline(xintercept=0, linetype="solid")+
+  #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
+  theme(plot.title = element_text(size=5)) +
+  xlim(-1.1, 1.1)+
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+
+  return(plot)
+}
+
+hist_cors_by_gen_col_rep_nofill <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+ snewt$mean_res = snewt$mean_toxin+snewt$dif
+  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+  file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  unique(file$sim)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno)))+
+  geom_vline(xintercept=real_snewt_cor, linetype="dashed")+
+  geom_vline(xintercept=0, linetype="solid")+
+  #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  #geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
+  theme(plot.title = element_text(size=5)) +
+  #stat_bin(bins=30)+
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+suppressMessages(print(plot))
+
+  return(plot)
+}
+
+
+var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen){
+  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+  real_snewt_var = var(snewt$dif)
+  var_cor_table=data.frame()
+
+  
+  for(i in 1:length(unique(file$snake_newt_rep))){
+    pattern<-unique(file$snake_newt_rep)[i]
+    temp_file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]
+    temp_cor_file<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]
+    
+    var_cor_table_temp<- data.frame("pattern"=pattern, "var"= var(temp_file$dif),"cor" = cor(temp_file$newt_toxin, temp_file$snake_res), "mean_corr" = mean(temp_cor_file$mean_newt_pheno_By_mean_snake_pheno))
+    var_cor_table <- rbind(var_cor_table, var_cor_table_temp)
+  }
+ 
+  var_cor_table_temp<- data.frame("pattern"="real", "var"= real_snewt_var, "cor" = real_snewt_cor, "mean_corr" = real_snewt_cor)
+  var_cor_table <- rbind(var_cor_table, var_cor_table_temp)
+  
+  plot <- ggplot(var_cor_table) +
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(var), y=as.numeric(cor), color = pattern), shape=17, size=3)+
+  geom_point(aes(x=as.numeric(var), y=as.numeric(mean_corr), color = pattern), size=3)+
+  theme(plot.title = element_text(size=5)) +
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8))
+
+
+  return(plot)
+}
+
+
+
+cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern){
+#file=GA1_tall_tall_file
+#cfile=GA1_cor_tall_file 
+ # pattern="1.0e-10_0.05_1.0e-08_0.005_3"
+ file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
+  cfile$snake_newt_rep <- paste0(cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$rep)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
+    #geom_line(aes(generation, dif, group=rep, col="dif"))+
+      ggtitle(title, subtitle = paste0(subt," pattern ", pattern, " From ", min_gen, " gen to ", max_gen, " gen"))+
+    geom_line(aes(generation, Snake_mean_Pheno, group=rep, color="Snake_mean_Pheno"),)+
+    geom_line(aes(generation, Newt_mean_Pheno, group=rep, color="Newt_mean_Pheno"))+
+    #ylim(0,10)+
+    #xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred"),
+labels = c("Snake", "Newt"))+
+    theme_bw() +theme(legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_blank(),
+                      plot.margin=unit(c(1,1,+0.3,1), "cm"))
+  
+  cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]) +
+    geom_line(aes(generation, mean_newt_pheno_By_mean_snake_pheno, col="CA"))+
+    #ggtitle(title, subtitle = subt) +
+    ylim(-1.1, 1.1)+
+    #xlab(x_label_cor) + ylab(y_label)+
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank(),
+                      plot.margin=unit(c(-0.5,1,1,1), "cm"))
+  
+  file<-file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]
+  cfile<-cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]
+  
+  if(nrow(cfile)>nrow(file)){
+    toDelete <- seq(0, nrow(cfile), 2)
+    cfile_short <-  cfile[-toDelete, ]
+  }else{
+    cfile_short <-  cfile
+  }
+  
+  if(nrow(cfile_short)>nrow(file)){
+      toDelete <- seq(0, nrow(cfile_short), 2)
+      cfile_short <-  cfile_short[-toDelete, ]
+    }
+  figure <- ggarrange(plot, cor_plot + font("x.text", size = 10),heights = c(2, 1.5),ncol = 1, nrow = 2, align = "v")
+    print(paste0("pattern ", pattern))
+  print(paste0("Cor between average snake pheno and local cor ", cor(file$Snake_mean_Pheno, cfile_short$mean_newt_pheno_By_mean_snake_pheno)))
+  print(paste0("Cor between average newt pheno and local cor ", cor(file$Newt_mean_Pheno, cfile_short$mean_newt_pheno_By_mean_snake_pheno)))
+  print(paste0("Cor between average dif pheno and local cor ", cor(file$dif, cfile_short$mean_newt_pheno_By_mean_snake_pheno)))
+  print(paste0("Cor between newt pheno and snake ", cor(file$Newt_mean_Pheno, file$Snake_mean_Pheno)))
+  return(figure)
+}
+
+
+four_types_boxplot_cors_by_gen <- function(file,title, subt, x_label, y_label, min_gen, max_gen){
+  file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+  ylim(-1.1, 1.1)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor("CA"), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "CA"))+
+  geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
+  geom_boxplot(aes(x=factor("CC"), y=as.numeric(sum_newt_pheno_By_num_snake), color = "CC"))+
+  geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
+  geom_hline(yintercept=0, linetype="solid")+
+  theme(plot.title = element_text(size=5)) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+
+  return(plot)
+}
+
+```
+
+
+```{r, general file and graph making}
+
+#the functions to make the params file and the summary and heatmap figures 
+
+create_parm_file <- function(file, min_gen, max_gen){
+params <- data_frame()
+
+for(i in 1:length(unique(file$snake_newt_rep))){
+
+  pattern=unique(file$snake_newt_rep)[i]
+  sumitup <- file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep ==pattern),]
+ 
+  params_temp<- data_frame(Newt_mean_Pheno=mean(sumitup$Newt_mean_Pheno),
+                           Snake_mean_Pheno=mean(sumitup$Snake_mean_Pheno), 
+                           Newt_mean_Pheno_sd=sd(sumitup$Newt_mean_Pheno),
+                           Snake_mean_Pheno_sd=sd(sumitup$Snake_mean_Pheno),
+                           Newt_pop_size=mean(sumitup$Newt_pop_size),
+                           Snake_pop_size=mean(sumitup$Snake_pop_size),
+                           dif=mean(sumitup$dif),
+                           snake_mu_rate=sumitup$snake_mu_rate[1],
+                           newt_mu_rate=sumitup$newt_mu_rate[1],
+                           snake_mu_effect_sd=sumitup$snake_mu_effect_sd[1],
+                           newt_mu_effect_sd=sumitup$newt_mu_effect_sd[1],
+                           rep=sumitup$rep[1])
+  
+  
+  params <- rbind(params, params_temp)
+}
+
+params$snake <- paste0(params$snake_mu_rate, "_",params$snake_mu_effect_sd)
+params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
+params$snake_newt <- paste0(params$snake, "_", params$newt)
+return(params)
+}
+
+GA_summary <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label){
+
+file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
+
+params<-create_parm_file(file, min_gen, max_gen)
+
+my_plot <- ggplot(params) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(get(x_line)), y=as.numeric(get(y_line)), color = factor(snake), shape=factor(newt)),size=3)+
+#  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)))+
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  #facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text( hjust=1, size = 8))
+
+return(my_plot)
+}
+
+build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, title, subt, y_label, x_label, red_blue=F){
+  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
+  params<-create_parm_file(file, min_gen, max_gen)
+  
+ my_plot <- ggplot(params, aes(newt, paste0(snake, "_", rep))) +    # Create heatmap with ggplot2
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_tile(aes(fill = get(fill_line)))+theme(axis.text.x = element_text(angle = 45, hjust=1, size = 10), axis.text.y = element_text(size = 10))
+ 
+ if(red_blue==FALSE){
+  my_plot<- my_plot + scale_fill_viridis_c(name = fill_line_text) + theme(legend.text=element_text(angle = 45, hjust=1, size=10))
+  }
+ if(red_blue==TRUE){
+  my_plot<- my_plot + scale_fill_gradient2(low = "red",mid = "beige", high = "blue", name = fill_line_text) + theme(legend.text=element_text(size=5))
+ }
+ 
+  return(my_plot)
+}
+
+trends_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+ 
+  plot <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen),]) +
+    facet_wrap(~sim)+
+    geom_line(aes(generation, dif, group=rep, col="dif"))+
+    ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+    geom_line(aes(generation, Snake_mean_Pheno, group=rep, color="Snake_mean_Pheno"),)+
+    geom_line(aes(generation, Newt_mean_Pheno, group=rep, color="Newt_mean_Pheno"))+
+    geom_hline(yintercept=0, linetype="dashed", color="gray54")+
+    ylim(-1.,2.5)+
+    xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+  return(plot)
+}
+
+whale_gen <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+dif <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen, rep ",rep)) +
+  xlab(x_label) + ylab(y_label)+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = dif))+
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+
+pop_size_hist <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]
+  themin <- min(file$Snake_pop_size-file$Newt_pop_size) 
+  themax <- max(file$Snake_pop_size-file$Newt_pop_size)
+  true_max <- max(abs(themin), abs(themax))
+dif <- ggplot(file) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(Snake_pop_size-Newt_pop_size), fill="darkolivegreen4")+
+  xlim((-1*themax)-5, themax+5)+
+  theme(plot.title = element_text(size=5)) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+}
+
+pheno_dif_hist <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]
+  
+  themin <- min(file$dif) 
+  themax <- max(file$dif)
+  true_max <- max(abs(themin), abs(themax))
+dif <- ggplot(file) +
+  #xlim(0, 1000)+
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen, rep ",rep)) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(dif), fill="aquamarine4")+
+  xlim((-1*true_max)-1, true_max+1)+
+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+
+
+
+two_hist <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]
+  
+  thepopmin <- min(file$Snake_pop_size-file$Newt_pop_size)/100 
+  thepopmax <- max(file$Snake_pop_size-file$Newt_pop_size)/100
+  thedifmin <- min(file$dif) 
+  thedifmax <- max(file$dif)
+  true_max <- max(abs(thepopmin), abs(thepopmax),abs(thedifmin), abs(thedifmax))
+
+  data_points <- nrow(file[which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep &  file$snake_GA==file$snake_GA[1] &  file$newt_GA==file$newt_GA[1]),])
+dif <- ggplot(file) +
+  
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen, rep ",rep)) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=dif, y=..count../data_points), fill="#8B008B",  alpha = 0.65)+
+  geom_histogram(aes(x=(Snake_pop_size-Newt_pop_size)/100, y=..count../data_points), fill="#008B00",  alpha = 0.65)+
+  scale_y_continuous(labels = scales::percent)+
+  xlim((-1*true_max)-1, true_max+1)+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      # strip.background = element_blank(), 
+                      # strip.text.x = element_blank(), 
+                      # panel.grid.major = element_blank(), 
+                      # panel.grid.minor = element_blank(),
+                      # panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+two_hist_all_rep <- function(file, title, subt, x_label, y_label,min_gen, max_gen){
+  #file$rep==rep
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen),]
+  
+  thepopmin <- min(file$Snake_pop_size-file$Newt_pop_size)/100 
+  thepopmax <- max(file$Snake_pop_size-file$Newt_pop_size)/100
+  thedifmin <- min(file$dif) 
+  thedifmax <- max(file$dif)
+  true_max <- max(abs(thepopmin), abs(thepopmax),abs(thedifmin), abs(thedifmax))
+
+  data_points <- nrow(file[which(file$generation>=min_gen & file$generation<=max_gen  &  file$snake_GA==file$snake_GA[1] &  file$newt_GA==file$newt_GA[1]),])
+  
+dif <- ggplot(file) +
+  
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=dif, y=..count../data_points), fill="#8B008B",  alpha = 0.65, bins = 20)+ #purple
+  geom_histogram(aes(x=(Snake_pop_size-Newt_pop_size)/100, y=..count../data_points), fill="#008B00",  alpha = 0.65, bins = 20)+ #green
+  scale_y_continuous(labels = scales::percent)+
+  xlim((-1*true_max)-1, true_max+1)+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      #strip.background = element_blank(), 
+                      strip.text.x = element_blank(), 
+                      #panel.grid.major = element_blank(), 
+                      #panel.grid.minor = element_blank(),
+                      #panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+two_hist_death_all_rep <- function(file, title, subt, x_label, y_label,min_gen, max_gen){
+  #file=GA1_tall_tall_file
+  file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+  file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+  
+  file<-file[ which(file$generation>=min_gen & file$generation<=max_gen),]
+  
+  thepopmin <- min(file$newt_deaths)
+  thepopmax <- max(file$newt_deaths)
+  thedifmin <- min(file$snake_deaths) 
+  thedifmax <- max(file$snake_deaths)
+  true_max <- max(abs(thepopmin), abs(thepopmax),abs(thedifmin), abs(thedifmax))
+
+  data_points <- nrow(file[which(file$generation>=min_gen & file$generation<=max_gen  &  file$snake_GA==file$snake_GA[1] &  file$newt_GA==file$newt_GA[1]),])
+  
+dif <- ggplot(file) +
+  
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+  xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=newt_deaths), fill="red",  alpha = 0.65, bins = 20)+
+  geom_histogram(aes(x=snake_deaths), fill="blue",  alpha = 0.65, bins = 20)+
+  #scale_y_continuous(labels = scales::percent)+
+  #xlim((-1*true_max)-1, true_max+1)+
+  # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
+  #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
+  theme(plot.title = element_text(size=5)) +
+  #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
+  #labs(colour = color_label) +
+  facet_wrap(~sim)+
+  #geom_vline(xintercept = 0)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      #strip.background = element_blank(), 
+                      strip.text.x = element_blank(), 
+                      #panel.grid.major = element_blank(), 
+                      #panel.grid.minor = element_blank(),
+                      #panel.background = element_blank(), 
+                      axis.line = element_line(colour = "black"))
+
+return(dif)
+
+}
+
+#two_hist_death_all_rep(GA1_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype (purple) & Snake-Newt Popsize/100 (green)",  min_gen=20000, max_gen=25000)
+
+```
+
+
+## Mean Phenotype Whole Simulation
+
+First, I will look at a plot of how the mean phenotype of the entire population of newts and snakes changes overtime. Each of these plots has three colored lines, red for the mean newt phenotype, blue for the mean snake phenotype, and black for the difference between mean snake and mean newt phenotype. There are 4 line per color that represent the different replicas that I ran. **Note this is a mean for the entire population.** Mutational variance increases for the snakes as you go down the figure (top to bottom) and increases for the newts as you go across (left to right).
+
+
+
+```{r, graphing by gen}
+trends_by_gen(GA1_tall_tall_file, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 50000)
+
+
+aggregate(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=50000),]$dif, list(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=50000),]$group), FUN=mean) 
+
+aggregate(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=50000),]$dif, list(GA1_tall_tall_file[which(GA1_tall_tall_file$generation>=100 & GA1_tall_tall_file$generation<=50000),]$group_rep), FUN=mean) 
+
+trends_by_gen(GA1_tall_tall_7_file, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 50000)
+
+aggregate(GA1_tall_tall_7_file[which(GA1_tall_tall_7_file$generation>=100 & GA1_tall_tall_7_file$generation<=50000),]$dif, list(GA1_tall_tall_7_file[which(GA1_tall_tall_7_file$generation>=100 & GA1_tall_tall_7_file$generation<=50000),]$group), FUN=mean) 
+
+aggregate(GA1_tall_tall_7_file[which(GA1_tall_tall_7_file$generation>=100 & GA1_tall_tall_7_file$generation<=50000),]$dif, list(GA1_tall_tall_7_file[which(GA1_tall_tall_7_file$generation>=100 & GA1_tall_tall_7_file$generation<=50000),]$group_rep), FUN=mean) 
+
+
+```
+
+
+
+#### Connection between higher phenotype and population
+
+
+```{r, whale}
+min_gen=5000
+max_gen=10000
+rep=0
+
+whale_gen(GA1_tall_tall_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake-Newt Popsize", x_label="Snake-Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
+
+suppressMessages(print(two_hist_all_rep(GA1_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Popsize/100 (green) & Snake-Newt Phenotype (purple)",  min_gen=min_gen, max_gen=max_gen)))
+
+whale_gen(GA1_tall_tall_7_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake-Newt Popsize", x_label="Snake-Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
+
+suppressMessages(print(two_hist_all_rep(GA1_tall_tall_7_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Popsize/100 (green) & Snake-Newt Phenotype (purple)",  min_gen=min_gen, max_gen=max_gen)))
+
+```
+
+I looked at the results between 5,000 - 10,000 generations where I saw most of the increase in newt and snake phenotype. The first plot has newt population size by snake population size with the color representing the difference between snake and newt mean phenotype (red=newts have a higher mean phenotype, blue=snakes have a higher mean phenotype). The third GA (an intermediate one) seems to do better then all of the other GAs (blue row (3), red column (3)). However, this is dependent on the point in the simulation you focus on. The next two plots show the difference between snake and newt population size (green) and phenotype (purple). For the most part these suggest that when the mean phenotype is higher so is the population size. This also shows the asymmetrical nature between the predator-prey interaction (higher max population sizes seen in snakes). The population size is also more variable than the phenotype (difference in population size has a wider range).
+
+## Correlation
+
+The next section I aim to look at how correlated newt and snakes are at local populations across the geographical area. I am examining correlation between newt and snake phenotypes, population sizes of newts and snakes, amount of toxin and snake population, and the amount of resistance and newt population size. I predicted that there would be a positive correlation between the phenotypes, and a negative correlation between population sizes, and the amount of toxin/resistance and population size. Below is a legend for the first two plots. The third plot is colored by trial.
+
+Legend:
+
+- "CA" = mean_newt_pheno_By_mean_snake_pheno (Pink)
+- "CB" = num_newts_By_num_snakes (Green)
+- "CC" = sum_newt_pheno_By_num_snake (Blue)
+- "CD" = sum_snake_pheno_By_num_newt (Purple)
+
+
+I first look at the correlation between mean newt phenotype and mean snake phenotype for each of the four trials in every GA combination from 10,000-15,000 generations. The solid line is a 0 with a dashed line at the level of correlation seen in natural newt-snake population(s). The second figure shows the the results of all 4 trials for each correlation measurement I made from 10,000-15,000 generations. The third plot takes the information from the fist plot and shows the distribution of correlation values by each trial (solid line at 0, dashed line at real newt-snake correlation).
+
+```{r, combo myplots}
+#files
+#GA1_tall_tall_file
+#GA2_long_file 
+#GA1_cor_tall_file
+#GA2_cor_file
+
+ginmin = 10000
+ginmax = 15000
+
+boxplot_cors_by_gen(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+
+
+four_types_boxplot_cors_by_gen(GA1_cor_tall_file, "Simulation four Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+
+
+
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+
+boxplot_cors_by_gen(GA1_cor_tall_7_file, "Simulation Correlation 7 Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+
+
+four_types_boxplot_cors_by_gen(GA1_cor_tall_7_file, "Simulation four Correlation 7", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+
+
+
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation 7 Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+
+
+```
+
+
+## Results {.tabset}
+
+### Plot 1
+```{r, ga1 cor by dif windows}
+ginmin = 0
+ginmax = 5000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 2
+
+```{r, ga1 cor by dif windows 2}
+ginmin = 5000
+ginmax = 10000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 3
+```{r, ga1 cor by dif windows 3}
+ginmin = 10000
+ginmax = 15000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 4
+```{r, ga1 cor by dif windows 4}
+ginmin = 15000
+ginmax = 20000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 5
+```{r, ga1 cor by dif windows 5}
+ginmin = 20000
+ginmax = 25000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 6
+```{r, ga1 cor by dif windows 6}
+ginmin = 25000
+ginmax = 30000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 7
+```{r, ga1 cor by dif windows 7}
+ginmin = 30000
+ginmax = 35000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 8
+```{r, ga1 cor by dif windows 8}
+ginmin = 35000
+ginmax = 40000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 9
+```{r, ga1 cor by dif windows 9}
+ginmin = 40000
+ginmax = 45000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 10
+```{r, ga1 cor by dif windows 10}
+ginmin = 45000
+ginmax = 50000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+## {-}
+
+## Results {.tabset}
+
+### Plot 1
+```{r, ga1 cor by dif windows}
+ginmin = 0
+ginmax = 5000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 2
+
+```{r, ga1 cor by dif windows 2}
+ginmin = 5000
+ginmax = 10000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 3
+```{r, ga1 cor by dif windows 3}
+ginmin = 10000
+ginmax = 15000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 4
+```{r, ga1 cor by dif windows 4}
+ginmin = 15000
+ginmax = 20000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 5
+```{r, ga1 cor by dif windows 5}
+ginmin = 20000
+ginmax = 25000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 6
+```{r, ga1 cor by dif windows 6}
+ginmin = 25000
+ginmax = 30000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 7
+```{r, ga1 cor by dif windows 7}
+ginmin = 30000
+ginmax = 35000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 8
+```{r, ga1 cor by dif windows 8}
+ginmin = 35000
+ginmax = 40000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 9
+```{r, ga1 cor by dif windows 9}
+ginmin = 40000
+ginmax = 45000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+
+### Plot 10
+```{r, ga1 cor by dif windows 10}
+ginmin = 45000
+ginmax = 50000
+suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Real Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
+## {-}
+
+
+## Correlation across time
+
+
+
+
+```{r, ga1 cor and pheno}
+GA1_pattern <- unique(paste0(GA1_tall_tall_file$snake_mu_rate, "_", GA1_tall_tall_file$snake_mu_effect_sd,"_",GA1_tall_tall_file$newt_mu_rate, "_", GA1_tall_tall_file$newt_mu_effect_sd, "_", GA1_tall_tall_file$rep))
+for(i in 1:length(GA1_pattern)){
+  myine<-cor_trends_by_gen(GA1_tall_tall_file, GA1_cor_tall_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[i])
+  plot(myine)
+}
+
+```
+
+
+```{r, ga1 cor 7 and pheno}
+GA1_pattern_7 <- unique(paste0(GA1_tall_tall_7_file$snake_mu_rate, "_", GA1_tall_tall_7_file$snake_mu_effect_sd,"_",GA1_tall_tall_7_file$newt_mu_rate, "_", GA1_tall_tall_7_file$newt_mu_effect_sd, "_", GA1_tall_tall_7_file$rep))
+for(i in 1:length(GA1_pattern_7)){
+  myine<-cor_trends_by_gen(GA1_tall_tall_7_file, GA1_cor_tall_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern_7[i])
+  plot(myine)
+}
+
+```
+
+## What happens over time (looking at the beginning. middle, and late part of my simulations)
+
+
+
+```{r, early plots summary}
+
+min_gen=100
+max_gen=5000
+GA1_tall_tall_7_file_temp<-GA1_tall_tall_7_file
+GA1_tall_tall_7_file_temp$rep<-as.numeric(GA1_tall_tall_7_file_temp$rep)+4
+test<-rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp)
+
+# summary
+GA_summary(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+min_gen=10000
+max_gen=15000
+
+# summary
+GA_summary(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+min_gen=45000
+max_gen=50000
+
+# summary
+GA_summary(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
+
+min_gen=100
+max_gen=5000
+
+GA_summary(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
+
+min_gen=10000
+max_gen=15000
+
+
+GA_summary(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
+
+min_gen=45000
+max_gen=50000
+
+GA_summary(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
+
+
+```
+
+
+```{r, early plots Heatmap}
+
+min_gen=100
+max_gen=5000
+#heatmap
+build_heatmap(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+
+min_gen=10000
+max_gen=15000
+#heatmap
+build_heatmap(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+
+
+min_gen=45000
+max_gen=50000
+#heatmap
+build_heatmap(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
+
+min_gen=100
+max_gen=5000
+build_heatmap(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
+
+
+min_gen=10000
+max_gen=15000
+#heatmap
+
+build_heatmap(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
+
+min_gen=45000
+max_gen=50000
+#heatmap
+
+build_heatmap(rbind(GA1_tall_tall_file, GA1_tall_tall_7_file_temp), min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
+
+```
+
+
+
+
+## What is up with the correlations
+
+
+### Snake_1e-09_0.05_Newt_1e-09_0.05_2
+
+
+```{r, cor grid by location}
+
+#GA1_grid_tall_file
+
+
+file_name= "Snake_1e-09_0.05_Newt_1e-09_0.05_2"
+spegen=25001
+
+GA1<-GA1_grid_tall_file[which(GA1_grid_tall_file$snake_newt_rep==file_name & GA1_grid_tall_file$generation==spegen),]
+
+GA1_mean = GA1[,grepl("generation|mean", names(GA1)) ]
+
+data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+
+data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_long_mean$condition, "_", 4)
+
+data_long_mean_short<-data_long_mean
+
+data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+main_plot<-ggplot(data_long_mean_short)+
+  labs(title = "Mean Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = data_long_mean_short[which(data_long_mean_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_mean_short[which(data_long_mean_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-data_long_mean_short[which(data_long_mean_short$species=="snake"),]
+newt<-data_long_mean_short[which(data_long_mean_short$species=="newt"),]
+newt$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
+
+
+newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[is.na(newt$info)]<- "middle"
+
+extra_plot <- ggplot(newt)+
+  ggtitle("Mean Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+    
+```
+
+
+
+```{r, cor grid by location}
+
+#GA1_grid_tall_7_file
+
+
+file_name= "Snake_1e-09_0.05_Newt_1e-09_0.05_2"
+spegen=25001
+
+GA1<-GA1_grid_tall_7_file[which(GA1_grid_tall_7_file$snake_newt_rep==file_name & GA1_grid_tall_7_file$generation==spegen),]
+
+GA1_mean = GA1[,grepl("generation|mean", names(GA1)) ]
+
+data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+
+data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_long_mean$condition, "_", 4)
+
+data_long_mean_short<-data_long_mean
+
+data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+main_plot<-ggplot(data_long_mean_short)+
+  labs(title = "Mean Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = data_long_mean_short[which(data_long_mean_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_mean_short[which(data_long_mean_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-data_long_mean_short[which(data_long_mean_short$species=="snake"),]
+newt<-data_long_mean_short[which(data_long_mean_short$species=="newt"),]
+newt$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
+
+
+newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[is.na(newt$info)]<- "middle"
+
+extra_plot <- ggplot(newt)+
+  ggtitle("Mean Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+    
+```
+
+
+
+```{r, cor grid by location}
+
+#GA1_grid_tall_file
+
+
+file_name= "Snake_1e-09_0.05_Newt_1e-09_0.05_2"
+spegen=26051
+
+GA1<-GA1_grid_tall_file[which(GA1_grid_tall_file$snake_newt_rep==file_name & GA1_grid_tall_file$generation==spegen),]
+
+GA1_mean = GA1[,grepl("generation|mean", names(GA1)) ]
+
+data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+
+data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_long_mean$condition, "_", 4)
+
+data_long_mean_short<-data_long_mean
+
+data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+main_plot<-ggplot(data_long_mean_short)+
+  labs(title = "Mean Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = data_long_mean_short[which(data_long_mean_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_mean_short[which(data_long_mean_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-data_long_mean_short[which(data_long_mean_short$species=="snake"),]
+newt<-data_long_mean_short[which(data_long_mean_short$species=="newt"),]
+newt$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
+
+
+newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[is.na(newt$info)]<- "middle"
+
+extra_plot <- ggplot(newt)+
+  ggtitle("Mean Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+# max phenotype
+
+GA1<-GA1_grid_tall_file[which(GA1_grid_tall_file$snake_newt_rep==file_name & GA1_grid_tall_file$generation==spegen),]
+
+GA1_max = GA1[,grepl("generation|max", names(GA1)) ]
+
+data_long_max <- gather(GA1_max, condition, measurement, newt_max_pheno_0:snake_max_pheno_99, factor_key=TRUE)
+
+data_long_max[,c("species","type", "type2","location")]<- str_split_fixed(data_long_max$condition, "_", 4)
+
+data_long_max_short<-data_long_max
+
+data_long_max_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+data_long_max_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+main_plot<-ggplot(data_long_max_short)+
+  labs(title = "Max Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = data_long_max_short[which(data_long_max_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_max_short[which(data_long_max_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-data_long_max_short[which(data_long_max_short$species=="snake"),]
+newt<-data_long_max_short[which(data_long_max_short$species=="newt"),]
+newt$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
+
+
+newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[is.na(newt$info)]<- "middle"
+
+extra_plot <- ggplot(newt)+
+  ggtitle("Max Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+
+# max phenotype
+
+GA1<-GA1_grid_tall_file[which(GA1_grid_tall_file$snake_newt_rep==file_name & GA1_grid_tall_file$generation==spegen),]
+
+GA1_min = GA1[,grepl("generation|min", names(GA1)) ]
+
+data_long_min <- gather(GA1_min, condition, measurement, newt_min_pheno_0:snake_min_pheno_99, factor_key=TRUE)
+
+data_long_min[,c("species","type", "type2","location")]<- str_split_fixed(data_long_min$condition, "_", 4)
+
+data_long_min_short<-data_long_min
+
+data_long_min_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+data_long_min_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+main_plot<-ggplot(data_long_min_short)+
+  labs(title = "Min Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = data_long_min_short[which(data_long_min_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_min_short[which(data_long_min_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-data_long_min_short[which(data_long_min_short$species=="snake"),]
+newt<-data_long_min_short[which(data_long_min_short$species=="newt"),]
+newt$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
+
+
+newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[is.na(newt$info)]<- "middle"
+
+extra_plot <- ggplot(newt)+
+  ggtitle("Min Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+#GA1_grid_tall_file population size
+
+GA1<-GA1_grid_tall_file[which(GA1_grid_tall_file$snake_newt_rep==file_name & GA1_grid_tall_file$generation==spegen),]
+
+GA1_ind = GA1[,grepl("generation|num_ind", names(GA1)) ]
+
+GA1_data_long_ind <- gather(GA1_ind, condition, measurement, newt_num_ind_0:snake_num_ind_99, factor_key=TRUE)
+
+GA1_data_long_ind[,c("species","type", "type2","location")]<- str_split_fixed(GA1_data_long_ind$condition, "_", 4)
+
+GA1_data_long_ind_short<-GA1_data_long_ind
+
+GA1_data_long_ind_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+GA1_data_long_ind_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+GA1_data_long_ind_short$measurement[GA1_data_long_ind_short$measurement == 0]  <- NA
+
+main_plot<-ggplot(GA1_data_long_ind_short)+
+  labs(title = "Locations of Ind",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Number of Individuals")+
+  geom_point(data = GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c(option = "plasma")+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="snake"),]
+newt_GA1<-GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="newt"),]
+newt_GA1$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt_GA1$measurement), use="complete.obs")
+
+
+
+newt_GA1$info[newt_GA1$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt_GA1$info[newt_GA1$location %in% list(0, 19, 80, 99)] <- "corner"
+newt_GA1$info[is.na(newt_GA1$info)]<- "middle"
+
+extra_plot <- ggplot(newt_GA1)+
+  ggtitle("Num of Ind") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+    
+```
+
+### Snake_1e-08_0.005_Newt_1e-08_0.005_3
+
+
+```{r, cor grid by location round 2}
+
+#GA1_grid_tall_file
+
+
+file_name= "Snake_1e-08_0.005_Newt_1e-08_0.005_3"
+spegen=25001
+
+GA1<-GA1_grid_tall_file[which(GA1_grid_tall_file$snake_newt_rep==file_name & GA1_grid_tall_file$generation==spegen),]
+
+GA1_mean = GA1[,grepl("generation|mean", names(GA1)) ]
+
+data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+
+data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_long_mean$condition, "_", 4)
+
+data_long_mean_short<-data_long_mean
+
+data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+main_plot<-ggplot(data_long_mean_short)+
+  labs(title = "Mean Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = data_long_mean_short[which(data_long_mean_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_mean_short[which(data_long_mean_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-data_long_mean_short[which(data_long_mean_short$species=="snake"),]
+newt<-data_long_mean_short[which(data_long_mean_short$species=="newt"),]
+newt$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
+
+
+newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[is.na(newt$info)]<- "middle"
+
+extra_plot <- ggplot(newt)+
+  ggtitle("Mean Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+# SD
+
+GA1_sd = GA1[,grepl("generation|sd", names(GA1)) ]
+
+data_long_sd <- gather(GA1_sd, condition, measurement, newt_sd_pheno_0:snake_sd_pheno_99, factor_key=TRUE)
+
+data_long_sd[,c("species","type", "type2","location")]<- str_split_fixed(data_long_sd$condition, "_", 4)
+
+data_long_sd_short<-data_long_sd
+
+data_long_sd_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+data_long_sd_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+main_plot<-ggplot(data_long_sd_short)+
+  labs(title = "SD Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = data_long_sd_short[which(data_long_sd_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_sd_short[which(data_long_sd_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-data_long_sd_short[which(data_long_sd_short$species=="snake"),]
+newt<-data_long_sd_short[which(data_long_sd_short$species=="newt"),]
+newt$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
+
+
+newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[is.na(newt$info)]<- "middle"
+
+extra_plot <- ggplot(newt)+
+  ggtitle("SD Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+# max phenotype
+
+GA1_max = GA1[,grepl("generation|max", names(GA1)) ]
+
+data_long_max <- gather(GA1_max, condition, measurement, newt_max_pheno_0:snake_max_pheno_99, factor_key=TRUE)
+
+data_long_max[,c("species","type", "type2","location")]<- str_split_fixed(data_long_max$condition, "_", 4)
+
+data_long_max_short<-data_long_max
+
+data_long_max_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+data_long_max_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+main_plot<-ggplot(data_long_max_short)+
+  labs(title = "Max Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = data_long_max_short[which(data_long_max_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_max_short[which(data_long_max_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-data_long_max_short[which(data_long_max_short$species=="snake"),]
+newt<-data_long_max_short[which(data_long_max_short$species=="newt"),]
+newt$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
+
+
+newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[is.na(newt$info)]<- "middle"
+
+extra_plot <- ggplot(newt)+
+  ggtitle("Max Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+
+# min phenotype
+
+GA1_min = GA1[,grepl("generation|min", names(GA1)) ]
+
+data_long_min <- gather(GA1_min, condition, measurement, newt_min_pheno_0:snake_min_pheno_99, factor_key=TRUE)
+
+data_long_min[,c("species","type", "type2","location")]<- str_split_fixed(data_long_min$condition, "_", 4)
+
+data_long_min_short<-data_long_min
+
+data_long_min_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+data_long_min_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+main_plot<-ggplot(data_long_min_short)+
+  labs(title = "Min Phenotype of Locations",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+  geom_point(data = data_long_min_short[which(data_long_min_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_min_short[which(data_long_min_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-data_long_min_short[which(data_long_min_short$species=="snake"),]
+newt<-data_long_min_short[which(data_long_min_short$species=="newt"),]
+newt$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
+
+
+newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[is.na(newt$info)]<- "middle"
+
+extra_plot <- ggplot(newt)+
+  ggtitle("Min Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+
+#GA1_grid_tall_file population size
+
+GA1_ind = GA1[,grepl("generation|num_ind", names(GA1)) ]
+
+GA1_data_long_ind <- gather(GA1_ind, condition, measurement, newt_num_ind_0:snake_num_ind_99, factor_key=TRUE)
+
+GA1_data_long_ind[,c("species","type", "type2","location")]<- str_split_fixed(GA1_data_long_ind$condition, "_", 4)
+
+GA1_data_long_ind_short<-GA1_data_long_ind
+
+GA1_data_long_ind_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
+GA1_data_long_ind_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+
+GA1_data_long_ind_short$measurement[GA1_data_long_ind_short$measurement == 0]  <- NA
+
+main_plot<-ggplot(GA1_data_long_ind_short)+
+  labs(title = "Locations of Ind",
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Number of Individuals")+
+  geom_point(data = GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c(option = "plasma")+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+snake<-GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="snake"),]
+newt_GA1<-GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="newt"),]
+newt_GA1$snake_value <- snake$measurement
+cor(as.numeric(snake$measurement), as.numeric(newt_GA1$measurement), use="complete.obs")
+
+
+
+newt_GA1$info[newt_GA1$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
+newt_GA1$info[newt_GA1$location %in% list(0, 19, 80, 99)] <- "corner"
+newt_GA1$info[is.na(newt_GA1$info)]<- "middle"
+
+extra_plot <- ggplot(newt_GA1)+
+  ggtitle("Num of Ind") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+#try to arrage the grids
+
+main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
+    
+```
+

@@ -90,7 +90,7 @@ hist_cors_by_gen_col_all_exp_rep <- function(file, title, subt, x_label, y_label
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
   xlim(-1.1, 1.1)+
-  facet_wrap(~snake_newt)+
+  facet_wrap(~sim)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
                     strip.background = element_blank(), strip.text.x = element_blank(),
                    title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
@@ -116,7 +116,7 @@ dens_cors_by_gen_col_all_exp_rep <- function(file, title, subt, x_label, y_label
   #geom_boxplot(aes(x=factor("CD"), y=as.numeric(sum_snake_pheno_By_num_newt), color = "CD"))+
   theme(plot.title = element_text(size=5)) +
   xlim(-1.1, 1.1)+
-  facet_wrap(~snake_newt)+
+  facet_wrap(~sim)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
                     strip.background = element_blank(), strip.text.x = element_blank(),
                    title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
