@@ -710,7 +710,7 @@ min_gen=5000
 max_gen=10000
 rep=0
 
-whale_gen(GA3_tall_tall_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake-Newt Popsize", x_label="Snake-Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
+whale_gen(GA3_tall_tall_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
 ```
 
 ### Phenotype & Populationsize differences
