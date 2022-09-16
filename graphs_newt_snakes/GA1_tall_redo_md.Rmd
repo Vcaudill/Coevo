@@ -29,7 +29,7 @@ library(patchwork)
 
 ## Goal:
 
-Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of correlation between rectangles and squares. After fixing the row vs column error I looked at the correlation data and found that there was less correlation. So I decided to investigate why that might be and run a few more experiments. I am running an experiment to test how changing the square size might impact the calculations. I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). This file contains results discussed in Tall_GA1!
+Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of correlation between rectangles and squares (in connection with GA1 tall). After fixing the row vs column error I looked at the correlation data and found that there was less correlation. So I decided to investigate why that might be and run a few more experiments. I am running an experiment to test how changing the square size might impact the calculations. I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). This file contains results discussed in Tall_GA1!
 
 ### Questions:
 
@@ -37,7 +37,7 @@ What does it mean to be correlated?
 
 ## Background
 
-I investigated the correlations between snake and newt phenotypes at the local grid locations along with population level phenotype. I found there was a lot of correlation when populations slowly adapt! However, after a closer investigation I found that these correlations were from a rectangle shaped area and not a square one. Here, I rerun the experiment with he correct square grids and discuss how the results differ. I also aim to investigate how changing the area/shape of the grids will influence correlation results. I am also thinking of ways to gather and incorperate allele information. 
+I investigated the correlations between snake and newt phenotypes at the local grid locations along with population level phenotype. I found there was a lot of correlation when populations slowly adapt! However, after a closer investigation I found that these correlations were from a rectangle shaped area and not a square one. Here, I rerun the experiment with the correct square grids and discuss how the results differ. I also aim to investigate how changing the area/shape of the grids will influence correlation results. I am also thinking of ways to gather and incorporate allele information. 
 
 ## Experiment
 
@@ -53,10 +53,13 @@ GA1 experiment values:
 Landscape: 20 by 5 grid. A tall map!: 35*4 H, 35 W 
 New Landscape 28 by 7 grid: 35*4 H, 35 W 
 
+Each GA combination and trial has its own msprime simulation, but the msprime file is shared between the 5 section and 7 section slim runs.
 
 ### The data
 
 I gather text file data from different files and have to do some table wrangling to get it into a format I can graph. I use information gathered from the entire population; data containing a mean value for the entire map (lit), correlation data based off of local populations that were divided into grids (cor) and data collected from grid based populations (grid). These simulations have a msprime (coalescent/burn in/random genetic variation) and then run for 50,000 generations in SLiM (co-evolution) (all with the same GA values). I run 4 trials for every GA combination and try two different grid sizes 20 by 5 (large) and 24 by 7 (small) in SLiM. These slim simulations use the same msprime simulation, but can statistically be different. 
+
+The two data sets in this experiment have the same msprime burn-in (16 msprime trees), but have different slim results. For the most part the additional slim simulation (the ones with a smaller grid) can be used as additional trials. They will only differ in the way correlation and grid values are calculated. Cor and Grid files are effected. Lit file not effected. 
 
 
 ```{bash, data file gathering}
@@ -756,17 +759,9 @@ return(dif)
 ```
 
 
-Important files
-GA1_tall_tall_file
-GA1_cor_tall_file
-GA1_grid_tall_file
-GA1_tall_tall_7_file
-GA1_cor_tall_7_file
-GA1_grid_tall_7_file
-
 ## Mean Phenotype Whole Simulation {.tabset}
 
-First, I will look at a plot of how the mean phenotype of the entire population of newts and snakes changes overtime. Each of these plots has three colored lines, red for the mean newt phenotype, blue for the mean snake phenotype, and black for the difference between mean snake and mean newt phenotype. There are 4 line per color that represent the different replicas that I ran. **Note this is a mean for the entire population.** Mutational variance increases for the snakes as you go down the figure (top to bottom) and increases for the newts as you go across (left to right).
+First, I will look at a plot of how the mean phenotype of the entire population of newts and snakes changes overtime. Each of these plots has three colored lines, red for the mean newt phenotype, blue for the mean snake phenotype, and black for the difference between mean snake and mean newt phenotype. There are 4 line per color that represent the different replicas that I ran. **Note this is a mean for the entire population.** Mutational variance increases for the snakes as you go down the figure (top to bottom) and increases for the newts as you go across (left to right). The table shows the mean difference between snake and newt phenotype for the four trials. There are two sets of data 5 sections and 7 sections. Since we are looking at whole population means, the results of this section do not differ in data collection.  
 
 
 ### Phenotype differences (5 sec)
@@ -801,20 +796,25 @@ aggregate(GA1_tall_tall_7_file[which(GA1_tall_tall_7_file$generation>=100 & GA1_
 
 ## {-}
 
+The mean phenotype of newts and snakes typically goes up as the number of generation increases. When there is a large gap in mutational variance (B, C, E, I) there tends to be some phenotype flat lining. Sometimes newt and snakes mean phenotypes are close, while at other times they are further apart. The average difference between snake and newt mean phenotypes -2.8 to 2.7 (which is very similar between the two simulation sets). 
+
+
 ## Connection between higher phenotype and population (5 sec) {.tabset}
 
-Notes
+In  previous experiments like GA1 tall map, I saw a connection between newt/snake phenotype and population size. Typically, when a species had a higher phenotype they also had a larger population size. This relation between phenotype and population size had specific outcomes that depended on the GA of newts and snakes. 
 
-### Phenotype differences
+This section contains two figures for both data sets. The first figure compares the population size of newts and snakes to the difference between mean snake and mean newt phenotype for a time slice (5,000-10,000 generations). Color in this plot is the difference between snake and newt phenotype, with blue indicating snakes have a larger phenotype and red indicating newts have a larger phenotype. Cream color points indicate that the two phenotypes are nearly the same. The second figure present the histograms of the difference between snake and newt population size (green) and phenotype (purple) for a time slice (5,000-10,000 generations). Since the data in this section was calculated for whole population 5 sections and 7 sections can be considered the same.  
+
+### Phenotype differences (5 sec) 
 ```{r, whale}
 min_gen=5000
 max_gen=10000
-rep=0
+rep=1
 
-whale_gen(GA1_tall_tall_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake-Newt Popsize", x_label="Snake-Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
+whale_gen(GA1_tall_tall_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
 ```
 
-### Phenotype & Populationsize differences
+### Phenotype & Populationsize differences (5 sec) 
 ```{r, popsize and pheno}
 
 suppressMessages(print(two_hist(GA1_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Popsize/1000 (green) & Snake-Newt Phenotype (purple)",  min_gen=min_gen, max_gen=max_gen, rep=rep )))
@@ -824,19 +824,13 @@ suppressMessages(print(two_hist(GA1_tall_tall_file, title="Snake-Newt Winning Hi
 
 ```
 
-## {-}
-
-## Connection between higher phenotype and population (7 sec) {.tabset}
-
-Notes
-
 ### Phenotype differences (7 sec) 
 ```{r, whale 7}
 min_gen=5000
 max_gen=10000
-rep=0
+rep=1
 
-whale_gen(GA1_tall_tall_7_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake-Newt Popsize", x_label="Snake-Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
+whale_gen(GA1_tall_tall_7_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
 ```
 
 ### Phenotype & Populationsize differences (7 sec) 
@@ -851,13 +845,11 @@ suppressMessages(print(two_hist(GA1_tall_tall_7_file, title="Snake-Newt Winning 
 
 ## {-}
 
-I looked at the results between 5,000 - 10,000 generations where I saw most of the increase in newt and snake phenotype. The first plot has newt population size by snake population size with the color representing the difference between snake and newt mean phenotype (red=newts have a higher mean phenotype, blue=snakes have a higher mean phenotype). The third GA (an intermediate one) seems to do better then all of the other GAs (blue row (3), red column (3)). However, this is dependent on the point in the simulation you focus on. The next two plots show the difference between snake and newt population size (green) and phenotype (purple). For the most part these suggest that when the mean phenotype is higher so is the population size. This also shows the asymmetrical nature between the predator-prey interaction (higher max population sizes seen in snakes). The population size is also more variable than the phenotype (difference in population size has a wider range).
+I looked at the results between 5,000 - 10,000 generations where I saw most of the increase in newt and snake phenotype. The first plot has newt population size by snake population size with the color representing the difference between snake and newt mean phenotype (red=newts have a higher mean phenotype, blue=snakes have a higher mean phenotype). The third GA (an intermediate one) seems to do better then all of the other GAs (blue row (3), red column (3)). However, this is dependent on the point in the simulation you focus on. The next two plots show the difference between snake and newt population size (green) and phenotype (purple). For the most part these suggest that when the mean phenotype is higher so is the population size. This also shows the asymmetrical nature between the predator-prey interaction (higher max population sizes seen in snakes). The population size is also more variable than the phenotype (difference in population size has a wider range). There are minute differences between the 5 section and 7 section figures, but for the most part they are very similar to each-other (similar at the GA combinations level). 
 
 ## Correlation {.tabset}
 
-The next section I aim to look at how correlated newt and snakes are at local populations across the geographical area. I am examining correlation between newt and snake phenotypes, population sizes of newts and snakes, amount of toxin and snake population, and the amount of resistance and newt population size. I predicted that there would be a positive correlation between the phenotypes, and a negative correlation between population sizes, and the amount of toxin/resistance and population size. Below is a legend for the first two plots. The third plot is colored by trial.
-
-I first look at the correlation between mean newt phenotype and mean snake phenotype for each of the four trials in every GA combination from 10,000-15,000 generations. The solid line is a 0 with a dashed line at the level of correlation seen in natural newt-snake population(s). The second figure shows the the results of all 4 trials for each correlation measurement I made from 10,000-15,000 generations. The third plot takes the information from the fist plot and shows the distribution of correlation values by each trial (solid line at 0, dashed line at real newt-snake correlation).
+The next section I aim to look at how correlated newt and snakes are at local populations across the geographical area for both the 5 and 7 sections. I am examining correlation between newt and snake phenotypes and I predicted that there would be a positive correlation between the phenotypes. I first look at the correlation between mean newt phenotype and mean snake phenotype for each of the four trials in every GA combination from 10,000-15,000 generations. The solid line is a 0 with a dashed line at the level of correlation seen in natural newt-snake population(s). I try to compare the 5 sections to 7 sections to see if there is a significant difference between the two. I will also compare these results to the rectangular correlation values.  
 
 ### Five sections 
 ```{r, combo myplots}
@@ -901,12 +893,12 @@ boxplot_cors_by_gen(GA1_cor_tall_7_file, "Simulation Correlation Comparied to Re
 
 ## {-}
 
-After looking at this figure, I can see that there is a larger range of correlation values. The can sometimes be positive, near 0, or negative. Very few reach (or come near) the real newt-snake correlation. How do you find the correct time slice to look for spatial correlation? How would these phenotypes become spatially correlated and then become not spatially correlated.
+After looking at this figure, I can see that there is a range of correlation values. Most spatial phenotype correlation values are at or just above 0. There are a few that are very positive or negative. I do not see a huge difference between having 5 or 7 sections. It would have been better to have done one simulation and spit out these two values (I might rerun this experiment and have more grid values to test, but they would all be in one simulation). The spatial correlation results seem lower to the ones that are in GA1 tall (with rectangular grid slices). I tested the correlation calculation of squares vs rectangles with Peter in points.RMD. We used all individuals data points to see if there was a significant difference between squares and rectangles, but found none. It is possible that more or less grids would increase or decrease spatial phenotype correlation, but there might not be a perfect value to get the most accurate understanding of what is going on between newt and snake phenotypes on the local level.   
 
 
 ## Correlation Histograms (5 sec) {.tabset}
 
-In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at all four trials correlation values. Each color is a different trial per GA combination. The histogram values are stacked. 
+In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at all four trials correlation values. Each color is a different trial per GA combination. The histogram values are stacked. This section only looks at the 5 sections.
 
 ### Plot 1
 ```{r, GA1 cor by dif windows}
@@ -981,11 +973,11 @@ suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_file, "Simulation C
 
 ## {-}
 
-
+The spatial correlations move around a lot. None of them line up on the real newt and snake spatial phenotype correlation value ~0.7. (More discussion after the correlation histograms 7 section)
 
 ## Correlation Histograms (7 sec) {.tabset}
 
-In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at all four trials correlation values. Each color is a different trial per GA combination. The histogram values are stacked. 
+In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at all four trials correlation values. Each color is a different trial per GA combination. The histogram values are stacked. These are the 7 section results.
 
 ### Plot 1 (7 sec)
 ```{r, GA1 cor by dif windows (7 sec)}
@@ -1060,13 +1052,15 @@ suppressMessages(print(hist_cors_by_gen_col_rep(GA1_cor_tall_7_file, "Simulation
 
 ## {-}
 
+After examining these sets of data, I cannot see a noticeable difference in newt-snake phenotype spatial correlation. I would like to run another experiment that collects correlation data for many different grid settings. I would also like to see how increasing the size of the map would effect these results. I wonder if the area where newts and snakes are co-evolving overlap a grid line. How can we tell what is occurring at the individual level? Like how specific (beneficial) mutations are moving within populations. Or how individuals might be moving into one area because of a lack of other individuals. Essentially, what is occurring in my simulation.     
+
 ## Correlation across time {.tabset}
 
-notes
+Next, we will examine three randomly chosen plots from both the 5 section and 7 section experiment. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis. Newt whole population mean phenotype is red, while snake mean phenotype is blue. The pink line is the phenotype spatial correlation.  
 
 
 ### Random 1 (5 sec)
-```{r, GA1 cor and pheno, results="hide"}
+```{r, GA1 cor and pheno}
 GA1_pattern <- unique(paste0(GA1_tall_tall_file$snake_mu_rate, "_", GA1_tall_tall_file$snake_mu_effect_sd,"_",GA1_tall_tall_file$newt_mu_rate, "_", GA1_tall_tall_file$newt_mu_effect_sd, "_", GA1_tall_tall_file$rep))
 
 myrandomlist=sample.int(length(GA1_pattern), 3)
@@ -1121,11 +1115,12 @@ cor_trends_by_gen(GA1_tall_tall_7_file, GA1_cor_tall_7_file, "test", "GA1", "new
 
 ## {-}
 
+All six of these plots show mean newt and snake phenotype increasing (very few show no change). Sometimes, the mean newt and snake phenotype are far apart, but often they are close together. The size of the mean phenotype jumps (small or large) is determined by the GA of the species (higher mutation effect size = larger jumps). These plots also show that the phenotype spatial correlation fluctuates between being positive and being negative. I wonder if there is a connection between the difference in newt and snake mean phenotype and the local spation correlation.
 
 
 ## What happens over time (looking at the beginning, middle, and late part of my simulations) {.tabset}
 
-This next section is just getting a glimpse at how newt & snake phenotype and population size differ over time. The populations start off with about 250 individuals each. Each individual has a different genetic background created from msprime.
+This next section is just getting a glimpse at how newt & snake phenotype and population size differ over time. The populations start off with about 250 individuals each. Each individual has a different genetic background created from msprime. Then each msprime simulation is put into slim and data is generated. Plots show newt by snake population size, with the point color representing the difference between mean snake and newt phenotype (red=newts have a higher phenotype and blue=snakes have a higher phenotype). The other plots show histograms of difference between snakes and newts phenotype and population size (purple and green). First I will look at 5 sections then I will look at 7 sections. This is whole population data, there is no difference between the 5 and 7 sections measurements.
 
 ### Pheno Beginning 
 
@@ -1231,9 +1226,7 @@ two_hist(GA1_tall_tall_file, title="Snake-Newt Winning Hist", subt="Gen 16sims",
 
 ## {-}
 
-## What happens over time (looking at the beginning, middle, and late part of my simulations) (7 sec) {.tabset}
-
-This next section is just getting a glimpse at how newt & snake phenotype and population size differ over time. The populations start off with about 250 individuals each. Each individual has a different genetic background created from msprime.
+## {.tabset}
 
 ### Pheno Beginning (7 sec)
 
@@ -1307,13 +1300,13 @@ two_hist(GA1_tall_tall_7_file, title="Snake-Newt Winning Hist", subt="Gen 16sims
 
 ## {-}
 
+The results looked so similar between the 5 sections and 7 sections I had to double check my code! (probably because they had the same starting conditions) In the beginning of the simulation both newt and snake population grows. The difference in phenotype quickly becomes polarized. The population size reaches a steady point and then newts and snakes co-evolve. In the middle part of my simulation, the difference between newt and snakes mean phenotype solidifies. Often, the difference in mean phenotype decreases (where compared to the beginning of the simulation). When the GA has a high mutation rate and low mutation effect size (GA 1), the difference in mean phenotype grows. This leads to the species with GA 1 losing the co-evolutionary arms race. More frequent smaller steps does not help a species win in an arms race (might also be due to lower mutational variance). The histograms reflect what is seen in the scatter plots. 
 
-
-explane
 
 ## Summary {.tabset}
 
-notes
+In the summary section, I try to come up with a way to show how different GA combinations can change the simulations results. In all of these plots snakes GA is represented by color and newt GA is represented by shape. There 16 color-shape combinations (with 4 repeats for trials). There are four sets of plots: 1) newt by snake population size, 2) phenotype difference by snake population size, 3) phenotype difference by snake GA, and 4) phenotype difference by newt GA. There are three figures in each set, taken at the begging, middle, and end time chunks. These are whole population calculations so the 5 section and 7 section data sets are not calculated differently. 
+
 
 ### Early-Sim Population Size Summary 
 
@@ -1379,7 +1372,7 @@ min_gen=100
 max_gen=5000
 #
 
-GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake GA", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
 
 ```
 
@@ -1389,7 +1382,7 @@ min_gen=25000
 max_gen=30000
 #
 
-GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake GA", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
 
 ```
 
@@ -1399,7 +1392,7 @@ min_gen=45000
 max_gen=50000
 #
 
-GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake GA", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
 
 ```
 
@@ -1409,7 +1402,7 @@ min_gen=100
 max_gen=5000
 #
 
-GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Newt GA", subt="Gen 16sims", y_label="Newt GA", x_label="Dif")
 
 ```
 
@@ -1419,7 +1412,7 @@ min_gen=25000
 max_gen=30000
 #
 
-GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Newt GA", subt="Gen 16sims", y_label="Newt GA", x_label="Dif")
 
 ```
 
@@ -1430,15 +1423,13 @@ min_gen=45000
 max_gen=50000
 #
 
-GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Newt GA", subt="Gen 16sims", y_label="Newt GA", x_label="Dif")
 
 ```
 
 ## {-}
 
-## Summary (7 sec) {.tabset}
-
-notes
+## {.tabset}
 
 ### Early-Sim Population Size Summary (7 sec)
 
@@ -1504,7 +1495,7 @@ min_gen=100
 max_gen=5000
 #
 
-GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS GA", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
 
 ```
 
@@ -1514,7 +1505,7 @@ min_gen=25000
 max_gen=30000
 #
 
-GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake GA", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
 
 ```
 
@@ -1524,7 +1515,7 @@ min_gen=45000
 max_gen=50000
 #
 
-GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="snake", title="Space: Dif VS Snake GA", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
 
 ```
 
@@ -1534,7 +1525,7 @@ min_gen=100
 max_gen=5000
 #
 
-GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Newt GA", subt="Gen 16sims", y_label="Newt GA", x_label="Dif")
 
 ```
 
@@ -1544,7 +1535,7 @@ min_gen=25000
 max_gen=30000
 #
 
-GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Newt GA", subt="Gen 16sims", y_label="Newt GA", x_label="Dif")
 
 ```
 
@@ -1555,17 +1546,24 @@ min_gen=45000
 max_gen=50000
 #
 
-GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake GA", x_label="Dif")
+GA_summary_by_species(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="newt", title="Space: Dif VS Newt GA", subt="Gen 16sims", y_label="Newt GA", x_label="Dif")
 
 ```
 
 ## {-}
 
-expla
+There is a whole lot going on in theses summary plots! Firstly, both 5 section and 7 section are very similar (not unexpected because there is no calculation difference). The first plot (newt population size by snake population size), all the points (shapes and colors) are clustered. There is some color separation (blue/green at the top left and purple/red at the bottom right). There is also a little bit of a shape separation (circle at the top left and squares at the bottom right). At time goes on GA patterns emerge.  There are lines of color and lines of shapes. The best GA for newts and snakes was 1e-09_0.05 (can be seen as green near the top of all the lines of shapes and triangles near the bottom right look at all the lines of color). In the phenotype difference by snake population size figure there is some color separation (blue/green at the top right and purple/red at the bottom left) and some shape separation (circle at the top right and squares at the bottom left). Over time the points spread out and more green-circles end up in the top right and red-triangles/squares end up in the bottom left. When putting these figures together it seems like the population size of snakes is lower when the newt phenotype is larger than the snake phenotype.
+
+After looking at the By GA plots, I can see that there is both shape and color separation. Intermediate GA do better (1e-09_0.05 & 1e-10_0.5) in a co-evolutionary arms race. The GA with the lowest mutational variance (1e-08_0.005) did the worst. The benefit for a particular GA was not the same between species. For example, when newts had a GA of 1e-10_0.5 the mean phenotype difference ranged from -3 to 0, indicating that newts had a higher phenotype or where equal to snake phenotype no matter what GA the snake had. But when snake had a GA of 1e-10_0.5 the mean phenotype difference ranged from 2.2 to -1.5, indicating that snakes had a higher phenotype only when newts had certain GA (1e-08_0.005, 1e-11_5.0). 
+
+What I learned in this section:
+
+- GA of 1e-10_0.5 did the best for newts and snakes
+- GAs lead to different snake-newt phenotype outcomes
 
 ## Heatmap {.tabset}
 
-notes
+In the heatmap plots each GA combination and trails is presented by combining newt GA in the x-axis to snake GA and trial number in the y-axis. The result is the color in that section. There are two types of heatmap plots shown below. One shows the average snake population size for a time chunk with darker colors indicating a smaller snake population and lighter colors indicating a larger snake population. The other heatmap shows the average difference between snake and newt mean phenotype (red=newts had a higher phenotype, blue=snakes had a higher phenotype). I look at 3 time slices for both types of heatmaps and for the 5 and 7 section results (measurements were the same). 
 
 ### Population Size (Early) 
 
@@ -1625,8 +1623,6 @@ build_heatmap(GA1_tall_tall_file, min_gen=min_gen, max_gen=max_gen, fill_line="d
 
 ## Heatmap (7 sec) {.tabset}
 
-notes
-
 ### Population Size (Early) (7 sec)
 
 ```{r, early plots Heatmap7}
@@ -1683,19 +1679,16 @@ build_heatmap(GA1_tall_tall_7_file, min_gen=min_gen, max_gen=max_gen, fill_line=
 
 ## {-}
 
-## What is up with the correlations
+Heatmap results are very similar between the 5 and 7 sections. At the beginning of the simulation, snake population size was large for all snake GAs and in 3 out of the 4 newt GAs. The third GA (1e-10_0.5) had less snakes and more newts. The snake population was even smaller when snakes had GA 4 (1e-11_5.0). As the number of generations increased to the mid section of my simulation (the end section was the same) snake population size was large for all snake GAs, but only in 2 out of the 4 newt GAs. The second and third GA (1e-09_0.05 & 1e-10_0.5) had less snakes and more newts. When looking at each column of newt GA, snakes GA 2 (1e-09_0.05) consistently had a larger snake population size. Conversely, when looking at the rows of snake GA, newt GA 2 (1e-09_0.05) consistently had a smaller snake population size. The same pattern is seen in the difference between phenotype heat map. First GA 3 (1e-10_0.5) has a phenotype advantage, then as the number of generations increases GA 2 (1e-09_0.05) has an advantage. Something I found interesting, is that on average newts have higher levels of toxicity than snakes levels of resistance. It seems strange that an intermediate level of mutational variance has a better outcome in a co-evolutionary arms race.
 
 
-file_name= "Snake_1e-09_0.05_Newt_1e-09_0.05_2"
-file_name= "Snake_1e-08_0.005_Newt_1e-08_0.005_3"
-file_name= "Snake_1e-09_0.05_Newt_1e-09_0.05_2"
 
 
 
 
 ## What is up with the correlations
 
-notes
+This section goes over the results from the grid calculations, which are different for the 5 and 7 sections. I divided my map up into smaller area (grids) and calculated mean phenotype, SD phenotype, max phenotype, min phenotype, and population size. In each of these plots newts are represented by circles and snakes are represented by squares. Parameter values increase from a dark color to a lighter color (green-blue themed for phenotype, orange-pinked themed for population size) There is also a subplot that plots each parameter (mean, sd…) of newt by snake colored by map location (red=corner, green=edge, blue=middle). I look at the some simulation at one time in the begging, middle, and end.
 
 
 ### Early Simulation Correlation {.tabset}
@@ -2586,9 +2579,6 @@ main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, 
 
 ## What is up with the correlations (7 sec)
 
-notes
-
-
 ### Early Simulation Correlation (7 sec) {.tabset}
 
 
@@ -2608,14 +2598,15 @@ GA1<-GA1_grid_tall_7_file[which(GA1_grid_tall_7_file$snake_newt_rep==file_name &
 
 GA1_mean = GA1[,grepl("generation|mean", names(GA1)) ]
 
-data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_195, factor_key=TRUE)
 
 data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_long_mean$condition, "_", 4)
 
 data_long_mean_short<-data_long_mean
-
-data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+#28 by 7 
+#392 entries
+data_long_mean_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_mean_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_mean_short)+
   labs(title = "Mean Phenotype of Locations",
@@ -2633,8 +2624,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -2664,14 +2655,16 @@ spegen=101
 
 GA1_sd = GA1[,grepl("generation|sd", names(GA1)) ]
 
-data_long_sd <- gather(GA1_sd, condition, measurement, newt_sd_pheno_0:snake_sd_pheno_99, factor_key=TRUE)
+data_long_sd <- gather(GA1_sd, condition, measurement, newt_sd_pheno_0:snake_sd_pheno_195, factor_key=TRUE)
 
 data_long_sd[,c("species","type", "type2","location")]<- str_split_fixed(data_long_sd$condition, "_", 4)
 
 data_long_sd_short<-data_long_sd
 
-data_long_sd_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_sd_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+#28 by 7 
+#392 entries
+data_long_sd_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_sd_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_sd_short)+
   labs(title = "SD Phenotype of Locations",
@@ -2689,8 +2682,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -2720,14 +2713,16 @@ spegen=101
 
 GA1_max = GA1[,grepl("generation|max", names(GA1)) ]
 
-data_long_max <- gather(GA1_max, condition, measurement, newt_max_pheno_0:snake_max_pheno_99, factor_key=TRUE)
+data_long_max <- gather(GA1_max, condition, measurement, newt_max_pheno_0:snake_max_pheno_195, factor_key=TRUE)
 
 data_long_max[,c("species","type", "type2","location")]<- str_split_fixed(data_long_max$condition, "_", 4)
 
 data_long_max_short<-data_long_max
 
-data_long_max_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_max_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+#28 by 7 
+#392 entries
+data_long_max_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_max_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_max_short)+
   labs(title = "Max Phenotype of Locations",
@@ -2745,8 +2740,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -2776,14 +2771,14 @@ spegen=101
 
 GA1_min = GA1[,grepl("generation|min", names(GA1)) ]
 
-data_long_min <- gather(GA1_min, condition, measurement, newt_min_pheno_0:snake_min_pheno_99, factor_key=TRUE)
+data_long_min <- gather(GA1_min, condition, measurement, newt_min_pheno_0:snake_min_pheno_195, factor_key=TRUE)
 
 data_long_min[,c("species","type", "type2","location")]<- str_split_fixed(data_long_min$condition, "_", 4)
 
 data_long_min_short<-data_long_min
 
-data_long_min_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_min_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+data_long_min_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_min_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_min_short)+
   labs(title = "Min Phenotype of Locations",
@@ -2801,8 +2796,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -2833,14 +2828,14 @@ spegen=101
 
 GA1_ind = GA1[,grepl("generation|num_ind", names(GA1)) ]
 
-GA1_data_long_ind <- gather(GA1_ind, condition, measurement, newt_num_ind_0:snake_num_ind_99, factor_key=TRUE)
+GA1_data_long_ind <- gather(GA1_ind, condition, measurement, newt_num_ind_0:snake_num_ind_195, factor_key=TRUE)
 
 GA1_data_long_ind[,c("species","type", "type2","location")]<- str_split_fixed(GA1_data_long_ind$condition, "_", 4)
 
 GA1_data_long_ind_short<-GA1_data_long_ind
 
-GA1_data_long_ind_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-GA1_data_long_ind_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+GA1_data_long_ind_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+GA1_data_long_ind_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 GA1_data_long_ind_short$measurement[GA1_data_long_ind_short$measurement == 0]  <- NA
 
@@ -2854,15 +2849,15 @@ main_plot<-ggplot(GA1_data_long_ind_short)+
   theme_bw()+
   theme(legend.justification = "top")
 
+
 snake<-GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="snake"),]
 newt_GA1<-GA1_data_long_ind_short[which(GA1_data_long_ind_short$species=="newt"),]
 newt_GA1$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt_GA1$measurement), use="complete.obs")
 
 
-
-newt_GA1$info[newt_GA1$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt_GA1$info[newt_GA1$location %in% list(0, 19, 80, 99)] <- "corner"
+newt_GA1$info[newt_GA1$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt_GA1$info[newt_GA1$location %in% list(0, 27, 168, 195)] <- "corner"
 newt_GA1$info[is.na(newt_GA1$info)]<- "middle"
 
 extra_plot <- ggplot(newt_GA1)+
@@ -2879,7 +2874,6 @@ extra_plot <- ggplot(newt_GA1)+
          color = guide_legend(override.aes = list(size = 1)))
 
 #try to arrage the grids
-
 main_plot +  inset_element(extra_plot, left = 1., bottom = -0.12, right = 1.35, top = 0.5)
     
 ```
@@ -2903,14 +2897,14 @@ GA1<-GA1_grid_tall_7_file[which(GA1_grid_tall_7_file$snake_newt_rep==file_name &
 
 GA1_mean = GA1[,grepl("generation|mean", names(GA1)) ]
 
-data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_195, factor_key=TRUE)
 
 data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_long_mean$condition, "_", 4)
 
 data_long_mean_short<-data_long_mean
 
-data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+data_long_mean_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_mean_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_mean_short)+
   labs(title = "Mean Phenotype of Locations",
@@ -2928,8 +2922,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -2959,14 +2953,14 @@ spegen=25001
 
 GA1_sd = GA1[,grepl("generation|sd", names(GA1)) ]
 
-data_long_sd <- gather(GA1_sd, condition, measurement, newt_sd_pheno_0:snake_sd_pheno_99, factor_key=TRUE)
+data_long_sd <- gather(GA1_sd, condition, measurement, newt_sd_pheno_0:snake_sd_pheno_195, factor_key=TRUE)
 
 data_long_sd[,c("species","type", "type2","location")]<- str_split_fixed(data_long_sd$condition, "_", 4)
 
 data_long_sd_short<-data_long_sd
 
-data_long_sd_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_sd_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+data_long_sd_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_sd_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_sd_short)+
   labs(title = "SD Phenotype of Locations",
@@ -2984,8 +2978,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -3014,14 +3008,14 @@ file_name="Snake_1e-08_0.005_Newt_1e-08_0.005_3"
 spegen=25001
 GA1_max = GA1[,grepl("generation|max", names(GA1)) ]
 
-data_long_max <- gather(GA1_max, condition, measurement, newt_max_pheno_0:snake_max_pheno_99, factor_key=TRUE)
+data_long_max <- gather(GA1_max, condition, measurement, newt_max_pheno_0:snake_max_pheno_195, factor_key=TRUE)
 
 data_long_max[,c("species","type", "type2","location")]<- str_split_fixed(data_long_max$condition, "_", 4)
 
 data_long_max_short<-data_long_max
 
-data_long_max_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_max_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+data_long_max_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_max_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_max_short)+
   labs(title = "Max Phenotype of Locations",
@@ -3039,8 +3033,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -3069,14 +3063,14 @@ file_name="Snake_1e-08_0.005_Newt_1e-08_0.005_3"
 spegen=25001
 GA1_min = GA1[,grepl("generation|min", names(GA1)) ]
 
-data_long_min <- gather(GA1_min, condition, measurement, newt_min_pheno_0:snake_min_pheno_99, factor_key=TRUE)
+data_long_min <- gather(GA1_min, condition, measurement, newt_min_pheno_0:snake_min_pheno_195, factor_key=TRUE)
 
 data_long_min[,c("species","type", "type2","location")]<- str_split_fixed(data_long_min$condition, "_", 4)
 
 data_long_min_short<-data_long_min
 
-data_long_min_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_min_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+data_long_min_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_min_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_min_short)+
   labs(title = "Min Phenotype of Locations",
@@ -3094,8 +3088,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -3125,14 +3119,14 @@ spegen=25001
 
 GA1_ind = GA1[,grepl("generation|num_ind", names(GA1)) ]
 
-GA1_data_long_ind <- gather(GA1_ind, condition, measurement, newt_num_ind_0:snake_num_ind_99, factor_key=TRUE)
+GA1_data_long_ind <- gather(GA1_ind, condition, measurement, newt_num_ind_0:snake_num_ind_195, factor_key=TRUE)
 
 GA1_data_long_ind[,c("species","type", "type2","location")]<- str_split_fixed(GA1_data_long_ind$condition, "_", 4)
 
 GA1_data_long_ind_short<-GA1_data_long_ind
 
-GA1_data_long_ind_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-GA1_data_long_ind_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+GA1_data_long_ind_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+GA1_data_long_ind_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 GA1_data_long_ind_short$measurement[GA1_data_long_ind_short$measurement == 0]  <- NA
 
@@ -3153,8 +3147,8 @@ cor(as.numeric(snake$measurement), as.numeric(newt_GA1$measurement), use="comple
 
 
 
-newt_GA1$info[newt_GA1$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt_GA1$info[newt_GA1$location %in% list(0, 19, 80, 99)] <- "corner"
+newt_GA1$info[newt_GA1$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt_GA1$info[newt_GA1$location %in% list(0, 27, 168, 195)] <- "corner"
 newt_GA1$info[is.na(newt_GA1$info)]<- "middle"
 
 extra_plot <- ggplot(newt_GA1)+
@@ -3198,14 +3192,14 @@ GA1<-GA1_grid_tall_7_file[which(GA1_grid_tall_7_file$snake_newt_rep==file_name &
 
 GA1_mean = GA1[,grepl("generation|mean", names(GA1)) ]
 
-data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_99, factor_key=TRUE)
+data_long_mean <- gather(GA1_mean, condition, measurement, newt_mean_pheno_0:snake_mean_pheno_195, factor_key=TRUE)
 
 data_long_mean[,c("species","type", "type2","location")]<- str_split_fixed(data_long_mean$condition, "_", 4)
 
 data_long_mean_short<-data_long_mean
 
-data_long_mean_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_mean_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+data_long_mean_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_mean_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_mean_short)+
   labs(title = "Mean Phenotype of Locations",
@@ -3223,8 +3217,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -3254,14 +3248,14 @@ spegen=48001
 
 GA1_sd = GA1[,grepl("generation|sd", names(GA1)) ]
 
-data_long_sd <- gather(GA1_sd, condition, measurement, newt_sd_pheno_0:snake_sd_pheno_99, factor_key=TRUE)
+data_long_sd <- gather(GA1_sd, condition, measurement, newt_sd_pheno_0:snake_sd_pheno_195, factor_key=TRUE)
 
 data_long_sd[,c("species","type", "type2","location")]<- str_split_fixed(data_long_sd$condition, "_", 4)
 
 data_long_sd_short<-data_long_sd
 
-data_long_sd_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_sd_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+data_long_sd_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_sd_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_sd_short)+
   labs(title = "SD Phenotype of Locations",
@@ -3279,8 +3273,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -3310,14 +3304,14 @@ spegen=48001
 
 GA1_max = GA1[,grepl("generation|max", names(GA1)) ]
 
-data_long_max <- gather(GA1_max, condition, measurement, newt_max_pheno_0:snake_max_pheno_99, factor_key=TRUE)
+data_long_max <- gather(GA1_max, condition, measurement, newt_max_pheno_0:snake_max_pheno_195, factor_key=TRUE)
 
 data_long_max[,c("species","type", "type2","location")]<- str_split_fixed(data_long_max$condition, "_", 4)
 
 data_long_max_short<-data_long_max
 
-data_long_max_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_max_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+data_long_max_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_max_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_max_short)+
   labs(title = "Max Phenotype of Locations",
@@ -3335,8 +3329,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -3365,14 +3359,14 @@ file_name="Snake_1e-08_0.005_Newt_1e-08_0.005_3"
 spegen=48001
 GA1_min = GA1[,grepl("generation|min", names(GA1)) ]
 
-data_long_min <- gather(GA1_min, condition, measurement, newt_min_pheno_0:snake_min_pheno_99, factor_key=TRUE)
+data_long_min <- gather(GA1_min, condition, measurement, newt_min_pheno_0:snake_min_pheno_195, factor_key=TRUE)
 
 data_long_min[,c("species","type", "type2","location")]<- str_split_fixed(data_long_min$condition, "_", 4)
 
 data_long_min_short<-data_long_min
 
-data_long_min_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-data_long_min_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+data_long_min_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+data_long_min_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 main_plot<-ggplot(data_long_min_short)+
   labs(title = "Min Phenotype of Locations",
@@ -3390,8 +3384,8 @@ newt$snake_value <- snake$measurement
 cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs")
 
 
-newt$info[newt$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt$info[newt$location %in% list(0, 19, 80, 99)] <- "corner"
+newt$info[newt$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt$info[newt$location %in% list(0, 27, 168, 195)] <- "corner"
 newt$info[is.na(newt$info)]<- "middle"
 
 extra_plot <- ggplot(newt)+
@@ -3421,14 +3415,14 @@ file_name="Snake_1e-08_0.005_Newt_1e-08_0.005_3"
 spegen=48001
 GA1_ind = GA1[,grepl("generation|num_ind", names(GA1)) ]
 
-GA1_data_long_ind <- gather(GA1_ind, condition, measurement, newt_num_ind_0:snake_num_ind_99, factor_key=TRUE)
+GA1_data_long_ind <- gather(GA1_ind, condition, measurement, newt_num_ind_0:snake_num_ind_195, factor_key=TRUE)
 
 GA1_data_long_ind[,c("species","type", "type2","location")]<- str_split_fixed(GA1_data_long_ind$condition, "_", 4)
 
 GA1_data_long_ind_short<-GA1_data_long_ind
 
-GA1_data_long_ind_short$y_loc<- rep(c(rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),5)
-GA1_data_long_ind_short$x_loc<-c(rep.int(1, 40),rep.int(2, 40),rep.int(3, 40),rep.int(4, 40),rep.int(5, 40))
+GA1_data_long_ind_short$y_loc<- rep(c(rep.int(28, 2),rep.int(27, 2),rep.int(26, 2),rep.int(25, 2),rep.int(24, 2),rep.int(23, 2),rep.int(22, 2),rep.int(21, 2),rep.int(20, 2),rep.int(19, 2),rep.int(18, 2),rep.int(17, 2),rep.int(16, 2),rep.int(15, 2),rep.int(14, 2),rep.int(13, 2),rep.int(12, 2),rep.int(11, 2),rep.int(10, 2),rep.int(9, 2),rep.int(8, 2),rep.int(7, 2),rep.int(6, 2),rep.int(5, 2),rep.int(4, 2),rep.int(3, 2),rep.int(2, 2),rep.int(1, 2)),7)
+GA1_data_long_ind_short$x_loc<-c(rep.int(1, 56),rep.int(2, 56),rep.int(3, 56),rep.int(4, 56),rep.int(5, 56),rep.int(6, 56),rep.int(7, 56))
 
 GA1_data_long_ind_short$measurement[GA1_data_long_ind_short$measurement == 0]  <- NA
 
@@ -3449,8 +3443,8 @@ cor(as.numeric(snake$measurement), as.numeric(newt_GA1$measurement), use="comple
 
 
 
-newt_GA1$info[newt_GA1$location %in% list(1, 2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20, 39, 40, 59, 60, 79, 81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98)]   <- "edge"
-newt_GA1$info[newt_GA1$location %in% list(0, 19, 80, 99)] <- "corner"
+newt_GA1$info[newt_GA1$location %in% list(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,  28, 55, 56, 83, 84, 111, 112, 139, 140, 167, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194)]   <- "edge"
+newt_GA1$info[newt_GA1$location %in% list(0, 27, 168, 195)] <- "corner"
 newt_GA1$info[is.na(newt_GA1$info)]<- "middle"
 
 extra_plot <- ggplot(newt_GA1)+
