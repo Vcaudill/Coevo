@@ -19,6 +19,7 @@ library(gridGraphics)
 library(grid)
 library(knitr)
 library("reshape")
+library(dplyr)
 
 ```
 
@@ -28,10 +29,10 @@ I have run four separate experiments and now I will compare their different corr
 
 Experiments:
 
-- tall map with 5 sections
-- tall map with 7 sections
-- tall map with 5 sections no heritability
-- tall map with 5 sections no interaction
+- [A] tall map with 5 sections
+- [B] tall map with 7 sections
+- [C] tall map with 5 sections no heritability
+- [D] tall map with 5 sections no interaction
 
 I am investigating the correlation calculations. I predicted that though co-evolution (interaction & evolution) species' phenotypes would become spatially correlated. I saw some very high correlations (around 0.5) in some of these simulations. To see if there is a difference between the correlations in my experiment I will create some comparative histograms.
 
@@ -42,6 +43,8 @@ Predictions:
 
 
 ```{r, loading in the data}
+
+snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
 
 GA1_cor_tall_file<- read.csv("~/Desktop/GA1_tall_redo/all_cor.txt" , header = TRUE)
 GA1_cor_tall_file$group_rep <- paste0(GA1_cor_tall_file$snake_mu_rate, "_", GA1_cor_tall_file$snake_mu_effect_sd,"_",GA1_cor_tall_file$newt_mu_rate, "_", GA1_cor_tall_file$newt_mu_effect_sd, "_", GA1_cor_tall_file$rep)
@@ -55,20 +58,22 @@ GA1_cor_tall_7_file$group <- paste0(GA1_cor_tall_7_file$snake_mu_rate, "_", GA1_
 GA1_cor_tall_7_file$sim=LETTERS[factor(GA1_cor_tall_7_file$group)]
 GA1_cor_tall_7_file$experiment = "B"
 
-her_cor_tall_file<- read.csv(paste0(filelocation,"/all_cor.txt") , header = TRUE)
+her_cor_tall_file<- read.csv("~/Desktop/no_hair/all_cor.txt", header = TRUE)
 her_cor_tall_file$group_rep <- paste0(her_cor_tall_file$snake_mu_rate, "_", her_cor_tall_file$snake_mu_effect_sd,"_",her_cor_tall_file$newt_mu_rate, "_", her_cor_tall_file$newt_mu_effect_sd, "_", her_cor_tall_file$rep)
 her_cor_tall_file$group <- paste0(her_cor_tall_file$snake_mu_rate, "_", her_cor_tall_file$snake_mu_effect_sd,"_",her_cor_tall_file$newt_mu_rate, "_", her_cor_tall_file$newt_mu_effect_sd)
 her_cor_tall_file$sim=LETTERS[factor(her_cor_tall_file$group)]
 her_cor_tall_file$experiment = "C"
 
 
-inter_cor_tall_file<- read.csv(paste0(filelocation,"/all_cor.txt") , header = TRUE)
+inter_cor_tall_file<- read.csv("~/Desktop/no_interaction/all_cor.txt", header = TRUE)
 inter_cor_tall_file$group_rep <- paste0(inter_cor_tall_file$snake_mu_rate, "_", inter_cor_tall_file$snake_mu_effect_sd,"_",inter_cor_tall_file$newt_mu_rate, "_", inter_cor_tall_file$newt_mu_effect_sd, "_", inter_cor_tall_file$rep)
 inter_cor_tall_file$group <- paste0(inter_cor_tall_file$snake_mu_rate, "_", inter_cor_tall_file$snake_mu_effect_sd,"_",inter_cor_tall_file$newt_mu_rate, "_", inter_cor_tall_file$newt_mu_effect_sd)
 inter_cor_tall_file$sim=LETTERS[factor(inter_cor_tall_file$group)]
 inter_cor_tall_file$experiment = "D"
 
 all_cor_exp = rbind(GA1_cor_tall_file, GA1_cor_tall_7_file, her_cor_tall_file, inter_cor_tall_file)
+
+all_cor_exp$group_exp=paste0(all_cor_exp$group, "_", all_cor_exp$experiment)
 
 ```
 
@@ -128,6 +133,68 @@ dens_cors_by_gen_col_all_exp_rep <- function(file, title, subt, x_label, y_label
 ```
 
 
+## Comparing the Mean
+
+
+
+```{r, looking at the mean}
+
+all_cor_exp %>%
+  group_by(experiment) %>%
+  summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)
+
+
+all_cor_exp %>%
+  group_by(group_exp) %>%
+  summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)
+
+
+```
+
+I want to compare the different cor values from the simulations, but i also want to look at it simulation by simulation.
+
+I think trials within a simulation experiment (A, B, C, D) should be the same (same mu and mu effect size).  
+
+They should also be different between different GA combinations
+
+same GA should be differwent in the different experiments
+
+```{r, wilcoxn test}
+
+wilcox.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno) #AB
+
+wilcox.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AC
+
+wilcox.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AD
+
+wilcox.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BC
+
+wilcox.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BD
+
+wilcox.test(her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #CD
+
+```
+
+```{r, t test}
+
+
+
+#t.test(GA1_cor_tall_file[GA1_cor_tall_file$group == "1e-08_0.005_1e-08_0.005" & GA1_cor_tall_file$rep <= 1,]$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_file[GA1_cor_tall_file$group == "1e-08_0.005_1e-08_0.005" & GA1_cor_tall_file$rep >= 2,]$mean_newt_pheno_By_mean_snake_pheno) #AA
+
+t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AC
+
+t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AD
+
+t.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BC
+
+t.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BD
+
+t.test(her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #CD
+
+
+t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno) #AB
+
+```
 
 ```{r, cor com figs}
 
@@ -230,6 +297,14 @@ suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation
 
 
 ```
+
+
+
+
+
+
+
+
 
 # next step is to count the high and the lows 
 like make a lower limit like must be above 0.3
