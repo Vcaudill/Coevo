@@ -51,19 +51,25 @@ GA1_cor_tall_file$group_rep <- paste0(GA1_cor_tall_file$snake_mu_rate, "_", GA1_
 GA1_cor_tall_file$group <- paste0(GA1_cor_tall_file$snake_mu_rate, "_", GA1_cor_tall_file$snake_mu_effect_sd,"_",GA1_cor_tall_file$newt_mu_rate, "_", GA1_cor_tall_file$newt_mu_effect_sd)
 GA1_cor_tall_file$sim=LETTERS[factor(GA1_cor_tall_file$group)]
 GA1_cor_tall_file$experiment = "A"
+toDelete <- seq(2, nrow(GA1_cor_tall_file), 2)
+GA1_cor_tall_file_even = GA1_cor_tall_file[-toDelete,]
 
 GA1_cor_tall_7_file<- read.csv("~/Desktop/GA1_tall_redo/all_cor_7.txt" , header = TRUE)
 GA1_cor_tall_7_file$group_rep <- paste0(GA1_cor_tall_7_file$snake_mu_rate, "_", GA1_cor_tall_7_file$snake_mu_effect_sd,"_",GA1_cor_tall_7_file$newt_mu_rate, "_", GA1_cor_tall_7_file$newt_mu_effect_sd, "_", GA1_cor_tall_7_file$rep)
 GA1_cor_tall_7_file$group <- paste0(GA1_cor_tall_7_file$snake_mu_rate, "_", GA1_cor_tall_7_file$snake_mu_effect_sd,"_",GA1_cor_tall_7_file$newt_mu_rate, "_", GA1_cor_tall_7_file$newt_mu_effect_sd)
 GA1_cor_tall_7_file$sim=LETTERS[factor(GA1_cor_tall_7_file$group)]
 GA1_cor_tall_7_file$experiment = "B"
+toDelete <- seq(2, nrow(GA1_cor_tall_7_file), 2)
+GA1_cor_tall_7_file_even = GA1_cor_tall_7_file[-toDelete,]
+
 
 her_cor_tall_file<- read.csv("~/Desktop/no_hair/all_cor.txt", header = TRUE)
 her_cor_tall_file$group_rep <- paste0(her_cor_tall_file$snake_mu_rate, "_", her_cor_tall_file$snake_mu_effect_sd,"_",her_cor_tall_file$newt_mu_rate, "_", her_cor_tall_file$newt_mu_effect_sd, "_", her_cor_tall_file$rep)
 her_cor_tall_file$group <- paste0(her_cor_tall_file$snake_mu_rate, "_", her_cor_tall_file$snake_mu_effect_sd,"_",her_cor_tall_file$newt_mu_rate, "_", her_cor_tall_file$newt_mu_effect_sd)
 her_cor_tall_file$sim=LETTERS[factor(her_cor_tall_file$group)]
 her_cor_tall_file$experiment = "C"
-
+toDelete <- seq(2, nrow(her_cor_tall_file), 2)
+her_cor_tall_file_even = her_cor_tall_file[-toDelete,]
 
 inter_cor_tall_file<- read.csv("~/Desktop/no_interaction/all_cor.txt", header = TRUE)
 inter_cor_tall_file$group_rep <- paste0(inter_cor_tall_file$snake_mu_rate, "_", inter_cor_tall_file$snake_mu_effect_sd,"_",inter_cor_tall_file$newt_mu_rate, "_", inter_cor_tall_file$newt_mu_effect_sd, "_", inter_cor_tall_file$rep)
@@ -71,9 +77,12 @@ inter_cor_tall_file$group <- paste0(inter_cor_tall_file$snake_mu_rate, "_", inte
 inter_cor_tall_file$sim=LETTERS[factor(inter_cor_tall_file$group)]
 inter_cor_tall_file$experiment = "D"
 
-all_cor_exp = rbind(GA1_cor_tall_file, GA1_cor_tall_7_file, her_cor_tall_file, inter_cor_tall_file)
+
+all_cor_exp = rbind(GA1_cor_tall_file_even, GA1_cor_tall_7_file_even, her_cor_tall_file_even, inter_cor_tall_file)
 
 all_cor_exp$group_exp=paste0(all_cor_exp$group, "_", all_cor_exp$experiment)
+all_cor_exp$exp_group=paste0(all_cor_exp$experiment, "_", all_cor_exp$group)
+
 
 ```
 
@@ -129,6 +138,35 @@ dens_cors_by_gen_col_all_exp_rep <- function(file, title, subt, x_label, y_label
 
 
   return(plot)
+}
+
+counting_threshold <- function(file, treshold, whichgroup, p_n_b, min_gen, max_gen){
+  
+  file=file[which(file$gen>=min_gen & file$gen<=max_gen),]
+  
+  if(p_n_b == "p"){
+  table <-  file %>%
+  group_by(get(whichgroup)) %>%
+  tally(mean_newt_pheno_By_mean_snake_pheno >= treshold)
+  return(table)
+  }
+  
+  if(p_n_b == "n"){
+  table <-  file %>%
+  group_by(get(whichgroup)) %>%
+  tally(mean_newt_pheno_By_mean_snake_pheno <= -treshold)
+  return(table)
+  }
+  
+  if(p_n_b == "b"){
+  table <-  file %>%
+  group_by(get(whichgroup)) %>%
+  tally(mean_newt_pheno_By_mean_snake_pheno <= -treshold | mean_newt_pheno_By_mean_snake_pheno >= treshold)
+  return(table)
+  }else{
+    print("p_n_b needs to be positive, negative, or both (p, n, or b)")
+  }
+
 }
 ```
 
@@ -193,6 +231,100 @@ t.test(her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_fi
 
 
 t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno) #AB
+
+```
+
+```{r, thresholds}
+
+file = all_cor_exp
+treshold = 0.3
+p_n_b = "p"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+
+file = all_cor_exp
+treshold = 0.3
+p_n_b = "b"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+
+file = all_cor_exp
+treshold = 0.5
+p_n_b = "b"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+
+file = all_cor_exp
+treshold = 0.7
+p_n_b = "b"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+
+
+file = all_cor_exp
+treshold = 0.7
+p_n_b = "b"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+```
+
+```{r, distribuuution plots, fig.height = 11, fig.width = 5}
+
+
+  
+dummy<-all_cor_exp %>%
+  group_by(group_exp) %>%
+  summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)
+
+ggplot(all_cor_exp[which(all_cor_exp$gen>=min_gen & all_cor_exp$gen<=max_gen),])+
+   #ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  #xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=mean_newt_pheno_By_mean_snake_pheno, fill=experiment))+ #, y=threshold
+ # theme(plot.title = element_text(size=5)) +
+ # xlim(-.1, 1.1)+
+  #geom_vline(data = dummy, aes(xintercept = name))+
+  facet_grid(group~experiment)+
+  #facet_wrap(~group_exp)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
+                    strip.background = element_blank(), strip.text.x = element_blank(),
+                   title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                    axis.title.y = element_blank())
+```
+
+```{r, other plots}
+dummy<-all_cor_exp %>%
+  group_by(experiment) %>%
+  summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)
+
+
+ggplot(all_cor_exp[which(all_cor_exp$gen>=min_gen & all_cor_exp$gen<=max_gen),])+
+   #ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  #xlab(x_label) + ylab(y_label)+
+  geom_histogram(aes(x=mean_newt_pheno_By_mean_snake_pheno, fill=experiment))+ #, y=threshold
+ # theme(plot.title = element_text(size=5)) +
+ # xlim(-.1, 1.1)+
+  geom_vline(data = dummy, aes(xintercept = name))+
+  facet_wrap(~experiment)+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
+                    strip.background = element_blank(), strip.text.x = element_blank(),
+                   title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                    axis.title.y = element_blank())
+  
+
 
 ```
 
