@@ -20,7 +20,7 @@ library(grid)
 library(knitr)
 library("reshape")
 library(dplyr)
-
+library(ggside)
 ```
 
 ## Corilation Compare!
@@ -182,11 +182,27 @@ all_cor_exp %>%
   summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)
 
 
-all_cor_exp %>%
+all_the_means = all_cor_exp %>%
   group_by(group_exp) %>%
   summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)
 
+all_the_means$exp <- str_split_fixed(all_the_means$group_exp, "5_", 3)[,3]
 
+exclude_b <- all_the_means[which(all_the_means$exp!='B'),]
+exclude_c <- all_the_means[which(all_the_means$exp!='C'),]
+
+print("Anovas from mean of A and B")
+res.aov2ab <- aov(name ~ exp, data = exclude_c[which(exclude_c$exp!='D'),])
+summary(res.aov2ab)
+print("Anovas from mean of A and C")
+res.aov2ac <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='D'),])
+summary(res.aov2ac)
+print("Anovas from mean of A and D")
+res.aov2ad <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='C'),])
+summary(res.aov2ad)
+print("Anovas from mean of C and D")
+res.aov2cd <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='A'),])
+summary(res.aov2cd)
 ```
 
 I want to compare the different cor values from the simulations, but i also want to look at it simulation by simulation.
@@ -195,7 +211,7 @@ I think trials within a simulation experiment (A, B, C, D) should be the same (s
 
 They should also be different between different GA combinations
 
-same GA should be differwent in the different experiments
+same GA should be different in the different experiments
 
 ```{r, wilcoxn test}
 
@@ -234,53 +250,6 @@ t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_7_fi
 
 ```
 
-```{r, thresholds}
-
-file = all_cor_exp
-treshold = 0.3
-p_n_b = "p"
-min_gen = 100
-max_gen =50000
-whichgroup = "experiment"
-
-
-counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
-
-file = all_cor_exp
-treshold = 0.3
-p_n_b = "b"
-min_gen = 100
-max_gen =50000
-whichgroup = "experiment"
-
-counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
-
-file = all_cor_exp
-treshold = 0.5
-p_n_b = "b"
-min_gen = 100
-max_gen =50000
-whichgroup = "experiment"
-
-counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
-
-file = all_cor_exp
-treshold = 0.7
-p_n_b = "b"
-min_gen = 100
-max_gen =50000
-whichgroup = "experiment"
-
-counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
-
-
-file = all_cor_exp
-treshold = 0.7
-p_n_b = "b"
-min_gen = 100
-max_gen =50000
-whichgroup = "experiment"
-```
 
 ```{r, distribuuution plots, fig.height = 11, fig.width = 5}
 
@@ -432,13 +401,73 @@ suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation
 
 
 
-
-
-
-
-
-
 # next step is to count the high and the lows 
 like make a lower limit like must be above 0.3
+
+
+```{r, thresholds}
+
+file = all_cor_exp
+treshold = 0.3
+p_n_b = "p"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+
+file = all_cor_exp
+treshold = 0.3
+p_n_b = "b"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+
+file = all_cor_exp
+treshold = 0.5
+p_n_b = "b"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+
+file = all_cor_exp
+treshold = 0.7
+p_n_b = "b"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+
+
+file = all_cor_exp
+treshold = 0.7
+p_n_b = "b"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+```
+
+
+```{r, ggslide test}
+
+ggplot(all_cor_exp) + 
+  #geom_point(size = 2) +
+  #geom_line(aes(generation, mean_newt_pheno_By_mean_snake_pheno, group=rep))+
+  geom_density(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity")+
+  #geom_xsidehistogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity") +
+  geom_ysideboxplot(aes(x = experiment, y=mean_newt_pheno_By_mean_snake_pheno, fill=factor(experiment)), orientation = "x") +
+  scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
+
+
+```
+
+
+
 
 

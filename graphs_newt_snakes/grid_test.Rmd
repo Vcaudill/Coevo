@@ -1,0 +1,351 @@
+---
+title: "Grid Test"
+output: html_document
+date: '2022-09-27'
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library(knitr)
+library(kableExtra)
+library("reshape")
+library(ggplot2)
+library(ggpubr)
+theme_set(theme_pubr())
+library(stringr)
+library(patchwork)
+```
+
+## Goal:
+
+Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of correlation between rectangles and squares (in connection with GA1 tall). After fixing the row vs column error I looked at the correlation data and found that there was less correlation. So I decided to investigate why that might be and run a few more experiments. I am running an experiment to test how changing the square size might impact the calculations. I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). This file contains results discussed in Tall_GA1!
+
+### Questions:
+
+How does grid size impact the spatial correlation of newt and snake phenotypes?
+
+## Background
+
+ 
+
+## Experiment
+
+I created a simulation study to observe the co-evolutionary outcome of the newt-snake interaction with different genetic architectures (GAs) in a spatial setting. I hypothesized that we would see an interaction (co-evolutionary arms race) between newt and snake phenotype under some GA combinations when newts and snakes were evolving over geographical space. Each GA is paired with another GA creating 16 combinations.
+
+GA1 experiment values:
+
+- 1e-8*(0.005)^2 = 2.5e-13
+- 1e-9*(0.05)^2 = 2.5e-12
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(5.0)^2 = 2.5e-10
+
+Landscape: A tall map!: 35*4 H, 35 W 
+
+I tested grid sizes for my tall landscape:
+
+- grid 2X8, area 306.25 (approx)
+- grid 3X12, area 136.11 (approx)
+- grid 4X16, area 76.56 (approx)
+- grid 5X20, area 49 (approx)
+- grid 6X24, area 34.02 (approx)
+- grid 7X28, area 25 (approx)
+
+Each GA combination and trial has its own msprime simulation, but the msprime file is shared between the 5 section and 7 section slim runs.
+
+### The data
+
+
+## Preping the data by making singular files
+
+```{bash, data file gathering}
+#!/usr/bin/env bash
+
+# Run these comands while in The the folder that contains the file you would like to condence
+# Goal is to condence all the text files into one file 
+# Requirements: need to have the same name and need to add additional columns
+thepath=/Users/victoria/Desktop/
+foldername=GA1_dif_grid
+thefolder=${thepath}${foldername}/*
+
+add_in_column=",rep,snake_mu_rate,snake_mu_effect_sd,newt_mu_rate,newt_mu_effect_sd"
+
+lit_head_file=$(find ${thepath}${foldername} -name "*_GA1234567_lit_*" | head -n 1)
+lit_head=$(head -n 1 "${lit_head_file}")
+
+cor_head_file_2=$(find ${thepath}${foldername} -name "*_GA2_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+cor_head_file_3=$(find ${thepath}${foldername} -name "*_GA3_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+cor_head_file_4=$(find ${thepath}${foldername} -name "*_GA4_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+cor_head_file_5=$(find ${thepath}${foldername} -name "*_GA5_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+cor_head_file_6=$(find ${thepath}${foldername} -name "*_GA6_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+cor_head_file_7=$(find ${thepath}${foldername} -name "*_GA7_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+grid_head_file_2=$(find ${thepath}${foldername} -name "*_GA2_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+grid_head_file_3=$(find ${thepath}${foldername} -name "*_GA3_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+grid_head_file_4=$(find ${thepath}${foldername} -name "*_GA4_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+grid_head_file_5=$(find ${thepath}${foldername} -name "*_GA5_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+grid_head_file_6=$(find ${thepath}${foldername} -name "*_GA6_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+grid_head_file_7=$(find ${thepath}${foldername} -name "*_GA7_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+
+
+if [[ -f ${thepath}${foldername}/all_lit.txt ]] && [[ -f ${thepath}${foldername}/all_grid_2.txt ]] && [[ -f ${thepath}${foldername}/all_cor_2.txt ]]
+then
+  echo "All cor, lit, and grid files exist!"
+  echo "This program will now end!"
+  exit 0
+fi
+
+#creating the files
+echo ${lit_head}${add_in_column} > ${thepath}${foldername}/all_lit.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid_2.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid_3.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid_4.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid_5.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid_6.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid_7.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor_2.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor_3.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor_4.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor_5.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor_6.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor_7.txt
+
+
+
+for filename in $thefolder*.text;
+  do 
+#getting the variables 
+
+my_type=$(echo ${filename} |sed 's/.*GA1234567_//; s/_.*//')
+my_type_2=$(echo ${filename} |sed 's/.*GA2_//; s/_.*//')
+my_type_3=$(echo ${filename} |sed 's/.*GA3_//; s/_.*//')
+my_type_4=$(echo ${filename} |sed 's/.*GA4_//; s/_.*//')
+my_type_5=$(echo ${filename} |sed 's/.*GA5_//; s/_.*//')
+my_type_6=$(echo ${filename} |sed 's/.*GA6_//; s/_.*//')
+my_type_7=$(echo ${filename} |sed 's/.*GA7_//; s/_.*//')
+
+snake_mu_rate=$(echo ${filename} |sed 's/.*snake_mu_rate_//; s/_.*//')
+snake_mu_effect_sd=$(echo ${filename} |sed 's/.*snake_mu_effect_sd_//; s/_.*//')
+newt_mu_rate=$(echo ${filename} |sed 's/.*newt_mu_rate_//; s/_.*//')
+newt_mu_effect_sd=$(echo ${filename} |sed 's/.*newt_mu_effect_sd_//; s/_.*//')
+rep=$(echo ${filename} | sed "s/.*rep_//; s/_.*//")
+#echo ${newt_mu_rate}	
+# echo $my_type
+# echo $my_other_type
+# these new columns adding them to the data
+sed -i '' -e 's/$/,'${rep}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_effect_sd}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_effect_sd}'/' $filename
+#infile >outfile
+if [[ $my_type == "lit" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_lit.txt
+fi
+
+if [[ $my_type_2 == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid_2.txt
+fi
+
+if [[ $my_type_2 == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor_2.txt
+fi
+
+if [[ $my_type_3 == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid_3.txt
+fi
+
+if [[ $my_type_3 == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor_3.txt
+fi
+
+if [[ $my_type_4 == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid_4.txt
+fi
+
+if [[ $my_type_4 == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor_4.txt
+fi
+
+if [[ $my_type_5 == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid_5.txt
+fi
+
+if [[ $my_type_5 == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor_5.txt
+fi
+
+if [[ $my_type_6 == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid_6.txt
+fi
+
+if [[ $my_type_6 == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor_6.txt
+fi
+
+if [[ $my_type_7 == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid_7.txt
+fi
+
+if [[ $my_type_7 == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor_7.txt
+fi
+
+done
+
+```
+
+
+
+## Loading in/ Combining the files to compare different grid sizes
+
+```{r, loading in the data}
+
+snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
+
+GA1_lit_grid_file<- read.csv("~/Desktop/GA1_dif_grid/all_lit.txt" , header = TRUE)
+GA1_lit_grid_file$group_rep <- paste0(GA1_lit_grid_file$snake_mu_rate, "_", GA1_lit_grid_file$snake_mu_effect_sd,"_",GA1_lit_grid_file$newt_mu_rate, "_", GA1_lit_grid_file$newt_mu_effect_sd, "_", GA1_lit_grid_file$rep)
+GA1_lit_grid_file$group <- paste0(GA1_lit_grid_file$snake_mu_rate, "_", GA1_lit_grid_file$snake_mu_effect_sd,"_",GA1_lit_grid_file$newt_mu_rate, "_", GA1_lit_grid_file$newt_mu_effect_sd)
+GA1_lit_grid_file$sim=LETTERS[factor(GA1_lit_grid_file$group)]
+
+
+GA1_cor_grid_2_file<- read.csv("~/Desktop/GA1_dif_grid/all_cor_2.txt" , header = TRUE)
+GA1_cor_grid_2_file$group_rep <- paste0(GA1_cor_grid_2_file$snake_mu_rate, "_", GA1_cor_grid_2_file$snake_mu_effect_sd,"_",GA1_cor_grid_2_file$newt_mu_rate, "_", GA1_cor_grid_2_file$newt_mu_effect_sd, "_", GA1_cor_grid_2_file$rep)
+GA1_cor_grid_2_file$group <- paste0(GA1_cor_grid_2_file$snake_mu_rate, "_", GA1_cor_grid_2_file$snake_mu_effect_sd,"_",GA1_cor_grid_2_file$newt_mu_rate, "_", GA1_cor_grid_2_file$newt_mu_effect_sd)
+GA1_cor_grid_2_file$sim=LETTERS[factor(GA1_cor_grid_2_file$group)]
+GA1_cor_grid_2_file$grid_num = 2
+
+
+GA1_cor_grid_3_file<- read.csv("~/Desktop/GA1_dif_grid/all_cor_3.txt" , header = TRUE)
+GA1_cor_grid_3_file$group_rep <- paste0(GA1_cor_grid_3_file$snake_mu_rate, "_", GA1_cor_grid_3_file$snake_mu_effect_sd,"_",GA1_cor_grid_3_file$newt_mu_rate, "_", GA1_cor_grid_3_file$newt_mu_effect_sd, "_", GA1_cor_grid_3_file$rep)
+GA1_cor_grid_3_file$group <- paste0(GA1_cor_grid_3_file$snake_mu_rate, "_", GA1_cor_grid_3_file$snake_mu_effect_sd,"_",GA1_cor_grid_3_file$newt_mu_rate, "_", GA1_cor_grid_3_file$newt_mu_effect_sd)
+GA1_cor_grid_3_file$sim=LETTERS[factor(GA1_cor_grid_3_file$group)]
+GA1_cor_grid_3_file$grid_num = 3
+
+GA1_cor_grid_4_file<- read.csv("~/Desktop/GA1_dif_grid/all_cor_4.txt" , header = TRUE)
+GA1_cor_grid_4_file$group_rep <- paste0(GA1_cor_grid_4_file$snake_mu_rate, "_", GA1_cor_grid_4_file$snake_mu_effect_sd,"_",GA1_cor_grid_4_file$newt_mu_rate, "_", GA1_cor_grid_4_file$newt_mu_effect_sd, "_", GA1_cor_grid_4_file$rep)
+GA1_cor_grid_4_file$group <- paste0(GA1_cor_grid_4_file$snake_mu_rate, "_", GA1_cor_grid_4_file$snake_mu_effect_sd,"_",GA1_cor_grid_4_file$newt_mu_rate, "_", GA1_cor_grid_4_file$newt_mu_effect_sd)
+GA1_cor_grid_4_file$sim=LETTERS[factor(GA1_cor_grid_4_file$group)]
+GA1_cor_grid_4_file$grid_num = 4
+
+GA1_cor_grid_5_file<- read.csv("~/Desktop/GA1_dif_grid/all_cor_5.txt" , header = TRUE)
+GA1_cor_grid_5_file$group_rep <- paste0(GA1_cor_grid_5_file$snake_mu_rate, "_", GA1_cor_grid_5_file$snake_mu_effect_sd,"_",GA1_cor_grid_5_file$newt_mu_rate, "_", GA1_cor_grid_5_file$newt_mu_effect_sd, "_", GA1_cor_grid_5_file$rep)
+GA1_cor_grid_5_file$group <- paste0(GA1_cor_grid_5_file$snake_mu_rate, "_", GA1_cor_grid_5_file$snake_mu_effect_sd,"_",GA1_cor_grid_5_file$newt_mu_rate, "_", GA1_cor_grid_5_file$newt_mu_effect_sd)
+GA1_cor_grid_5_file$sim=LETTERS[factor(GA1_cor_grid_5_file$group)]
+GA1_cor_grid_5_file$grid_num = 5
+
+GA1_cor_grid_6_file<- read.csv("~/Desktop/GA1_dif_grid/all_cor_6.txt" , header = TRUE)
+GA1_cor_grid_6_file$group_rep <- paste0(GA1_cor_grid_6_file$snake_mu_rate, "_", GA1_cor_grid_6_file$snake_mu_effect_sd,"_",GA1_cor_grid_6_file$newt_mu_rate, "_", GA1_cor_grid_6_file$newt_mu_effect_sd, "_", GA1_cor_grid_6_file$rep)
+GA1_cor_grid_6_file$group <- paste0(GA1_cor_grid_6_file$snake_mu_rate, "_", GA1_cor_grid_6_file$snake_mu_effect_sd,"_",GA1_cor_grid_6_file$newt_mu_rate, "_", GA1_cor_grid_6_file$newt_mu_effect_sd)
+GA1_cor_grid_6_file$sim=LETTERS[factor(GA1_cor_grid_6_file$group)]
+GA1_cor_grid_6_file$grid_num = 6
+
+GA1_cor_grid_7_file<- read.csv("~/Desktop/GA1_dif_grid/all_cor_7.txt" , header = TRUE)
+GA1_cor_grid_7_file$group_rep <- paste0(GA1_cor_grid_7_file$snake_mu_rate, "_", GA1_cor_grid_7_file$snake_mu_effect_sd,"_",GA1_cor_grid_7_file$newt_mu_rate, "_", GA1_cor_grid_7_file$newt_mu_effect_sd, "_", GA1_cor_grid_7_file$rep)
+GA1_cor_grid_7_file$group <- paste0(GA1_cor_grid_7_file$snake_mu_rate, "_", GA1_cor_grid_7_file$snake_mu_effect_sd,"_",GA1_cor_grid_7_file$newt_mu_rate, "_", GA1_cor_grid_7_file$newt_mu_effect_sd)
+GA1_cor_grid_7_file$sim=LETTERS[factor(GA1_cor_grid_7_file$group)]
+GA1_cor_grid_7_file$grid_num = 7
+
+# GA1_grid_grid_2_file<- read.csv("~/Desktop/GA1_dif_grid/all_grid_2.txt" , header = TRUE)
+# GA1_grid_grid_2_file$group_rep <- paste0(GA1_grid_grid_2_file$snake_mu_rate, "_", GA1_grid_grid_2_file$snake_mu_effect_sd,"_",GA1_grid_grid_2_file$newt_mu_rate, "_", GA1_grid_grid_2_file$newt_mu_effect_sd, "_", GA1_grid_grid_2_file$rep)
+# GA1_grid_grid_2_file$group <- paste0(GA1_grid_grid_2_file$snake_mu_rate, "_", GA1_grid_grid_2_file$snake_mu_effect_sd,"_",GA1_grid_grid_2_file$newt_mu_rate, "_", GA1_grid_grid_2_file$newt_mu_effect_sd)
+# GA1_grid_grid_2_file$sim=LETTERS[factor(GA1_grid_grid_2_file$group)]
+# GA1_grid_grid_2_file$grid_num = 2
+# 
+# 
+# GA1_grid_grid_3_file<- read.csv("~/Desktop/GA1_dif_grid/all_grid_3.txt" , header = TRUE)
+# GA1_grid_grid_3_file$group_rep <- paste0(GA1_grid_grid_3_file$snake_mu_rate, "_", GA1_grid_grid_3_file$snake_mu_effect_sd,"_",GA1_grid_grid_3_file$newt_mu_rate, "_", GA1_grid_grid_3_file$newt_mu_effect_sd, "_", GA1_grid_grid_3_file$rep)
+# GA1_grid_grid_3_file$group <- paste0(GA1_grid_grid_3_file$snake_mu_rate, "_", GA1_grid_grid_3_file$snake_mu_effect_sd,"_",GA1_grid_grid_3_file$newt_mu_rate, "_", GA1_grid_grid_3_file$newt_mu_effect_sd)
+# GA1_grid_grid_3_file$sim=LETTERS[factor(GA1_grid_grid_3_file$group)]
+# GA1_grid_grid_3_file$grid_num = 3
+# 
+# GA1_grid_grid_4_file<- read.csv("~/Desktop/GA1_dif_grid/all_grid_4.txt" , header = TRUE)
+# GA1_grid_grid_4_file$group_rep <- paste0(GA1_grid_grid_4_file$snake_mu_rate, "_", GA1_grid_grid_4_file$snake_mu_effect_sd,"_",GA1_grid_grid_4_file$newt_mu_rate, "_", GA1_grid_grid_4_file$newt_mu_effect_sd, "_", GA1_grid_grid_4_file$rep)
+# GA1_grid_grid_4_file$group <- paste0(GA1_grid_grid_4_file$snake_mu_rate, "_", GA1_grid_grid_4_file$snake_mu_effect_sd,"_",GA1_grid_grid_4_file$newt_mu_rate, "_", GA1_grid_grid_4_file$newt_mu_effect_sd)
+# GA1_grid_grid_4_file$sim=LETTERS[factor(GA1_grid_grid_4_file$group)]
+# GA1_grid_grid_4_file$grid_num = 4
+# 
+# GA1_grid_grid_5_file<- read.csv("~/Desktop/GA1_dif_grid/all_grid_5.txt" , header = TRUE)
+# GA1_grid_grid_5_file$group_rep <- paste0(GA1_grid_grid_5_file$snake_mu_rate, "_", GA1_grid_grid_5_file$snake_mu_effect_sd,"_",GA1_grid_grid_5_file$newt_mu_rate, "_", GA1_grid_grid_5_file$newt_mu_effect_sd, "_", GA1_grid_grid_5_file$rep)
+# GA1_grid_grid_5_file$group <- paste0(GA1_grid_grid_5_file$snake_mu_rate, "_", GA1_grid_grid_5_file$snake_mu_effect_sd,"_",GA1_grid_grid_5_file$newt_mu_rate, "_", GA1_grid_grid_5_file$newt_mu_effect_sd)
+# GA1_grid_grid_5_file$sim=LETTERS[factor(GA1_grid_grid_5_file$group)]
+# GA1_grid_grid_5_file$grid_num = 5
+# 
+# GA1_grid_grid_6_file<- read.csv("~/Desktop/GA1_dif_grid/all_grid_6.txt" , header = TRUE)
+# GA1_grid_grid_6_file$group_rep <- paste0(GA1_grid_grid_6_file$snake_mu_rate, "_", GA1_grid_grid_6_file$snake_mu_effect_sd,"_",GA1_grid_grid_6_file$newt_mu_rate, "_", GA1_grid_grid_6_file$newt_mu_effect_sd, "_", GA1_grid_grid_6_file$rep)
+# GA1_grid_grid_6_file$group <- paste0(GA1_grid_grid_6_file$snake_mu_rate, "_", GA1_grid_grid_6_file$snake_mu_effect_sd,"_",GA1_grid_grid_6_file$newt_mu_rate, "_", GA1_grid_grid_6_file$newt_mu_effect_sd)
+# GA1_grid_grid_6_file$sim=LETTERS[factor(GA1_grid_grid_6_file$group)]
+# GA1_grid_grid_6_file$grid_num = 6
+# 
+# GA1_grid_grid_7_file<- read.csv("~/Desktop/GA1_dif_grid/all_grid_7.txt" , header = TRUE)
+# GA1_grid_grid_7_file$group_rep <- paste0(GA1_grid_grid_7_file$snake_mu_rate, "_", GA1_grid_grid_7_file$snake_mu_effect_sd,"_",GA1_grid_grid_7_file$newt_mu_rate, "_", GA1_grid_grid_7_file$newt_mu_effect_sd, "_", GA1_grid_grid_7_file$rep)
+# GA1_grid_grid_7_file$group <- paste0(GA1_grid_grid_7_file$snake_mu_rate, "_", GA1_grid_grid_7_file$snake_mu_effect_sd,"_",GA1_grid_grid_7_file$newt_mu_rate, "_", GA1_grid_grid_7_file$newt_mu_effect_sd)
+# GA1_grid_grid_7_file$sim=LETTERS[factor(GA1_grid_grid_7_file$group)]
+# GA1_grid_grid_7_file$grid_num = 7
+
+all_cor_grid = rbind(GA1_cor_grid_2_file, GA1_cor_grid_3_file, GA1_cor_grid_4_file,  GA1_cor_grid_5_file,  GA1_cor_grid_6_file,  GA1_cor_grid_7_file)
+
+
+all_cor_grid$group_exp=paste0(all_cor_grid$group, "_", all_cor_grid$experiment)
+all_cor_grid$exp_group=paste0(all_cor_grid$experiment, "_", all_cor_grid$group)
+
+# all_grid_grid = rbind(GA1_grid_grid_2_file, GA1_grid_grid_3_file, GA1_grid_grid_4_file,  GA1_grid_grid_5_file,  GA1_grid_grid_6_file,  GA1_grid_grid_7_file)
+# 
+# all_grid_grid$group_exp=paste0(all_grid_grid$group, "_", all_grid_grid$experiment)
+# all_grid_grid$exp_group=paste0(all_grid_grid$experiment, "_", all_grid_grid$group)
+
+
+```
+
+
+
+
+
+
+
