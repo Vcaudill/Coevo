@@ -82,7 +82,7 @@ all_cor_exp = rbind(GA1_cor_tall_file_even, GA1_cor_tall_7_file_even, her_cor_ta
 
 all_cor_exp$group_exp=paste0(all_cor_exp$group, "_", all_cor_exp$experiment)
 all_cor_exp$exp_group=paste0(all_cor_exp$experiment, "_", all_cor_exp$group)
-
+all_cor_exp$group_exp_rep=paste0(all_cor_exp$group, "_", all_cor_exp$experiment, "_",all_cor_exp$rep)
 
 ```
 
@@ -181,6 +181,7 @@ all_cor_exp %>%
   group_by(experiment) %>%
   summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)
 
+print("One mean per GA")
 
 all_the_means = all_cor_exp %>%
   group_by(group_exp) %>%
@@ -190,6 +191,31 @@ all_the_means$exp <- str_split_fixed(all_the_means$group_exp, "5_", 3)[,3]
 
 exclude_b <- all_the_means[which(all_the_means$exp!='B'),]
 exclude_c <- all_the_means[which(all_the_means$exp!='C'),]
+
+print("Anovas from mean of A and B")
+res.aov2ab <- aov(name ~ exp, data = exclude_c[which(exclude_c$exp!='D'),])
+summary(res.aov2ab)
+print("Anovas from mean of A and C")
+res.aov2ac <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='D'),])
+summary(res.aov2ac)
+print("Anovas from mean of A and D")
+res.aov2ad <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='C'),])
+summary(res.aov2ad)
+print("Anovas from mean of C and D")
+res.aov2cd <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='A'),])
+summary(res.aov2cd)
+
+
+print("One mean per rep")
+
+all_the_means_byrep = all_cor_exp %>%
+  group_by(group_exp_rep) %>%
+  summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)
+
+all_the_means_byrep$exp <- str_split_fixed(all_the_means_byrep$group_exp_rep, "_", 6)[,5]
+
+exclude_b <- all_the_means_byrep[which(all_the_means_byrep$exp!='B'),]
+exclude_c <- all_the_means_byrep[which(all_the_means_byrep$exp!='C'),]
 
 print("Anovas from mean of A and B")
 res.aov2ab <- aov(name ~ exp, data = exclude_c[which(exclude_c$exp!='D'),])
@@ -465,6 +491,31 @@ ggplot(all_cor_exp) +
   scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
 
 
+ggplot(all_cor_exp) + 
+  #geom_point(size = 2) +
+  #geom_line(aes(generation, mean_newt_pheno_By_mean_snake_pheno, group=rep))+
+  geom_density(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno)*3,fill=factor(experiment)), alpha=0.4, position="identity")+
+  #geom_xsidehistogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity") +
+  geom_ysideboxplot(aes(x = experiment, y=mean_newt_pheno_By_mean_snake_pheno, fill=factor(experiment)), orientation = "x") +
+  scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
+
+#all_cor_exp$num_newts_By_num_snakes
+ggplot(all_cor_exp) + 
+  #geom_point(size = 2) +
+  geom_line(aes(generation, mean_newt_pheno_By_mean_snake_pheno, group=group_exp_rep, color=factor(experiment)), size = .1,alpha=0.4)+
+  #geom_density(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno)*3,fill=factor(experiment)), alpha=0.4, position="identity")+
+    geom_xsideline(aes(generation, num_newts_By_num_snakes, group=group_exp_rep, color=factor(experiment)), size = .1,alpha=0.4)+
+  geom_ysideboxplot(aes(x = experiment, y=mean_newt_pheno_By_mean_snake_pheno, fill=factor(experiment)), orientation = "x") +
+  scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
+
+
+ggplot(all_cor_exp) + 
+  #geom_point(size = 2) +
+  geom_line(aes(generation, num_newts_By_num_snakes, group=group_exp_rep, color=factor(experiment)), size = .1,alpha=0.4)+
+  #geom_density(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno)*3,fill=factor(experiment)), alpha=0.4, position="identity")+
+    geom_xsideline(aes(generation, num_newts_By_num_snakes, group=group_exp_rep, color=factor(experiment)), size = .1,alpha=0.4)+
+  geom_ysideboxplot(aes(x = experiment, y=mean_newt_pheno_By_mean_snake_pheno, fill=factor(experiment)), orientation = "x") +
+  scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
 ```
 
 
