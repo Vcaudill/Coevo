@@ -509,13 +509,7 @@ ggplot(all_cor_exp) +
   scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
 
 
-ggplot(all_cor_exp) + 
-  #geom_point(size = 2) +
-  geom_line(aes(generation, num_newts_By_num_snakes, group=group_exp_rep, color=factor(experiment)), size = .1,alpha=0.4)+
-  #geom_density(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno)*3,fill=factor(experiment)), alpha=0.4, position="identity")+
-    geom_xsideline(aes(generation, num_newts_By_num_snakes, group=group_exp_rep, color=factor(experiment)), size = .1,alpha=0.4)+
-  geom_ysideboxplot(aes(x = experiment, y=mean_newt_pheno_By_mean_snake_pheno, fill=factor(experiment)), orientation = "x") +
-  scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
+
 ```
 
 
