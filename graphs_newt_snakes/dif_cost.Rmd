@@ -1,0 +1,144 @@
+---
+title: "Different Cost"
+output: html_document
+date: '2022-10-06'
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library(knitr)
+library(kableExtra)
+library("reshape")
+library(ggplot2)
+library(ggpubr)
+theme_set(theme_pubr())
+library(stringr)
+library(patchwork)
+```
+
+## Goal:
+
+Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of correlation between rectangles and squares (in connection with GA1 tall). After fixing the row vs column error I looked at the correlation data and found that there was less correlation. So I decided to investigate why that might be and run a few more experiments. I am running an experiment to test how changing the square size might impact the calculations. I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). This file contains results discussed in Tall_GA1!
+
+### Questions:
+
+How does grid size impact the spatial correlation of newt and snake phenotypes?
+
+## Background
+
+ 
+
+## Experiment
+
+I created a simulation study to observe the co-evolutionary outcome of the newt-snake interaction with different genetic architectures (GAs) in a spatial setting. I hypothesized that we would see an interaction (co-evolutionary arms race) between newt and snake phenotype under some GA combinations when newts and snakes were evolving over geographical space. Each GA is paired with another GA creating 16 combinations.
+
+GA1 experiment values:
+
+- 1e-8*(0.005)^2 = 2.5e-13
+- 1e-9*(0.05)^2 = 2.5e-12
+- 1e-10*(0.5)^2 = 2.5e-11
+- 1e-11*(5.0)^2 = 2.5e-10
+
+Landscape: A tall map!: 35*4 H, 35 W 
+
+I tested different cost values:
+
+  - 50
+  - 100
+  - 150
+  - 200
+  - 250
+
+Each GA combination, trial, and cost has its own msprime simulation.
+
+### The data
+
+
+## Preping the data by making singular files
+
+```{bash, data file gathering}
+#!/usr/bin/env bash
+
+# Run these comands while in The the folder that contains the file you would like to condence
+# Goal is to condence all the text files into one file 
+# Requirements: need to have the same name and need to add additional columns
+thepath=/Users/victoria/Desktop/
+foldername=GA1_dif_costs
+thefolder=${thepath}${foldername}/*
+
+add_in_column=",rep,snake_mu_rate,snake_mu_effect_sd,newt_mu_rate,newt_mu_effect_sd,cost"
+
+lit_head_file=$(find ${thepath}${foldername} -name "*_lit_*" | head -n 1)
+lit_head=$(head -n 1 "${lit_head_file}")
+
+cor_head_file_2=$(find ${thepath}${foldername} -name "*_cor_*" | head -n 1)
+cor_head=$(head -n 1 "${cor_head_file}")
+
+grid_head_file_2=$(find ${thepath}${foldername} -name "*_grid_*" | head -n 1)
+grid_head=$(head -n 1 "${grid_head_file}")
+
+
+if [[ -f ${thepath}${foldername}/all_lit.txt ]] && [[ -f ${thepath}${foldername}/all_grid.txt ]] && [[ -f ${thepath}${foldername}/all_cor.txt ]]
+then
+  echo "All cor, lit, and grid files exist!"
+  echo "This program will now end!"
+  exit 0
+fi
+
+#creating the files
+echo ${lit_head}${add_in_column} > ${thepath}${foldername}/all_lit.txt
+echo ${grid_head}${add_in_column} > ${thepath}${foldername}/all_grid.txt
+echo ${cor_head}${add_in_column} > ${thepath}${foldername}/all_cor.txt
+
+
+for filename in $thefolder*.text;
+  do 
+#getting the variables 
+
+my_type=$(echo ${filename} |sed 's/.*GA205_//; s/_.*//')
+snake_mu_rate=$(echo ${filename} |sed 's/.*snake_mu_rate_//; s/_.*//')
+snake_mu_effect_sd=$(echo ${filename} |sed 's/.*snake_mu_effect_sd_//; s/_.*//')
+newt_mu_rate=$(echo ${filename} |sed 's/.*newt_mu_rate_//; s/_.*//')
+newt_mu_effect_sd=$(echo ${filename} |sed 's/.*newt_mu_effect_sd_//; s/_.*//')
+cost=$(echo ${filename} |sed 's/.*cost_//; s/_.*//')
+rep=$(echo ${filename} | sed "s/.*rep_//; s/_.*//")
+#echo ${newt_mu_rate}	
+# echo $my_type
+# echo $my_other_type
+# these new columns adding them to the data
+sed -i '' -e 's/$/,'${rep}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${snake_mu_effect_sd}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_rate}'/' $filename
+sed -i '' -e 's/$/,'${newt_mu_effect_sd}'/' $filename
+sed -i '' -e 's/$/,'${cost}'/' $filename
+#infile >outfile
+if [[ $my_type == "lit" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_lit.txt
+fi
+
+if [[ $my_type == "grid" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_grid.txt
+fi
+
+if [[ $my_type == "cor" ]]
+then
+    tail -n +2 -q $filename >> ${thepath}${foldername}/all_cor.txt
+fi
+
+done
+
+```

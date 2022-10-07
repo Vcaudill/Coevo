@@ -32,7 +32,7 @@ initialize() {
 	defineConstant("G", 1e8);  // genome length
 	defineConstant("FECUN", 1/(L)); // mean fecundity
 	defineConstant("RHO", FECUN/((1+FECUN) * K)); // constant in spatial competition function
-	defineConstant("interaction_rate", 0.95);  // how the interation curve is defined  
+	defineConstant("interaction_rate", 0.05);  // how the interation curve is defined  
 	defineConstant("PE", 0.1); //Positive effect snake gets when eating a newt
 	defineConstant("w", 10); //the width of the logistic curve, change in phyenotype at any state
 	defineConstant("c", 0.0); // is the mean change 2w or 3w 2*w
@@ -377,6 +377,9 @@ late(){
 	// to be ready for mate choice
 	i2.evaluate(p1);
 	i2.evaluate(p0);
+	
+	mapImage = Image("~/Desktop/gradent.png");
+         p1.defineSpatialMap("world", "xy", 1.0 - mapImage.floatK);
 
 }
 
