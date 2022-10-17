@@ -344,16 +344,16 @@ all_cor_grid$exp_group=paste0(all_cor_grid$experiment, "_", all_cor_grid$group)
 
 ```{r, cor box set up}
 
-boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen){
+boxplot_cors_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen, mycolor){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
-  unique(file$sim)
+  #unique(file$sim)
   plot <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ylim(-1.1, 1.1)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
   xlab(x_label) + ylab(y_label)+
-  geom_boxplot(aes(x=factor(rep), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), color = "CA"))+
+  geom_boxplot(aes(x=factor(rep), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno)), color = mycolor)+
   geom_hline(yintercept=real_snewt_cor, linetype="dashed")+
     geom_hline(yintercept=0, linetype="solid")+
   #geom_boxplot(aes(x=factor("CB"), y=as.numeric(num_newts_By_num_snakes), color = "CB"))+
@@ -1000,10 +1000,8 @@ generations
 ```{r, graphing by gen}
 trends_by_gen(GA1_lit_grid_file, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 50000, rep=1)
 
-
- 
-
 ```
+
 ```{r, whale}
 min_gen=5000
 max_gen=10000
@@ -1011,23 +1009,25 @@ rep=1
 
 whale_gen(GA1_lit_grid_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
 ```
+
 ```{r, combo myplots}
 
 
 ginmin = 10000
 ginmax = 15000
+thecolors=c("#F8766D", "#B79F00", "#00BA38", "#00BFC4", "#619CFF", "#F564E3")
 
-boxplot_cors_by_gen(GA1_cor_grid_2_file, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cors_by_gen(GA1_cor_grid_2_file, "Grid 2: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[1])
 
-boxplot_cors_by_gen(GA1_cor_grid_3_file, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cors_by_gen(GA1_cor_grid_3_file, "Grid 3: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[2])
 
-boxplot_cors_by_gen(GA1_cor_grid_4_file, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cors_by_gen(GA1_cor_grid_4_file, "Grid 4: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[3])
 
-boxplot_cors_by_gen(GA1_cor_grid_5_file, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cors_by_gen(GA1_cor_grid_5_file, "Grid 5: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[4])
 
-boxplot_cors_by_gen(GA1_cor_grid_6_file, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cors_by_gen(GA1_cor_grid_6_file, "Grid 6: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[5])
 
-boxplot_cors_by_gen(GA1_cor_grid_7_file, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cors_by_gen(GA1_cor_grid_7_file, "Grid 7: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[6])
 
 #four_types_boxplot_cors_by_gen(all_cor_grid, "Simulation four Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 
@@ -1043,7 +1043,7 @@ In order to understand how spatial correlations where changing with time I took 
 ```{r, GA1 cor by dif windows}
 ginmin = 0
 ginmax = 5000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ### Plot 2
@@ -1051,63 +1051,63 @@ boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real 
 ```{r, GA1 cor by dif windows 2}
 ginmin = 5000
 ginmax = 10000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ### Plot 3
 ```{r, GA1 cor by dif windows 3}
 ginmin = 10000
 ginmax = 15000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ### Plot 4
 ```{r, GA1 cor by dif windows 4}
 ginmin = 15000
 ginmax = 20000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ### Plot 5
 ```{r, GA1 cor by dif windows 5}
 ginmin = 20000
 ginmax = 25000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ### Plot 6
 ```{r, GA1 cor by dif windows 6}
 ginmin = 25000
 ginmax = 30000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ### Plot 7
 ```{r, GA1 cor by dif windows 7}
 ginmin = 30000
 ginmax = 35000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ### Plot 8
 ```{r, GA1 cor by dif windows 8}
 ginmin = 35000
 ginmax = 40000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ### Plot 9
 ```{r, GA1 cor by dif windows 9}
 ginmin = 40000
 ginmax = 45000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ### Plot 10
 ```{r, GA1 cor by dif windows 10}
 ginmin = 45000
 ginmax = 50000
-boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 ```
 
 ## {-}
