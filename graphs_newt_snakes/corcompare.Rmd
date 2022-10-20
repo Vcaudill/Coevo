@@ -280,7 +280,9 @@ t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_7_fi
 ```{r, distribuuution plots, fig.height = 11, fig.width = 5}
 
 
-  
+max_gen=5000
+min_gen=100
+
 dummy<-all_cor_exp %>%
   group_by(group_exp) %>%
   summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)

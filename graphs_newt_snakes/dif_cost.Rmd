@@ -855,7 +855,7 @@ generations
 ```{r, graphing by gen}
 
 
-trends_by_gen(GA1_lit_cost_file, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 50000, rep=0)
+trends_by_gen(GA1_lit_cost_file, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 30000, rep=0)
 
 ```
 
