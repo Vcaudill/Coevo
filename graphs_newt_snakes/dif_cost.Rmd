@@ -1285,7 +1285,7 @@ build_heatmap(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, fill_line="di
 
 ## {-}
 
-##Grid {.tabset}
+##Grid 
 
 
 
