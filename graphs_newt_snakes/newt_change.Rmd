@@ -743,7 +743,7 @@ newt$info <- "middle"
 newt$info[newt$location %in% c(0, row_num-1, col_num*row_num-1-row_num, col_num*row_num-1)] <- "corner"
 
 
-newt$info[newt$location %in% c(c(1:(row_num-2)), seq(row_num, (col_num*row_num-row_num-2), row_num), seq((col_num-1+col_num), (col_num*row_num-1-col_num-col_num), col_num),  c((col_num*row_num-row_num):(col_num*row_num-2)))]   <- "edge"
+newt$info[newt$location %in% c(c(1:(row_num-2)), seq(row_num, (col_num*row_num-row_num-2), row_num), seq((row_num-1+row_num), (col_num*row_num-1-row_num-row_num), row_num),  c((col_num*row_num-row_num):(col_num*row_num-2)))]   <- "edge"
 
 
 
@@ -1379,7 +1379,7 @@ col_num=5
 grid_plot(file_name, spegen, file, type, row_num, col_num)
 ```
 
-## Pop size
+### Pop size
 ```{r, cor grid high cor popsize late}
 
 file=newt_change_grid
