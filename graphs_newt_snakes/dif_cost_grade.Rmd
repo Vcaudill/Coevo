@@ -691,6 +691,78 @@ return(dif)
 
 #two_hist_death_all_rep(cost_grade_lit, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype (purple) & Snake-Newt Popsize/100 (green)",  min_gen=20000, max_gen=25000)
 
+grid_plot<- function(file_name, spegen, file, type, row_num, col_num){
+file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd,"_",file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
+
+GA1<-file[which(file$snake_newt_rep==file_name & file$generation==spegen),]
+GA1_type = paste0("generation|", type)  
+
+GA1_type = GA1[,grepl(GA1_type, names(GA1)) ]
+GA1_type <- GA1_type[-1]
+
+data_long_type_comp <- gather(GA1_type, condition, measurement, factor_key=TRUE)
+data_long_type_comp[,c("species","type", "type2","location")]<- str_split_fixed(data_long_type_comp$condition, "_", 4)
+
+data_long_type_comp$y_loc<- rep(sort(c(rep.int(row_num:1, 2)), decreasing = TRUE),col_num)
+
+data_long_type_comp$x_loc<- sort(rep.int(1:col_num, row_num*2))
+  
+main_plot<-ggplot(data_long_type_comp)+
+  
+  geom_point(data = data_long_type_comp[which(data_long_type_comp$species=="snake"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 6, shape = 22, ) +
+  geom_point(data = data_long_type_comp[which(data_long_type_comp$species=="newt"),], aes(x = x_loc, y = y_loc, fill = as.numeric(measurement)), size = 4, shape = 21, ) +
+  scale_fill_viridis_c()+
+  #ylim(0, row_num)+
+  #xlim(0, col_num)+
+  theme_bw()+
+  theme(legend.justification = "top")
+
+if(type != "num_ind"){
+main_plot<- main_plot + labs(title = paste0(str_to_title(type)," Phenotype of Locations"),
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Toxicity/Resistance")+
+ scale_fill_viridis_c()
+}
+if(type == "num_ind"){
+main_plot<- main_plot + labs(title = paste0(str_to_title(type)," Phenotype of Locations"),
+              subtitle = paste0(file_name, ", Generation: ", spegen),
+              fill = "Newt/Snake Phenotype")+
+scale_fill_viridis_c(option = "plasma")
+} 
+  
+
+snake<-data_long_type_comp[which(data_long_type_comp$species=="snake"),]
+newt<-data_long_type_comp[which(data_long_type_comp$species=="newt"),]
+newt$snake_value <- snake$measurement
+print(cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs"))
+
+newt$info <- "middle"
+newt$info[newt$location %in% c(0, col_num-1, col_num*row_num-1-col_num, col_num*row_num-1)] <- "corner"
+
+newt$info[newt$location %in% c(c(1:(col_num-2)), seq(col_num, (col_num*row_num-col_num-2), col_num), seq((col_num-1+col_num), (col_num*row_num-1-col_num-col_num), col_num),  c((col_num*row_num-col_num):(col_num*row_num-2)))]   <- "edge"
+
+
+
+
+extra_plot <- ggplot(newt)+
+  ggtitle("Mean Phenotype") +
+  xlab("Newt") + ylab("Snake")+
+  geom_point(aes(x = as.numeric(measurement), y = as.numeric(snake_value), color=info), size = 1 ) +
+  theme_bw()+
+   theme(text = element_text(size=10),title =element_text(size=8),
+         legend.text = element_text(size = 8),
+         legend.position ="bottom",
+         legend.key.size = unit(0.1, "lines"),
+         legend.title=element_blank())+
+  guides(shape = guide_legend(override.aes = list(size = 1)),
+         color = guide_legend(override.aes = list(size = 1)))
+
+
+
+final_plot <- main_plot +  inset_element(extra_plot, left = 1., bottom = -0.10, right = 1.35, top = 0.5)
+return(final_plot)}
+
+
 ```
 
 
@@ -1180,44 +1252,140 @@ build_heatmap(cost_grade_lit, min_gen=min_gen, max_gen=max_gen, fill_line="dif",
 
 ```{r, red in grid files}
 require(readr)
-cost_grade_grid<- read.csv("~/Desktop/GA1_dif_cost/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 9000, 10000))
+cost_grade_grid<- read.csv("~/Desktop/cost_grade/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 9000, 10000))
 cost_grade_grid$group_rep <- paste0(cost_grade_grid$snake_mu_rate, "_", cost_grade_grid$snake_mu_effect_sd,"_",cost_grade_grid$newt_mu_rate, "_", cost_grade_grid$newt_mu_effect_sd, "_", cost_grade_grid$rep)
 cost_grade_grid$group <- paste0(cost_grade_grid$snake_mu_rate, "_", cost_grade_grid$snake_mu_effect_sd,"_",cost_grade_grid$newt_mu_rate, "_", cost_grade_grid$newt_mu_effect_sd)
 cost_grade_grid$sim=LETTERS[factor(cost_grade_grid$group)]
 cost_grade_grid$grid_num = 5
 
-
-
 ```
 
 ## What is up with the correlations
 
-### Early Simulation Correlation {.tabset}
+## Early Simulation Correlation {.tabset}
 
 
-#### Mean 
+### Mean 
 ```{r, cor grid high cor mean}
 
 file=cost_grade_grid
-file_name="Snake_1e-11_5_Newt_1e-10_0.5_0"
+file_name="1e-11_5_1e-10_0.5_0"
 spegen=9501
 type="mean"
-row_num=200
-col_num=50
+row_num=20
+col_num=5
 
 grid_plot(file_name, spegen, file, type, row_num, col_num)
 ```
 
+### Max 
+```{r, cor grid high cor max}
+
+file=cost_grade_grid
+file_name="1e-11_5_1e-10_0.5_0"
+spegen=9501
+type="max"
+row_num=20
+col_num=5
+
+grid_plot(file_name, spegen, file, type, row_num, col_num)
+```
+
+### Min 
+```{r, cor grid high cor min}
+
+file=cost_grade_grid
+file_name="1e-11_5_1e-10_0.5_0"
+spegen=9501
+type="min"
+row_num=20
+col_num=5
+
+grid_plot(file_name, spegen, file, type, row_num, col_num)
+```
+
+### popsize
 ```{r, cor grid high cor popsize}
 
 file=cost_grade_grid
-file_name="Snake_1e-11_5_Newt_1e-10_0.5_0"
+file_name="1e-11_5_1e-10_0.5_0"
 spegen=9501
 type="num_ind"
-row_num=200
-col_num=50
+row_num=20
+col_num=5
 grid_plot(file_name, spegen, file, type, row_num, col_num)
 
 ```
 
-### {-}
+## {-}
+
+
+```{r, red in grid files 2}
+require(readr)
+cost_grade_grid<- read.csv("~/Desktop/cost_grade/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 40000, 50000))
+cost_grade_grid$group_rep <- paste0(cost_grade_grid$snake_mu_rate, "_", cost_grade_grid$snake_mu_effect_sd,"_",cost_grade_grid$newt_mu_rate, "_", cost_grade_grid$newt_mu_effect_sd, "_", cost_grade_grid$rep)
+cost_grade_grid$group <- paste0(cost_grade_grid$snake_mu_rate, "_", cost_grade_grid$snake_mu_effect_sd,"_",cost_grade_grid$newt_mu_rate, "_", cost_grade_grid$newt_mu_effect_sd)
+cost_grade_grid$sim=LETTERS[factor(cost_grade_grid$group)]
+cost_grade_grid$grid_num = 5
+
+```
+
+
+
+
+## Late Simulation Correlation {.tabset}
+
+
+### Mean 
+```{r, cor grid high cor mean late}
+
+file=cost_grade_grid
+file_name="1e-11_5_1e-10_0.5_0"
+spegen=44501
+type="mean"
+row_num=20
+col_num=5
+
+grid_plot(file_name, spegen, file, type, row_num, col_num)
+```
+
+### Max 
+```{r, cor grid high cor max late}
+
+file=cost_grade_grid
+file_name="1e-11_5_1e-10_0.5_0"
+spegen=44501
+type="max"
+row_num=20
+col_num=5
+
+grid_plot(file_name, spegen, file, type, row_num, col_num)
+```
+
+### Min 
+```{r, cor grid high cor min late}
+
+file=cost_grade_grid
+file_name="1e-11_5_1e-10_0.5_0"
+spegen=44501
+type="min"
+row_num=20
+col_num=5
+
+grid_plot(file_name, spegen, file, type, row_num, col_num)
+```
+
+## Pop size
+```{r, cor grid high cor popsize late}
+
+file=cost_grade_grid
+file_name="1e-11_5_1e-10_0.5_0"
+spegen=44501
+type="num_ind"
+row_num=20
+col_num=5
+grid_plot(file_name, spegen, file, type, row_num, col_num)
+
+```
+
+## {-}
