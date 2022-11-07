@@ -27,11 +27,19 @@ library(stringr)
 library(patchwork)
 ```
 
-In this markdown I would like to run my newts and snake simulation on a larger map. The prediction that is when I create a larger map there will be more opportunities for different areas to co-evolve, creating a mosaic pattern. The BIG map to be 100 times larger than the long map. The demotions would be; length=1,400 width=350. This would increase the amount of individuals and grid data-points in my simulations. 
+In this markdown I would like to run my newts and snake simulation on a larger map. The prediction that is when I create a larger map there will be more opportunities for different areas to co-evolve, creating a mosaic pattern. The BIG map to be 100 times larger (area wise) than the long map. The demotions would be; length=1,400 width=350. This would increase the amount of individuals and grid data-points in my simulations. 
 
-In my current simulations, there are about 6,000 individuals (combination of newts and snakes). If I increase the map's area by 100 I expect that the number of individuals would also increase by 100 (~600,000). To make these simulations work/run faster I will increase the starting population size to 2,500 per each species. I also plan on taking information from the simulations less often (e.g. taking information every 50 generations instead of 20) and for a shorter amount of time (e.g. from 50,000 generation to only 10,000 generations). 
+In my current simulations, there are about 6,000 individuals (combination of newts and snakes). If I increase the map's area by 100 I expect that the number of individuals would also increase by 100 (~600,000). To make these simulations work/run faster I will increase the starting population size to 2,500 per each species. I also plan on taking information from the simulations less often (e.g. taking information every 50 generations instead of 20) and for a shorter amount of time (e.g. from 50,000 generation to only 10,000 generations and 30,000 generations). 
 
-My previous simulations ran for 50,000 generations and took a day or less to run (msprime+slim). I will make some plots to see how long these larger simulations will take to run  
+My previous simulations ran for 50,000 generations and took a day or less to run (msprime+slim). I will make some plots to see how long these larger simulations will take to run.
+
+After running some of theses simulations, it takes about 3-7 days to run 10,000 generations and longer to run 30,000 generations. To make the simulations run faster I limit the amount of data I collect i.e. collecting data every 100 or 1,000 generations.
+
+Genetic architecture (GA) experiment values:
+
+1e-9*(0.05)^2 = 2.5e-12
+1e-10*(0.5)^2 = 2.5e-11
+1e-11*(5.0)^2 = 2.5e-10
 
 
 ```{bash, data file gathering}
@@ -634,8 +642,8 @@ two_hist <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
   
   file<-file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]
   
-  thepopmin <- min(file$Snake_pop_size-file$Newt_pop_size)/100 
-  thepopmax <- max(file$Snake_pop_size-file$Newt_pop_size)/100
+  thepopmin <- min(file$Snake_pop_size-file$Newt_pop_size)/1000 
+  thepopmax <- max(file$Snake_pop_size-file$Newt_pop_size)/1000
   thedifmin <- min(file$dif) 
   thedifmax <- max(file$dif)
   true_max <- max(abs(thepopmin), abs(thepopmax),abs(thedifmin), abs(thedifmax))
@@ -646,7 +654,7 @@ dif <- ggplot(file) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen, rep ",rep)) +
   xlab(x_label) + ylab(y_label)+
   geom_histogram(aes(x=dif, y=..count../data_points), fill="#8B008B",  alpha = 0.65)+
-  geom_histogram(aes(x=(Snake_pop_size-Newt_pop_size)/100, y=..count../data_points), fill="#008B00",  alpha = 0.65)+
+  geom_histogram(aes(x=(Snake_pop_size-Newt_pop_size)/1000, y=..count../data_points), fill="#008B00",  alpha = 0.65)+
   scale_y_continuous(labels = scales::percent)+
   xlim((-1*true_max)-1, true_max+1)+
   # y=as.numeric(Snake_pop_size-Newt_pop_size), color = snake_GA, shape = factor(newt_GA)
@@ -788,7 +796,7 @@ main_plot<- main_plot + labs(title = paste0(str_to_title(type)," Phenotype of Lo
 if(type == "num_ind"){
 main_plot<- main_plot + labs(title = paste0(str_to_title(type)," Phenotype of Locations"),
               subtitle = paste0(file_name, ", Generation: ", spegen),
-              fill = "Newt/Snake Phenotype                                                         ")+
+              fill = "Newt/Snake Popsize                                                         ")+
 scale_fill_viridis_c(option = "plasma")
 } 
   
@@ -799,10 +807,10 @@ newt$snake_value <- snake$measurement
 print(cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs"))
 
 newt$info <- "middle"
-newt$info[newt$location %in% c(0, col_num-1, col_num*row_num-1-col_num, col_num*row_num-1)] <- "corner"
+newt$info[newt$location %in% c(0, row_num-1, col_num*row_num-1-row_num, col_num*row_num-1)] <- "corner"
 
-newt$info[newt$location %in% c(c(1:(col_num-2)), seq(col_num, (col_num*row_num-col_num-2), col_num), seq((col_num-1+col_num), (col_num*row_num-1-col_num-col_num), col_num),  c((col_num*row_num-col_num):(col_num*row_num-2)))]   <- "edge"
 
+newt$info[newt$location %in% c(c(1:(row_num-2)), seq(row_num, (col_num*row_num-row_num-2), row_num), seq((row_num-1+row_num), (col_num*row_num-1-row_num-row_num), row_num),  c((col_num*row_num-row_num):(col_num*row_num-2)))]   <- "edge"
 
 
 
@@ -829,6 +837,10 @@ return(final_plot)}
 
 
 ### Phenotype differences 
+
+The first part of this report examines how the mean whole population newt and snake phenotype changes over time. Red line represents the newts while the blue line snake the snakes. The black line is the difference between snake ans newt mean phenotype. Newt and snake genetic architectures (GAs) are the same down the diagonal (top right to bottom left). As we move across the columns newt GA increases in mutational variance. As we move down the rows the mutational variance of snake GA increases. There are two simulations shown in each of theses figures one ends at 10,000 generations and the other ends at 30,000 generations. They each have their own msprime file (there are slightly different starting levels of genetic variation).
+
+
 ```{r, graphing by gen}
 trends_by_gen(big_map_tall, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 50000, rep=1)
 
@@ -840,7 +852,11 @@ aggregate(big_map_tall[which(big_map_tall$generation>=100 & big_map_tall$generat
 ```
 
 
+These results show that the mean phenotype of newts and snakes follow similar patterns under the specific genetic architecture combinations (blue and red lines in each fig follow similar paths). In most cases it seems that the mean newt and snake phenotype increases over time. It seems  like it takes more than 10,000 generations for most of these simulations to reach a constant mean phenotype. Most of the simulations reach a steady mean phenotype by 30,000 generations. Overall, the mean phenotypes of the big maps are very similar to the mean phenotype of the smaller maps.
+
 ## Connection between higher phenotype and population (5 sec) {.tabset}
+
+In the smaller maps with the same GA combinations there was a link between population size and average phenotype differences (snake - newt mean phenotype). When the snake population size was large the snakes had a higher phenotype. When newts had a larger phenotype, newts also had a larger population size.
 
 ### Phenotype differences
 ```{r, whale}
@@ -850,6 +866,7 @@ rep=1
 
 whale_gen(big_map_tall, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
 ```
+
 
 ### Phenotype & Populationsize differences 
 ```{r, popsize and pheno}
@@ -861,7 +878,13 @@ suppressMessages(print(two_hist(big_map_tall, title="Snake-Newt Winning Hist", s
 
 ## {-}
 
-### correlation
+In these figures the average population size of newts and snakes were about 33,000. The difference in population size ranged from 0 to 20,000. The mean phenotype of newts and snakes were close, but newts seem to have a phenotype advantage in most of the GA combinations. When snakes had a GA with few mutations of large effect, their mean phenotype was larger then the newts mean phenotype.
+
+
+### Correlation
+
+The next section examines the spatial correlation of the local mean phenotypes of snakes and newts. We predicted that in areas where newts phenotypes were large snakes phenotype would also be large. In areas where newt phenotype was small we predicted that snake phenotype would also be small. The prediction would result in a strong positive spatial correlation between newt and snake local phenotypes. I first present the spatial phenotype correlation for the entire simulation. The dashed line in the empirical newt-snake spatial correlation result. Each box plot represents one simulation trial. Trial 0 is the simulation that ran to 10,000 generations and trial 1 is the simulation that ran to 30,000 generations. (I ran things longer to see if the spatial phenotype correlation would improve with time).
+
 ```{r, combo myplots}
 
 ginmin = 100
@@ -872,10 +895,11 @@ boxplot_cors_by_gen(big_map_cor, "Simulation Correlation Comparied to Real Corre
 
 ```
 
+These results show that the spatial correlation between newt and snake phenotypes is slightly positive. It is nowhere near the empirical newt-snake spatial correlation results. Increasing the time had little to no effect on the spatial correlation. Increasing the size of the simulation did not increase the spatial correlation that is scene in real newts and snake phenotypes.
 
 ## Correlation across time {.tabset}
 
-Next, we will examine three randomly chosen plots from both the 5 section and 7 section experiment. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis. Newt whole population mean phenotype is red, while snake mean phenotype is blue. The pink line is the phenotype spatial correlation.  
+Next, we will examine three randomly chosen plots from this experiment. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis. Newt whole population mean phenotype is red, while snake mean phenotype is blue. The pink line is the phenotype spatial correlation.  
 
 
 ### Random 1 
@@ -903,12 +927,15 @@ cor_trends_by_gen(big_map_tall, big_map_cor, "test", "GA1", "newt/snake GAs&rep"
 
 ## {-}
 
+
+Mean newt and snake phenotypes can either go up, go down, or stay constant near zero. Sometimes the mean phenotypes go down together, other times they both go up. Occasionally, one species phenotype goes up while the other species phenotype stays constant. In all of these cases the spatial correlation does not seem to change.    
+
 ## Summary {.tabset}
 
-In the summary section, I try to come up with a way to show how different GA combinations can change the simulations results. In all of these plots snakes GA is represented by color and newt GA is represented by shape. There 16 color-shape combinations (with 4 repeats for trials). There are four sets of plots: 1) newt by snake population size, 2) phenotype difference by snake population size, 3) phenotype difference by snake GA, and 4) phenotype difference by newt GA. There are three figures in each set, taken at the begging, middle, and end time chunks. These are whole population calculations so the 5 section and 7 section data sets are not calculated differently. 
+In the summary section, I try to come up with a way to show how different GA combinations can change the simulations results. In all of these plots snakes GA is represented by color and newt GA is represented by shape. There 16 color-shape combinations (with 4 repeats for trials). There are four sets of plots: 1) newt by snake population size, 2) phenotype difference by snake population size, 3) phenotype difference by snake GA, and 4) phenotype difference by newt GA. 
 
 
-### Early-Sim Population Size Summary 
+### Population Size Summary 
 
 ```{r, early plots summary}
 
@@ -919,7 +946,7 @@ GA_summary(big_map_tall, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size
 
 
 
-### Early Difference Summary
+###  Difference Summary
 ```{r, dif plots summary 1}
 
 min_gen=100
@@ -953,8 +980,12 @@ GA_summary_by_species(big_map_tall, min_gen=min_gen, max_gen=max_gen, x_line="di
 
 ## {-}
 
+
+Most of the summarized simulation results seem to be the same for the different length trials. There is a slight color and shape patterns. Regardless of the newt GA the best Snake GA was 1e-10_0.5 (green) and the worst was 1e-11_5.0 (blue).  Regardless of the snake GA the best Newt GA was 1e-10_0.5 (triangle) and the worst was 1e-11_5.0 (square). The species that had the GA of 1e-11_5.0 typically did poorly. It was difficult for me to see a clear "winner" when the GA of newts and snakes were the same.  
+
 ## Heatmap {.tabset}
 
+The heat map represents the summarized results of the previous section in a different format. There are two heat maps, 1) shows the snakes population size and 2) shows the difference in mean phenotype. In plot 1 when the snakes have a larger population size the color of the box will be more yellow and when the snakes have a lower population size the box will be more purple. In plot 2 id newts have a higher phenotype the box will be more red and when snakes have a larger phenotype the box will be more blue. Again trial 0 is the simulation that only ran tell 10,000 generations and trial 1 ran to 30,000 generations.  
 
 ### Population Size 
 
@@ -977,10 +1008,11 @@ build_heatmap(big_map_tall, min_gen=min_gen, max_gen=max_gen, fill_line="dif", f
 
 ## {-}
 
+Overall, these results show that when a species has a GA of 1e-11_5.0 they typically has a lower phenotype and population size. From these figures it seems like newts have more of advantage in most of the GA combinations (2/3 snake population size and phenotype are low).
 
 ## What is up with the correlations
 
-
+In this last section I show the local mean phenotype and population size of newts (circles) and snakes (square). In the mean phenotype plot, the more resistant or toxic a snake or newt is the more yellow the square or circle. In the population size plot, the larger a local population is the more bright/yellow the circle or square is. There is a small sub plot showing the individual newt and snake values (phenotype or population size) colored by location in the artificial map. It is difficult to see the squares in these plots, but overall I see no patterns of clustering.
 
 
 #### Mean 
