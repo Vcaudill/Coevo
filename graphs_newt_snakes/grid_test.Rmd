@@ -29,16 +29,16 @@ library(patchwork)
 
 ## Goal:
 
-Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of correlation between rectangles and squares (in connection with GA1 tall). After fixing the row vs column error I looked at the correlation data and found that there was less correlation. So I decided to investigate why that might be and run a few more experiments. I am running an experiment to test how changing the square size might impact the calculations. I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). This file contains results discussed in Tall_GA1!
+Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of correlation between different sizes of rectangles (in connection with GA1 tall). After fixing the row vs column error I looked at the correlation data and found that there was less correlation. To investigate why the correlation changed, I ran a few more experiments, testing how changing the area of local adaptation (the square size) might impact the spatial phenotype correlation calculations. This file contains results discussed in Tall_GA1!
+
+Future experiment: Changing the interaction rate. 
 
 ### Questions:
 
-How does grid size impact the spatial correlation of newt and snake phenotypes?
+How does grid size (area of local adaption) impact the spatial correlation of newt and snake phenotypes?
 
-## Background
-
+Prediction: There would be an optimum size of a grid, that captured a good amount of information. For example, a grid that was too large would contain to much information that was averaged over. A grid that was too small would not have enough individuals to make a meaningful calculation.
  
-
 ## Experiment
 
 I created a simulation study to observe the co-evolutionary outcome of the newt-snake interaction with different genetic architectures (GAs) in a spatial setting. I hypothesized that we would see an interaction (co-evolutionary arms race) between newt and snake phenotype under some GA combinations when newts and snakes were evolving over geographical space. Each GA is paired with another GA creating 16 combinations.
@@ -52,7 +52,7 @@ GA1 experiment values:
 
 Landscape: A tall map!: 35*4 H, 35 W 
 
-I tested grid sizes for my tall landscape:
+I tested grid sizes for my tall landscape (all grids were square shaped):
 
 - grid 2X8, area 306.25 (approx)
 - grid 3X12, area 136.11 (approx)
@@ -61,12 +61,12 @@ I tested grid sizes for my tall landscape:
 - grid 6X24, area 34.02 (approx)
 - grid 7X28, area 25 (approx)
 
-Each GA combination and trial has its own msprime simulation, but the msprime file is shared between the 5 section and 7 section slim runs.
 
-### The data
+## The data
 
+I ran 4 trials per GA combination. Each simulation collected whole population information, phenotype and population spatial correlations and local (grid) information. There are different spatial correlation and grid calculations for the different grid sizes (2-7). Each of these cancellations were done within a signal simulation so that comparison between grid sizes would be simplified. Each GA combination and trial has its own msprime simulation.
 
-## Preping the data by making singular files
+ 
 
 ```{bash, data file gathering}
 #!/usr/bin/env bash
@@ -243,7 +243,8 @@ done
 
 
 
-## Loading in/ Combining the files to compare different grid sizes
+## Phenotype differences
+This section examines how the whole population mean newt and snake phenotype changes over time. Red line represents the newts mean phenotype, while the blue line snake the snakes mean phenotype. The black line is the difference between snake ans newt mean phenotype. Newt and snake genetic architectures (GAs) are the same down the diagonal (top right to bottom left). As we move across the columns newt GA increases in mutational variance. As we move down the rows the mutational variance of snake GA increases. There are four simulations shown in each of theses figures.
 
 ```{r, loading in the data}
 
@@ -968,11 +969,10 @@ newt$snake_value <- snake$measurement
 print(cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs"))
 
 newt$info <- "middle"
-newt$info[newt$location %in% c(0, col_num-1, col_num*row_num-1-col_num, col_num*row_num-1)] <- "corner"
-
-newt$info[newt$location %in% c(c(1:(col_num-2)), seq(col_num, (col_num*row_num-col_num-2), col_num), seq((col_num-1+col_num), (col_num*row_num-1-col_num-col_num), col_num),  c((col_num*row_num-col_num):(col_num*row_num-2)))]   <- "edge"
 
 
+newt$info[newt$location %in% c(c(1:(row_num-2)), seq(row_num, (col_num*row_num-(row_num-2)), row_num), seq((row_num-1+row_num), (col_num*row_num-1-(row_num-row_num)), row_num),  c((col_num*row_num-row_num):(col_num*row_num-2)))]<- "edge"
+newt$info[newt$location %in% c(0, row_num-1, col_num*row_num-1-row_num, col_num*row_num-1)] <- "corner"
 
 
 extra_plot <- ggplot(newt)+
@@ -996,11 +996,19 @@ return(final_plot)}
 
 ```
 
-generations
+
 ```{r, graphing by gen}
 trends_by_gen(GA1_lit_grid_file, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 50000, rep=1)
 
 ```
+
+
+The mean phenotype of newts and snakes follow similar patterns under the specific genetic architecture combinations (blue and red lines in each fig follow similar paths). In most cases it seems that the mean newt and snake phenotype increases over time. Most of the simulations reach a steady mean phenotype by 30,000 generations. When the mutational variance is low (first row for snakes and first column for newts) convolution does not see to be occurring. The mean phenotypes of newts and snakes are not symmetrical across the diagonal. This could indicate that there are different selection pressures for the newts and snakes. 
+
+## Connection between higher phenotype and population (5 sec)
+
+In some of my previous experiments there is a link between population size and average phenotype differences (snake - newt mean phenotype). When the snake population size was large the snakes had a higher phenotype. When newts had a larger phenotype, newts also had a larger population size. I present this plot again to confirm that it is still occurring (nothing unusual seen here).
+
 
 ```{r, whale}
 min_gen=5000
@@ -1010,34 +1018,52 @@ rep=1
 whale_gen(GA1_lit_grid_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
 ```
 
+## Correlation {.tabset}
+The next section examines the spatial correlation of the local mean phenotypes of snakes and newts. We predicted that in areas where newts phenotypes were large snakes phenotype would also be large. In areas where newt phenotype was small we predicted that snake phenotype would also be small. The prediction would result in a strong positive spatial correlation between newt and snake local phenotypes. I first present the spatial phenotype correlation for the entire simulation. The dashed line in the empirical newt-snake spatial correlation result. Each box plot represents one simulation trial. Trial 0 is the simulation that ran to 10,000 generations and trial 1 is the simulation that ran to 30,000 generations. (I ran things longer to see if the spatial phenotype correlation would improve with time).
+
+### 2 Grid
 ```{r, combo myplots}
 
 
 ginmin = 10000
 ginmax = 15000
 thecolors=c("#F8766D", "#B79F00", "#00BA38", "#00BFC4", "#619CFF", "#F564E3")
-
 boxplot_cors_by_gen(GA1_cor_grid_2_file, "Grid 2: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[1])
-
-boxplot_cors_by_gen(GA1_cor_grid_3_file, "Grid 3: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[2])
-
-boxplot_cors_by_gen(GA1_cor_grid_4_file, "Grid 4: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[3])
-
-boxplot_cors_by_gen(GA1_cor_grid_5_file, "Grid 5: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[4])
-
-boxplot_cors_by_gen(GA1_cor_grid_6_file, "Grid 6: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[5])
-
-boxplot_cors_by_gen(GA1_cor_grid_7_file, "Grid 7: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[6])
-
-#four_types_boxplot_cors_by_gen(all_cor_grid, "Simulation four Correlation", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
-
-
 ```
 
 
-## Correlation Histograms  {.tabset}
+### 3 Grid
+```{r, combo myplots 3}
+boxplot_cors_by_gen(GA1_cor_grid_3_file, "Grid 3: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[2])
+```
 
-In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at all four trials correlation values. Each color is a different trial per GA combination. The histogram values are stacked. This section only looks at the 5 sections.
+### 4 Grid
+```{r, combo myplots 4}
+boxplot_cors_by_gen(GA1_cor_grid_4_file, "Grid 4: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[3])
+```
+
+### 5 Grid
+```{r, combo myplots5}
+boxplot_cors_by_gen(GA1_cor_grid_5_file, "Grid 5: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[4])
+```
+
+### 6 Grid
+```{r, combo myplots 6}
+boxplot_cors_by_gen(GA1_cor_grid_6_file, "Grid 6: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[5])
+```
+
+### 7 Grid
+```{r, combo myplots 7}
+boxplot_cors_by_gen(GA1_cor_grid_7_file, "Grid 7: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax, mycolor=thecolors[6])
+```
+
+## {-}
+
+It is difficult to tell what is happening as I decrease the size of the grids, but I think that some of the spatial correlations are getting closer to zero (less positive and less negative).
+
+## Correlation In Time Chunks  {.tabset}
+
+In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at the correlation values for all four trials. Each color is a different grid size and contains information from all four trials. 
 
 ### Plot 1
 ```{r, GA1 cor by dif windows}
@@ -1112,13 +1138,14 @@ boxplot_cor_grid_by_gen(all_cor_grid, "Simulation Correlation By Grid Number Com
 
 ## {-}
 
+From this figure set, is clear to see that the smaller the grid size the less variance across simulations and the closer the result is to 0. Oddly, there seems to be some arc patterns when the GA has minimal variance (first row and first column). This section leads me to conclude that grid sizes 2 and 3 are too large and grid sizes 6 and 7 are too small.
 
 ## Phenotype Correlation across time {.tabset}
 
-Next, we will examine three randomly chosen plots from both the 5 section and 7 section experiment. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis. Newt whole population mean phenotype is red, while snake mean phenotype is blue. The pink line is the phenotype spatial correlation.  
+Next, we will examine three randomly chosen plots from this experiment. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis. Newt whole population mean phenotype is red, while snake mean phenotype is blue. The different color lines are the phenotype spatial correlation colored by grid size. Color from largest grid to smallest grid: red, yellow, green, light blue, dark blue, and pink. 
 
 
-### Random 1 (5 sec)
+### Random 1 
 ```{r, GA1 cor and pheno}
 GA1_pattern <- unique(paste0(GA1_lit_grid_file$snake_mu_rate, "_", GA1_lit_grid_file$snake_mu_effect_sd,"_",GA1_lit_grid_file$newt_mu_rate, "_", GA1_lit_grid_file$newt_mu_effect_sd, "_", GA1_lit_grid_file$rep))
 
@@ -1129,13 +1156,13 @@ cor_trends_by_gen(GA1_lit_grid_file, all_cor_grid, "test", "GA1", "newt/snake GA
 
 ```
 
-### Random 2 (5 sec)
+### Random 2 
 ```{r, random cor-pheno plot 2}
 
 cor_trends_by_gen(GA1_lit_grid_file, all_cor_grid, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[2]])
 ```
 
-### Random 3 (5 sec)
+### Random 3 
 ```{r, random cor-pheno plot 3}
 
 cor_trends_by_gen(GA1_lit_grid_file, all_cor_grid, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[3]])
@@ -1143,11 +1170,11 @@ cor_trends_by_gen(GA1_lit_grid_file, all_cor_grid, "test", "GA1", "newt/snake GA
 
 ## {-}
 
-
+Mean newt and snake phenotypes can either go up, go down, or stay constant near zero. Sometimes the mean phenotypes go down together, other times they both go up. Occasionally, one species phenotype goes up while the other species phenotype stays constant. In all of these cases the spatial correlation is the most extreme when the grid size is large and close to 0 when the grid size is small.
 
 ## Population Size Correlation across time {.tabset}
 
-
+Next, we will examine the population sized of the three randomly chosen simulations (same simulations from above). Time (in generations) in on the x-axis and both mean population size and population size spatial correlation in on the y-axis. Newt population size is red, while snake phenotype size is blue. The different color lines are the popualtion size spatial correlation colored by grid size. Color from largest grid to smallest grid: red, yellow, green, light blue, dark blue, and pink. 
 
 ### Random 1 
 ```{r, GA1 pop size 1}
@@ -1168,6 +1195,8 @@ pop_size_trends_by_gen(GA1_lit_grid_file, all_cor_grid, "test", "GA1", "newt/sna
 ```
 
 ## {-}
+
+Newt and snake population size intentionally goes up, then can stay constant or increase/decrease with time. In all of these cases the spatial correlation is the most extreme when the grid size is large and closer to 0 when the grid size is small. The correlation between newt and snake population size is always positive. Its gets smaller as the number of grids increases (grid size gets smaller) due to the way slim is not taking the smaller edge/corner areas when calculating the correlation (easy to see in the grid figs).
 
 
 ```{r, red in grid files}
@@ -1213,6 +1242,9 @@ GA1_grid_grid_7_file$grid_num = 7
 
 ## Grid Figs {.tabset}
 
+In this last section I show the local mean phenotype and population size of newts (circles) and snakes (square) for the different grid sizes. In the mean phenotype plot, the more resistant or toxic a snake or newt is the more yellow the square or circle. In the population size plot, the larger a local population is the more bright/yellow the circle or square is. There is a small sub plot showing the individual newt and snake values (phenotype or population size) colored by location in the artificial map. 
+
+Overall: As the number of grids increase the spatial correlation (both phenotype and population size) gets closer to zero. I do not understand why there is no positive phenotype correlation in these plots and I also do not entirely understand why the correlation gets closer to zero. I do understand why the correlation gets smaller in the population grid plots, it is due to the edge calculations (seen in the sub plots).
 
 ### 2 
 ```{r, cor grid 2 high cor mean}
@@ -1293,6 +1325,10 @@ row_num=col_num*4
 
 grid_plot(file_name, spegen, file, type, row_num, col_num)
 ```
+
+## {-}
+
+## {.tabset}
 
 ### 2 Pop Size
 ```{r, cor grid 2 popsize}
