@@ -29,19 +29,17 @@ library(patchwork)
 
 ## Goal:
 
-Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of correlation between rectangles and squares (in connection with GA1 tall). After fixing the row vs column error I looked at the correlation data and found that there was less correlation. So I decided to investigate why that might be and run a few more experiments. I am running an experiment to test how changing the square size might impact the calculations. I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). This file contains results discussed in Tall_GA1!
+Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of phenotype spatial correlation values.  I am running an experiment to test how changing the cost of a phenotype might impact these calculations. I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). 
 
 ### Questions:
 
 How does cost size impact the spatial correlation of newt and snake phenotypes?
 
-## Background
-
- 
-
 ## Experiment
 
-I created a simulation study to observe the co-evolutionary outcome of the newt-snake interaction with different genetic architectures (GAs) in a spatial setting. I hypothesized that we would see an interaction (co-evolutionary arms race) between newt and snake phenotype under some GA combinations when newts and snakes were evolving over geographical space. Each GA is paired with another GA creating 16 combinations.
+I created a simulation study to observe the co-evolutionary outcome of the newt-snake interaction with different genetic architectures (GAs) in a spatial setting. 
+
+Landscape: A tall map!: 35*4 H, 35 W 
 
 GA1 experiment values:
 
@@ -50,7 +48,6 @@ GA1 experiment values:
 - 1e-10*(0.5)^2 = 2.5e-11
 - 1e-11*(5.0)^2 = 2.5e-10
 
-Landscape: A tall map!: 35*4 H, 35 W 
 
 I tested different cost values:
 
@@ -60,12 +57,11 @@ I tested different cost values:
   - 200
   - 250
 
-Each GA combination, trial, and cost has its own msprime simulation.
+The higher a cost value the less impacting on the phenotype it is.
 
-### The data
+Each GA combination, trial, and cost has its own msprime simulation. There is only 1 trial per cost value.
 
 
-## Preping the data by making singular files
 
 ```{bash, data file gathering}
 #!/usr/bin/env bash
@@ -317,6 +313,8 @@ cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_
  # pattern="1e-11_5_1e-11_5_0"
  # pattern="1e-11_5_1e-11_5_0"  
  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
+ last_point=file[ which(file$generation==max(file$generation) & file$snake_newt_rep==pattern),]
+  
   cfile$snake_newt_rep <- paste0(cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$rep)
   
   plot_1 <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
@@ -324,12 +322,18 @@ cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_
     ggtitle(title, subtitle = paste0(subt," pattern ", pattern, " From ", min_gen, " gen to ", max_gen, " gen"))+
     geom_line(aes(generation, Snake_mean_Pheno, group=cost, color="Snake_mean_Pheno"),)+
     geom_line(aes(generation, Newt_mean_Pheno, group=cost, color="Newt_mean_Pheno"))+
+    geom_point(data=last_point, aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno", shape=factor(cost)))+ 
+
+    geom_point(data=last_point, aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno", shape=factor(cost)))+ 
     #ylim(0,10)+
     #xlab(x_label) + ylab(y_label)+
     scale_color_manual(name = "Type",
 values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred"),
-labels = c("Snake", "Newt"))+
-    theme_bw() +theme(legend.position="none",
+labels = c("Snake", "Newt"),
+guide = "none")+
+    theme_bw() +theme(legend.position="right",
+                      legend.title=element_text(size=7), 
+                      legend.text=element_text(size=6),
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_blank(),
@@ -339,7 +343,9 @@ cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$s
     #ggtitle(title, subtitle = subt) +
     ylim(-1.1, 1.1)+
     #xlab(x_label_cor) + ylab(y_label)+
-    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="right",
+                      legend.title=element_text(size=7), 
+                      legend.text=element_text(size=6),
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank(),
@@ -357,6 +363,8 @@ pop_size_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_co
  # pattern="1e-11_5_1e-11_5_0"
  # pattern="1e-11_5_1e-11_5_0"  
  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
+  last_point=file[ which(file$generation==max(file$generation) & file$snake_newt_rep==pattern),]
+
   cfile$snake_newt_rep <- paste0(cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$rep)
   
   plot_1 <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
@@ -364,12 +372,18 @@ pop_size_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_co
     ggtitle(title, subtitle = paste0(subt," pattern ", pattern, " From ", min_gen, " gen to ", max_gen, " gen"))+
     geom_line(aes(generation, Snake_pop_size, group=cost, color="Snake"),)+
     geom_line(aes(generation, Newt_pop_size, group=cost, color="Newt"))+
+    geom_point(data=last_point, aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno", shape=factor(cost)))+ 
+
+    geom_point(data=last_point, aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno", shape=factor(cost)))+
     #ylim(0,10)+
     #xlab(x_label) + ylab(y_label)+
     scale_color_manual(name = "Type",
 values = c( "Snake" = "steelblue", "Newt" = "darkred"),
-labels = c("Snake", "Newt"))+
-    theme_bw() +theme(legend.position="none",
+labels = c("Snake", "Newt"),
+guide = "none")+
+    theme_bw() +theme(legend.position="right",
+                      legend.title=element_text(size=7), 
+                      legend.text=element_text(size=6),
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_blank(),
@@ -379,7 +393,9 @@ cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$s
     #ggtitle(title, subtitle = subt) +
     ylim(-1.1, 1.1)+
     #xlab(x_label_cor) + ylab(y_label)+
-    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="right",
+                      legend.title=element_text(size=7), 
+                      legend.text=element_text(size=6),
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank(),
@@ -511,9 +527,13 @@ trends_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen,
  file$generation<-as.numeric(file$generation)
  file$Snake_mean_Pheno<-as.numeric(file$Snake_mean_Pheno)
  file$Newt_mean_Pheno<-as.numeric(file$Newt_mean_Pheno)
+ last_point=file[ which(file$generation==max(file$generation)),]
   plot <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen),]) +
     facet_wrap(~sim)+
     geom_line(aes(generation, as.numeric(dif), group=cost, col="dif"))+
+    geom_point(data=last_point, aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno", shape=factor(cost)))+ #, shape=cost, col="dif"
+
+    geom_point(data=last_point, aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno", shape=factor(cost)))+ #, shape=cost, col="dif"
     #ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
     geom_line(aes(generation, Snake_mean_Pheno, group=cost, color="Snake_mean_Pheno"),)+
     geom_line(aes(generation, Newt_mean_Pheno, group=cost, color="Newt_mean_Pheno"))+
@@ -523,7 +543,7 @@ trends_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen,
     scale_color_manual(name = "Type",
 values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
 labels = c("Snake", "Newt", "Dif"))+
-    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="right",
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank())
@@ -849,8 +869,8 @@ return(final_plot)}
 ```
 
 
+## Mean Newt and Snke Phenotype by Generation
 
-generations
 
 ```{r, graphing by gen}
 
