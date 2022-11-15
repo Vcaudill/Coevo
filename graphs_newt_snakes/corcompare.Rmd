@@ -1,5 +1,5 @@
 ---
-title: "Cor Compare"
+title: "Corilation Compare!"
 output: html_document
 date: '2022-08-26'
 ---
@@ -23,9 +23,9 @@ library(dplyr)
 library(ggside)
 ```
 
-## Corilation Compare!
+## Background
 
-I have run four separate experiments and now I will compare their different correlations to see if I can tell the difference between each of the four experiments.
+I have run four separate experiments and now I will compare their different phenotype spatial correlations to see if I can tell the difference between each of the four experiments.
 
 Experiments:
 
@@ -34,12 +34,12 @@ Experiments:
 - [C] tall map with 5 sections no heritability
 - [D] tall map with 5 sections no interaction
 
-I am investigating the correlation calculations. I predicted that though co-evolution (interaction & evolution) species' phenotypes would become spatially correlated. I saw some very high correlations (around 0.5) in some of these simulations. To see if there is a difference between the correlations in my experiment I will create some comparative histograms.
+I am investigating the spatial phenotype correlation calculations. I predicted that though co-evolution (interaction & evolution) species' phenotypes would become spatially correlated. I saw some very high correlations (around 0.5) in some of these simulations. To see if there is a difference between the correlations in my experiment I will create some comparative histograms.
 
 Predictions:
 
--  5 sections & 7 sections will have *similar* correlation distributions
-- no heritability & no interaction correlation distributions will look *very different* from 5 sections & 7 sections
+-  5 sections & 7 sections will have **similar** correlation distributions
+- no heritability & no interaction correlation distributions will look **very different** from 5 sections & 7 sections
 
 
 ```{r, loading in the data}
@@ -173,15 +173,23 @@ counting_threshold <- function(file, treshold, whichgroup, p_n_b, min_gen, max_g
 
 ## Comparing the Mean
 
+First, I will try comparing the mean spatial correlations between the different experiments. Now within these four experiments, there are 16 GA combinations, which can have an effect on spatial phenotype correlation. Because each of these experiments contain the same GA combinations and the same amount of trials, it should be okay to compare them. 
 
+Note: Some of the simulations had fewer data points (data collected every 20 generations instead of 10). To account for fewer data points in some of the simulations, I cut about half of the data (everything had matching generations).
+
+Here are the mean spatial phenotype correlation values:
 
 ```{r, looking at the mean}
 
 all_cor_exp %>%
   group_by(experiment) %>%
   summarise_at(vars(mean_newt_pheno_By_mean_snake_pheno), list(name = mean), na.rm = TRUE)
+```
 
-print("One mean per GA")
+I ran some anovas to compare the spatial correlations between the different experiments. First, I got one mean per GA combination. So all four trials were combined to create one spatial correlation mean.
+
+```{r, mean anovas}
+#print("One mean per GA")
 
 all_the_means = all_cor_exp %>%
   group_by(group_exp) %>%
@@ -189,24 +197,45 @@ all_the_means = all_cor_exp %>%
 
 all_the_means$exp <- str_split_fixed(all_the_means$group_exp, "5_", 3)[,3]
 
+exclude_a <- all_the_means[which(all_the_means$exp!='A'),]
 exclude_b <- all_the_means[which(all_the_means$exp!='B'),]
 exclude_c <- all_the_means[which(all_the_means$exp!='C'),]
 
-print("Anovas from mean of A and B")
+#print("Anovas from mean of A and B")
 res.aov2ab <- aov(name ~ exp, data = exclude_c[which(exclude_c$exp!='D'),])
-summary(res.aov2ab)
-print("Anovas from mean of A and C")
+MYaov2ab = unlist(summary(res.aov2ab))
+print(paste0("Anovas from mean of A and B, F value: ", MYaov2ab[7], " Pr(>F) value: ",MYaov2ab[9]))
+
+#print("Anovas from mean of A and C")
 res.aov2ac <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='D'),])
-summary(res.aov2ac)
-print("Anovas from mean of A and D")
+MYaov2ac <- unlist(summary(res.aov2ac))
+print(paste0("Anovas from mean of A and C, F value: ", MYaov2ac[7], " Pr(>F) value: ",MYaov2ac[9]))
+
+#print("Anovas from mean of B and C")
+res.aov2bc <- aov(name ~ exp, data = exclude_a[which(exclude_a$exp!='D'),])
+MYaov2bc <- unlist(summary(res.aov2bc))
+print(paste0("Anovas from mean of B and C, F value: ", MYaov2bc[7], " Pr(>F) value: ",MYaov2bc[9]))
+
+#print("Anovas from mean of A and D")
 res.aov2ad <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='C'),])
-summary(res.aov2ad)
-print("Anovas from mean of C and D")
+MYaov2ad <- unlist(summary(res.aov2ad))
+print(paste0("Anovas from mean of A and D, F value: ", MYaov2ad[7], " Pr(>F) value: ",MYaov2ad[9]))
+
+#print("Anovas from mean of B and D")
+res.aov2bd <- aov(name ~ exp, data = exclude_a[which(exclude_a$exp!='C'),])
+MYaov2bd <- unlist(summary(res.aov2bd))
+print(paste0("Anovas from mean of B and D, F value: ", MYaov2bd[7], " Pr(>F) value: ",MYaov2bd[9]))
+
+#print("Anovas from mean of C and D")
 res.aov2cd <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='A'),])
-summary(res.aov2cd)
+MYaov2cd <- unlist(summary(res.aov2cd))
+print(paste0("Anovas from mean of C and D, F value: ", MYaov2cd[7], " Pr(>F) value: ",MYaov2cd[9]))
+```
 
+I ran some more anovas to compare the spatial correlations between the different experiments. This time there is one mean per GA combination trial. So all four trials have their own spatial correlation mean.
 
-print("One mean per rep")
+```{r, second anavo one mean per rep}
+#print("One mean per rep")
 
 all_the_means_byrep = all_cor_exp %>%
   group_by(group_exp_rep) %>%
@@ -214,44 +243,56 @@ all_the_means_byrep = all_cor_exp %>%
 
 all_the_means_byrep$exp <- str_split_fixed(all_the_means_byrep$group_exp_rep, "_", 6)[,5]
 
+exclude_a <- all_the_means_byrep[which(all_the_means_byrep$exp!='A'),]
 exclude_b <- all_the_means_byrep[which(all_the_means_byrep$exp!='B'),]
 exclude_c <- all_the_means_byrep[which(all_the_means_byrep$exp!='C'),]
 
-print("Anovas from mean of A and B")
+#print("Anovas from mean of A and B")
 res.aov2ab <- aov(name ~ exp, data = exclude_c[which(exclude_c$exp!='D'),])
-summary(res.aov2ab)
-print("Anovas from mean of A and C")
+MYaov2ab <- unlist(summary(res.aov2ab))
+print(paste0("Anovas from mean of A and B, F value: ", MYaov2ab[7], " Pr(>F) value: ",MYaov2ab[9]))
+
+#print("Anovas from mean of A and C")
 res.aov2ac <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='D'),])
-summary(res.aov2ac)
-print("Anovas from mean of A and D")
+MYaov2ac <- unlist(summary(res.aov2ac))
+print(paste0("Anovas from mean of A and C, F value: ", MYaov2ac[7], " Pr(>F) value: ",MYaov2ac[9]))
+
+#print("Anovas from mean of B and C")
+res.aov2bc <- aov(name ~ exp, data = exclude_a[which(exclude_a$exp!='D'),])
+MYaov2bc <- unlist(summary(res.aov2bc))
+print(paste0("Anovas from mean of B and C, F value: ", MYaov2bc[7], " Pr(>F) value: ",MYaov2bc[9]))
+
+#print("Anovas from mean of A and D")
 res.aov2ad <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='C'),])
-summary(res.aov2ad)
-print("Anovas from mean of C and D")
+MYaov2ad <- unlist(summary(res.aov2ad))
+print(paste0("Anovas from mean of A and D, F value: ", MYaov2ad[7], " Pr(>F) value: ",MYaov2ad[9]))
+
+#print("Anovas from mean of B and D")
+res.aov2bd <- aov(name ~ exp, data = exclude_a[which(exclude_a$exp!='C'),])
+MYaov2bd <- unlist(summary(res.aov2bd))
+print(paste0("Anovas from mean of B and D, F value: ", MYaov2bd[7], " Pr(>F) value: ",MYaov2bd[9]))
+
+#print("Anovas from mean of C and D")
 res.aov2cd <- aov(name ~ exp, data = exclude_b[which(exclude_b$exp!='A'),])
-summary(res.aov2cd)
+MYaov2cd <- unlist(summary(res.aov2cd))
+print(paste0("Anovas from mean of C and D, F value: ", MYaov2cd[7], " Pr(>F) value: ",MYaov2cd[9]))
 ```
 
-I want to compare the different cor values from the simulations, but i also want to look at it simulation by simulation.
-
-I think trials within a simulation experiment (A, B, C, D) should be the same (same mu and mu effect size).  
-
-They should also be different between different GA combinations
-
-same GA should be different in the different experiments
+Instead on taking the mean spatial correlation, I wanted to compare the series of correlation values from the each of my GA combinations. I think trials within a simulation experiment (A, B, C, D) should be the same (same mu and mu effect size). The spatial correlation might be different between different GA combinations within an experiment (A, B, C, D), but different between these experiments. Its a bit difficult to split my data up to make these comparisons, but I did run some wilcoxon tests and t-tests. Most everything was significantly different (only tested between experiments) in the wilcoxon test. In the Two Sample t-test when compering experiments AC, AD, BC, BD were different, but CD was not different. The Two Sample t-test between AB as only slightly different p-value = 0.02601.
 
 ```{r, wilcoxn test}
 
-wilcox.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno) #AB
-
-wilcox.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AC
-
-wilcox.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AD
-
-wilcox.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BC
-
-wilcox.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BD
-
-wilcox.test(her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #CD
+# wilcox.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno) #AB
+# 
+# wilcox.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AC
+# 
+# wilcox.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AD
+# 
+# wilcox.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BC
+# 
+# wilcox.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BD
+# 
+# wilcox.test(her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #CD
 
 ```
 
@@ -260,24 +301,28 @@ wilcox.test(her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_ta
 
 
 #t.test(GA1_cor_tall_file[GA1_cor_tall_file$group == "1e-08_0.005_1e-08_0.005" & GA1_cor_tall_file$rep <= 1,]$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_file[GA1_cor_tall_file$group == "1e-08_0.005_1e-08_0.005" & GA1_cor_tall_file$rep >= 2,]$mean_newt_pheno_By_mean_snake_pheno) #AA
-
-t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AC
-
-t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AD
-
-t.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BC
-
-t.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BD
-
-t.test(her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #CD
-
-
-t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno) #AB
+# 
+# t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AC
+# 
+# t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #AD
+# 
+# t.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BC
+# 
+# t.test(GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #BD
+# 
+# t.test(her_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  inter_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno) #CD
+# 
+# 
+# t.test(GA1_cor_tall_file$mean_newt_pheno_By_mean_snake_pheno,  GA1_cor_tall_7_file$mean_newt_pheno_By_mean_snake_pheno) #AB
 
 ```
 
 
-```{r, distribuuution plots, fig.height = 11, fig.width = 5}
+## Distribution Plot
+
+In this section I examine the distribution of spatial phenotype correlation between each of the four experiments by genetic architecture (GA) combination. In this figure there are 4 trials per GA combination and experiment. There are sixteen GA combinations and four experiments (red = tall map 5 sections, green = tall map 7 sections, blue = no heritability, purple = no interaction). The labels on the right are the GA combinations.  
+
+```{r, distribuuution plots, fig.height = 11, fig.width = 8}
 
 
 max_gen=5000
@@ -297,10 +342,18 @@ ggplot(all_cor_exp[which(all_cor_exp$gen>=min_gen & all_cor_exp$gen<=max_gen),])
   facet_grid(group~experiment)+
   #facet_wrap(~group_exp)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
+                      strip.text.y = element_text(angle = 45, size = 6),
                     strip.background = element_blank(), strip.text.x = element_blank(),
-                   title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                   title =element_text(size=4, face='bold'), axis.title.x = element_blank(),
                     axis.title.y = element_blank())
 ```
+
+This plot is not the easiest to read. However, after staring at if for awhile I noticed that the no heritability experiment did not change between GA combos. Red (tall map 5 sections), green (tall map 7 sections), and purple (no interaction) look very similar for some of the GA combinations, but differ in GA combinations where the mutational variance in both the newts and snakes was high. I thought the distributions between A and B would be more similar. The mean of experiment B results seems to be similar to experiment A, but the distribution seems a bit more narrow. It is very difficult to tell if things are truly similar or different.
+
+## Whole Distribution Plot
+
+In this section I combine all of the trails and GA combinations to see if the spatial correlation distribution differs overall between the experiments. Here red is the tall map 5 sections, green is the tall map 7 sections, blue is the experiment that has no heritability, and purple there is no interaction.
+
 
 ```{r, other plots}
 dummy<-all_cor_exp %>%
@@ -325,90 +378,161 @@ ggplot(all_cor_exp[which(all_cor_exp$gen>=min_gen & all_cor_exp$gen<=max_gen),])
 
 ```
 
-```{r, cor com figs}
+
+There are some very noticeable differences between the four experiments. One the mean of experiment A and B (tall map 5 sections & tall map 7 sections) are very similar, both are positive. Experiment B is narrower than experiment A. Experiment C is a perfect histogram with a mean at 0. Experiment D has a similar width to experiment A, but the mean is closer to 0. 
+
+## Spatial Correlation Over Time {.tabset}
+
+In this sections I will walk through the spatial phenotype correlates of all 4 experiments in 5,000 generation chunks. The color represents the experiment (red = tall map 5 sections, green = tall map 7 sections, blue = no heritability, purple = no interaction). One type of plot is a general histogram an the other is a density plot. They are not stacked. The goal of these plots is to see how spatial correlation changes as time increases. The dashed line is the real newt and snake spatial phenotype correlation.  
+
+
+### Section 1
+```{r, cor com figs 1}
 
 
 ginmin = 0
 ginmax = 5000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
 
+```
+
+### Section 2
+```{r, cor com figs 2}
+
 ginmin = 5000
 ginmax = 10000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 3
+```{r, cor com figs 3}
 ginmin = 10000
 ginmax = 15000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 4
+```{r, cor com figs 4}
 ginmin = 15000
 ginmax = 20000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 5
+```{r, cor com figs 5}
 ginmin = 20000
 ginmax = 25000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 6
+```{r, cor com figs 6}
 ginmin = 25000
 ginmax = 30000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 7
+```{r, cor com figs 7}
 ginmin = 30000
 ginmax = 35000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 8
+```{r, cor com figs 8}
 ginmin = 35000
 ginmax = 40000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 9
+```{r, cor com figs 9}
 ginmin = 40000
 ginmax = 45000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 10
+```{r, cor com figs 10}
 ginmin = 45000
 ginmax = 50000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
 
 ```
 
-```{r, density com figs}
+## {-}
+
+## {.tabset}
+
+
+### Section 1
+```{r, density com figs 1}
 
 
 ginmin = 0
 ginmax = 5000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 2
+```{r, density com figs 2}
 ginmin = 5000
 ginmax = 10000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 3
+```{r, density com figs 3}
 ginmin = 10000
 ginmax = 15000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 4
+```{r, density com figs 4}
 ginmin = 15000
 ginmax = 20000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 5
+```{r, density com figs 5}
 ginmin = 20000
 ginmax = 25000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 6
+```{r, density com figs 6}
 ginmin = 25000
 ginmax = 30000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 7
+```{r, density com figs 7}
 ginmin = 30000
 ginmax = 35000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 8
+```{r, density com figs 8}
 ginmin = 35000
 ginmax = 40000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 9
+```{r, density com figs 9}
 ginmin = 40000
 ginmax = 45000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Section 10
+```{r, density com figs 10}
 ginmin = 45000
 ginmax = 50000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
@@ -416,24 +540,44 @@ suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation
 ```
 
 
+## {-}
+
+
+There are a few points of interest to note in these spatial correlation results. First, the no heritability distribution always remains the same (regardless of GA combination or time). When the GA combination has higher mutational variance there is less of a range in the possible spatial correlations, especially when there is no interaction. The spatial correlations in these simulations do not consistently reach the high levels of spatial correlation seen in the real newt and snake population. Experiment D seems to either be more variable in spatial correlation (more spread out, different in different simulation trial) or centered to the just to the left of zero (cor is negative). I think that there is a lot of noise and over lap. From these spatial correlation values I cannot immediately see the difference in all of the GA combinations (there is not one rule I would use to define all of these results). 
+
+
+## Whole Correlation by GA Combinations {.tabset}
+
+This section will focus on the showing the spatial correlation for the whole simulation separated by GA combination. The goal is to see if the overall spatial correlation simulation results differ between experiments. Dashed line is the real newt and snake phenotype correlation value. Colors: red = tall map 5 sections, green = tall map 7 sections, blue = no heritability, purple = no interaction 
+
+### Hist
 ```{r, one big one}
 
 ginmin = 0
 ginmax = 50000
 suppressMessages(print(hist_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
+```
 
+### Density
+```{r, one big one density}
+ginmin = 0
+ginmax = 50000
 suppressMessages(print(dens_cors_by_gen_col_all_exp_rep(all_cor_exp, "Simulation Correlation Comparied to Real Correlation", "inter", "newt/snake GAs&rep", "Cor", ginmin, ginmax)))
 
 
 ```
 
+ Again, no heritability stands out as unchanging. At GA combinations where there is low variation red (tall map 5 sections), green (tall map 7 sections), and purple (no interaction) look ver similar. At the genetic variation in one of the species increases, the spatial correlation in no interaction simulation becomes more negative.
 
+## {-}
 
-# next step is to count the high and the lows 
-like make a lower limit like must be above 0.3
+##  The Highs and the Lows {.tabset}
 
+This section examines the amount of data points that reach and exceed an arbitrary limit. For example, I pick a limit of 0.3, and I would like to count the amount of spatial correlation points are above 0.3 or below -0.3. I can also look at just the positive or negative correlations. The goal of this section is to see how the different experiments (A, B, C, D) vary in the edges of the spatial correlation. 
 
-```{r, thresholds}
+### Positive 0.3 
+
+```{r, thresholds 1}
 
 file = all_cor_exp
 treshold = 0.3
@@ -442,8 +586,25 @@ min_gen = 100
 max_gen =50000
 whichgroup = "experiment"
 
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
+
+### Negative 0.3 
+
+```{r, thresholds 1a}
+
+file = all_cor_exp
+treshold = 0.3
+p_n_b = "n"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
 
 counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
+
+### Both 0.3 
+```{r, thresholds 2}
 
 file = all_cor_exp
 treshold = 0.3
@@ -453,7 +614,38 @@ max_gen =50000
 whichgroup = "experiment"
 
 counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
 
+### Positive 0.5 
+
+```{r, thresholds 2b}
+
+file = all_cor_exp
+treshold = 0.5
+p_n_b = "p"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
+
+### Negative 0.5 
+
+```{r, thresholds 2a}
+
+file = all_cor_exp
+treshold = 0.5
+p_n_b = "n"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
+
+### Both 0.5 
+```{r, thresholds 3}
 file = all_cor_exp
 treshold = 0.5
 p_n_b = "b"
@@ -462,7 +654,38 @@ max_gen =50000
 whichgroup = "experiment"
 
 counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
 
+### Positive 0.7 
+
+```{r, thresholds 3b}
+
+file = all_cor_exp
+treshold = 0.7
+p_n_b = "p"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
+
+### Negative 0.7 
+
+```{r, thresholds 3a}
+
+file = all_cor_exp
+treshold = 0.7
+p_n_b = "n"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
+
+### Both 0.7 
+```{r, thresholds 4}
 file = all_cor_exp
 treshold = 0.7
 p_n_b = "b"
@@ -472,25 +695,64 @@ whichgroup = "experiment"
 
 counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
 
+```
+
+### Positive 0.9 
+
+```{r, thresholds 5b}
 
 file = all_cor_exp
-treshold = 0.7
+treshold = 0.9
+p_n_b = "p"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
+
+### Negative 0.9
+
+```{r, thresholds 5a}
+
+file = all_cor_exp
+treshold = 0.9
+p_n_b = "n"
+min_gen = 100
+max_gen =50000
+whichgroup = "experiment"
+
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
+```
+
+### Both 0.9 
+```{r, thresholds 5}
+file = all_cor_exp
+treshold = 0.9
 p_n_b = "b"
 min_gen = 100
 max_gen =50000
 whichgroup = "experiment"
+counting_threshold(file, treshold, whichgroup, p_n_b, min_gen, max_gen)
 ```
+## {-}
 
+From this analysis of generations 100 to 50,000 I can see that no heritability (experiment C) has very few high spatial correlation measurements. The tall map 7 sections (experiment B) also has fewer high correlation measurements. Both tall map 5 sections and no interaction (A and D) have similar high correlation measurements. When the limit is low (0.3) there is more negative correlations in experiment D. But when the limit gets higher the amount of positive correlations in experiment D becomes a lot larger than the amount of negative correlation values. There are more negative correlation in experiment A when the limit is high. If I just look at the last 5,000 generations I see a similar pattern.
 
+## Multi Plots {.tabset}
+
+In this section I am testing out the ggplot multi plot function (ggslide). It adds side plot on the side or top. So I decided to look at the distribution of correlation values in both a density and a boxplot. I also attempted to graph the phenotype spatial correlation and population spatial correlation through out time. These plots contain all data points from all GA combinations and trials. 
+
+### phenotype spatial correlation distribution
 ```{r, ggslide test}
 
-ggplot(all_cor_exp) + 
-  #geom_point(size = 2) +
-  #geom_line(aes(generation, mean_newt_pheno_By_mean_snake_pheno, group=rep))+
-  geom_density(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity")+
-  #geom_xsidehistogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity") +
-  geom_ysideboxplot(aes(x = experiment, y=mean_newt_pheno_By_mean_snake_pheno, fill=factor(experiment)), orientation = "x") +
-  scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
+# ggplot(all_cor_exp) + 
+#   #geom_point(size = 2) +
+#   #geom_line(aes(generation, mean_newt_pheno_By_mean_snake_pheno, group=rep))+
+#   geom_density(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity")+
+#   #geom_xsidehistogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity") +
+#   geom_ysideboxplot(aes(x = experiment, y=mean_newt_pheno_By_mean_snake_pheno, fill=factor(experiment)), orientation = "x") +
+#   scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
 
 
 ggplot(all_cor_exp) + 
@@ -500,7 +762,11 @@ ggplot(all_cor_exp) +
   #geom_xsidehistogram(aes(x=as.numeric(mean_newt_pheno_By_mean_snake_pheno),fill=factor(experiment)), alpha=0.4, position="identity") +
   geom_ysideboxplot(aes(x = experiment, y=mean_newt_pheno_By_mean_snake_pheno, fill=factor(experiment)), orientation = "x") +
   scale_ysidex_discrete(guide = guide_axis(angle = 45)) 
+```
 
+
+### phenotype | population spatial correlation through time 
+```{r ggslide 3 plots}
 #all_cor_exp$num_newts_By_num_snakes
 ggplot(all_cor_exp) + 
   #geom_point(size = 2) +
@@ -515,6 +781,12 @@ ggplot(all_cor_exp) +
 ```
 
 
+## {-}
 
+The findings from this figure highlights that experiment A and B have a positive phenotype spatial correlation. In the experiments with no heritability and no interaction, the mean spatial phenotype correlation is zero or negative. The second figure shows that time doesn't have a strong association with a particular spatial correlation value. There is a problem with the population size spatial correlation in experiment C and D. The correlation should be more negative, but I switched the slim function to not account for the smaller areas (which is wrong) and had a huge effect on the correlation measurement. I imagine if I reran this experiment the no heritability and no interaction simulation would have the same population size spatial correlation as A and B (since the interaction is density dependent even though the way they interact is random). 
+
+## Overall Thoughts
+
+My over all thought about the spatial phenotype correlation values is that they are not doing what I expect. There seems to be something missing in my simulation preventing a strong positive phenotype spatial correlation. My next experiments will look at how the cost function and interaction rate. I wonder if changing these will have an impact on my simulation.
 
 
