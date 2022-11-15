@@ -372,9 +372,9 @@ pop_size_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_co
     ggtitle(title, subtitle = paste0(subt," pattern ", pattern, " From ", min_gen, " gen to ", max_gen, " gen"))+
     geom_line(aes(generation, Snake_pop_size, group=cost, color="Snake"),)+
     geom_line(aes(generation, Newt_pop_size, group=cost, color="Newt"))+
-    geom_point(data=last_point, aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno", shape=factor(cost)))+ 
+    geom_point(data=last_point, aes(generation, Snake_pop_size, color="Snake", shape=factor(cost)))+ 
 
-    geom_point(data=last_point, aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno", shape=factor(cost)))+
+    geom_point(data=last_point, aes(generation, Newt_pop_size, color="Newt", shape=factor(cost)))+
     #ylim(0,10)+
     #xlab(x_label) + ylab(y_label)+
     scale_color_manual(name = "Type",
