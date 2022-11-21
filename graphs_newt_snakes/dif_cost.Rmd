@@ -29,7 +29,7 @@ library(patchwork)
 
 ## Goal:
 
-Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) can lead to. This markdown is investigation what is up with the different levels of phenotype spatial correlation values.  I am running an experiment to test how changing the cost of a phenotype might impact these calculations. I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). 
+Think, explore, & write about what the co-evolutionary interaction between newts & snakes with different genetic architectures (GAs, combination of mutation rate & mutation effect size) under different cost settings. This markdown investigates the phenotype spatial correlation as the cost of a high phenotype changes (for both newts and snakes). I also plan on changing the interaction rate (but want to look at the math/ feasibility of it). 
 
 ### Questions:
 
@@ -482,17 +482,17 @@ return(params)
 }
 
 
-GA_summary <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label, cost){
+GA_summary <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label){
 
 file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
 
-params<-create_parm_file(file, min_gen, max_gen, cost)
+params<-create_parm_file_nc(file, min_gen, max_gen)
 
 my_plot <- ggplot(params) +
   #xlim(0, 1000)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
   xlab(x_label) + ylab(y_label)+
-  geom_point(aes(x=as.numeric(get(x_line)), y=as.numeric(get(y_line)), color = factor(snake), shape=factor(newt)),size=3)+
+  geom_point(aes(x=as.numeric(get(x_line)), y=as.numeric(get(y_line)), color = factor(snake), shape=factor(newt), size=factor(cost)))+
 #  geom_point(aes(x=as.numeric(Newt_pop_size_20), y=as.numeric(Snake_pop_size_20), color = factor(snake), shape=factor(newt)))+
   theme(plot.title = element_text(size=5)) +
   #scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
@@ -504,11 +504,11 @@ return(my_plot)
 }
 
 build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, title, subt, y_label, x_label, red_blue=F){
+
+    params<-create_parm_file_nc(file, min_gen, max_gen)
   
-  params<-create_parm_file_nc(file, min_gen, max_gen)
   
-  
- my_plot <- ggplot(params, aes(newt, paste0(cost, "_", snake, "_", rep))) +    # Create heatmap with ggplot2
+ my_plot <- ggplot(params, aes(newt, paste0(snake, "_", cost))) +    # Create heatmap with ggplot2
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
   xlab(x_label) + ylab(y_label)+
   geom_tile(aes(fill = get(fill_line)))+theme(axis.text.x = element_text(angle = 45, hjust=1, size = 10), axis.text.y = element_text(size = 10))
@@ -559,7 +559,7 @@ dif <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & 
   #xlim(0, 1000)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen, rep ",rep)) +
   xlab(x_label) + ylab(y_label)+
-  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = dif))+
+  geom_point(aes(x=as.numeric(Newt_pop_size), y=as.numeric(Snake_pop_size), color = dif, shape=factor(cost)))+
   #paste0(snake_mu_rate, "_", snake_mu_effect_sd), shape = paste0(newt_mu_rate, "_", newt_mu_effect_sd), group=T)
   theme(plot.title = element_text(size=5)) +
   scale_colour_gradient2(high = "steelblue", mid = "beige", low = "darkred")+
@@ -840,11 +840,10 @@ newt$snake_value <- snake$measurement
 print(cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs"))
 
 newt$info <- "middle"
-newt$info[newt$location %in% c(0, col_num-1, col_num*row_num-1-col_num, col_num*row_num-1)] <- "corner"
+#need to look into, coloring problem
+newt$info[newt$location %in% c(0, row_num-1, col_num*row_num-1-row_num, col_num*row_num-1)] <- "corner"
 
-newt$info[newt$location %in% c(c(1:(col_num-2)), seq(col_num, (col_num*row_num-col_num-2), col_num), seq((col_num-1+col_num), (col_num*row_num-1-col_num-col_num), col_num),  c((col_num*row_num-col_num):(col_num*row_num-2)))]   <- "edge"
-
-
+newt$info[newt$location %in% c(c(1:(row_num-2)), seq(row_num, (col_num*row_num-row_num-2), row_num), seq((row_num-1+row_num), (col_num*row_num-1-row_num-row_num), row_num),  c((col_num*row_num-row_num):(col_num*row_num-2)))]   <- "edge"
 
 
 extra_plot <- ggplot(newt)+
@@ -871,6 +870,7 @@ return(final_plot)}
 
 ## Mean Newt and Snke Phenotype by Generation
 
+In this first section I look at the entire populations mean phenotype for both snakes (blue) and newts (red). The difference between mean snake and mean newt phenotype is shown on the black line. For each GA combination there are 5 sets of lines (5 red, blue, $ black). Each shape at the set of lines corresponds to the cost value, which 50 = circle, 100 = triangle, 150 = square, 200 = plus, and 250 = square with an x. The higher the cost values the less costly a high phenotype for the species is. The cost values range from 50 (more costly) to 250 (less costly). 
 
 ```{r, graphing by gen}
 
@@ -879,6 +879,11 @@ trends_by_gen(GA1_lit_cost_file, title="Space Tall: Newt VS Snake Population Siz
 
 ```
 
+The first things that I saw was how high the phenotypes got when the cost value when up. The phenotype seems to reach an optimum spot (an equilibrium) depending on what the cost value is for most of the GA combinations. For GA combinations that had one species with a low mutational variance the mean phenotype of the population did not get very high. It might take the simulation a bit more time to reach an equilibrium mean phenotype. When there is room for the phenotype to change newts and snakes mean phenotype costly follow each other. 
+
+## Interaction of Population size and Phenotype
+
+Nest, I observe the interaction between the population size of newts and snakes and the mean phenotype difference (snakes-newts). Here, newt population size is on the x-axis while snake population size is on the y-axis. Blue points occur when the mean snake phenotype is higher and red points occur when the newt mean phenotype is larger. I added the cost values as shapes. 
 
 ```{r, whale}
 min_gen=5000
@@ -889,7 +894,14 @@ rep=0
 whale_gen(GA1_lit_cost_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
 ```
 
+It seems like each cost value clusters together with some overlapping other cost values or completely different form others. For example when the GA combination has a high mutational variance for both newts and snakes (K, L, O, P) the cost values all overlap. When at least one of the species has a lower mutational variance there is more of a range in the results (different population sizes & mean phenotype).
 
+## Phenotype Spatial Correlation of 30,000 Generations
+
+
+Phenotype Spatial Correlation of 30,000 Generations
+
+This  section examines the spatial correlation of newts and snakes local phenotype for the different cost values. Each cost values has its own boxplot color. There are five boxplots per GA combination. This figure contains the correlation results for the entire length of the simulations.
 
 ```{r, combo myplots}
 
@@ -902,10 +914,11 @@ boxplot_cors_by_gen(GA1_cor_cost_file, "Cost: Simulation Correlation By Grid Num
 
 ```
 
+There is no spatial phenotype correlation pattern between the cost value and the GA combination. Each of these boxplots are an identical simulation so there is some randomness between the differ cost values within the GA combination. The spatial phenotype correlation seems very random. The only GA where it might not be random is when both newts and snakes have a low mutational variance (the correlation seems to be decreasing). 
 
-## Correlation Histograms  {.tabset}
+## Correlations in Time-slices  {.tabset}
 
-In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at all four trials correlation values. Each color is a different trial per GA combination. The histogram values are stacked. This section only looks at the 5 sections.
+In order to understand how spatial correlations are changing with time, I took 5,000 generation time slices to look at the correlation values of all five cost values. Each color is a different cost value per GA combination. 
 
 ### Plot 1
 ```{r, GA1 cor by dif windows}
@@ -952,13 +965,18 @@ boxplot_cors_by_gen(GA1_cor_cost_file, "Cost: Simulation Correlation By Grid Num
 
 ## {-}
 
+The spatial phenotype correlation between newts and snakes seems to jump around between time slices. There is no clear direction the boxplots are moving in. Sometimes the correlation is negative, near zero or positive. The spatial correlation seems random.  
+
+
+
+
 
 ## Phenotype Correlation across time {.tabset}
 
-Next, we will examine three randomly chosen plots from both the 5 section and 7 section experiment. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis. Newt whole population mean phenotype is red, while snake mean phenotype is blue. The pink line is the phenotype spatial correlation.  
+Next, we will examine three randomly chosen GA combinations with all of the different cost values from this experiment. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis (with cost values indicated by shape and color). Newt whole population mean phenotype is red, while snake mean phenotype is blue. The multi-colored lines are the phenotype spatial correlation for a specific cost value.  
 
 
-### Random 1 (5 sec)
+### Random 1 
 ```{r, GA1 cor and pheno}
 GA1_pattern <- unique(paste0(GA1_lit_cost_file$snake_mu_rate, "_", GA1_lit_cost_file$snake_mu_effect_sd,"_",GA1_lit_cost_file$newt_mu_rate, "_", GA1_lit_cost_file$newt_mu_effect_sd, "_", GA1_lit_cost_file$rep))
 
@@ -969,13 +987,13 @@ cor_trends_by_gen(GA1_lit_cost_file, GA1_cor_cost_file, "test", "GA1", "newt/sna
 
 ```
 
-### Random 2 (5 sec)
+### Random 2 
 ```{r, random cor-pheno plot 2}
 
 cor_trends_by_gen(GA1_lit_cost_file, GA1_cor_cost_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[2]])
 ```
 
-### Random 3 (5 sec)
+### Random 3 
 ```{r, random cor-pheno plot 3}
 
 cor_trends_by_gen(GA1_lit_cost_file, GA1_cor_cost_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[3]])
@@ -983,8 +1001,12 @@ cor_trends_by_gen(GA1_lit_cost_file, GA1_cor_cost_file, "test", "GA1", "newt/sna
 
 ## {-}
 
+Again, the spatial correlation of newt and snake phenotypes seems very random. Even when both newt and snake mean phenotypes are going up the spatial correlation fluctuates from positive to negative. No one cost value makes the spatial correlation larger or smaller (all cost values have correlations that overlap with none having a significant greater variance).   
+
+
 ## Population Size Correlation across time {.tabset}
 
+Next, we will examine three randomly chosen GA combinations with all of the different cost values from this experiment. Time (in generations) in on the x-axis and both population size and population size spatial correlation in on the y-axis (with cost values indicated by shape and color). Newt whole population  population size is red, while snake  population size is blue. The multi-colored lines are the population size spatial correlation for a specific cost value.  
 
 
 ### Random 1 
@@ -1007,7 +1029,11 @@ pop_size_trends_by_gen(GA1_lit_cost_file, GA1_cor_cost_file, "test", "GA1", "new
 
 ## {-}
 
+There might be a relationship between cost and spatial population size correlations. First, I would like to note that these values should be negatively correlated, but sense I did not set the per-area true the edges and corners are smaller throwing my correlation values off. I think that the higher the cost value the more negatively correlated the population size between newts and snakes. If one species has a higher phenotype there would be less of the other species. This would be occurring in different areas of my simulation creating a stronger negative correlation. Or there is something else occurring that I am not currently taking into account.       
+
 ## What happens over time (looking at the beginning and late part of my simulations) {.tabset}
+
+Now, I will take a glace at the how the population size of newts and snakes as well as the mean phenotype difference between snake and newts changed between the different cost values. I will look at my simulation results from the beginning and end of the simulation. Color indicate the mean phenotype difference (blue = snakes have a higher mean phenotype, red = newts have a higher mean phenotype). 
 
 ### Pheno Beginning 50
 
@@ -1137,132 +1163,43 @@ whale_gen_by_cost(GA1_lit_cost_file, title="Space: Newt VS Snake Population Size
 
 ## {-}
 
+All of the beginning figures look very similar. The population size of newts and snakes starts out small and then grows. Sometimes the snake population size and mean phenotype gets larger and other times the newt population size nd mean phenotype gets larger. Near the end of the simulation (last 5,000 generations) there are differences between the different cost values. I found as you increase the cost the larger the difference in newt and snake population size becomes between the different GA combinations. I can see this by witnessing the clusters getting smaller, but really the x & y axis are really just getting larger. When the cost value was low the population sizes and the difference between mean phenotype between GA combinations were close. As the cost value went up, the difference between snake and newt mean phenotype increased. 
+
+
 ## Summary {.tabset}
 
-In the summary section, I try to come up with a way to show how different GA combinations can change the simulations results. In all of these plots snakes GA is represented by color and newt GA is represented by shape. There 16 color-shape combinations (with 4 repeats for trials). There are four sets of plots: 1) newt by snake population size, 2) phenotype difference by snake population size, 3) phenotype difference by snake GA, and 4) phenotype difference by newt GA. There are three figures in each set, taken at the begging, middle, and end time chunks. These are whole population calculations so the 5 section and 7 section data sets are not calculated differently. 
+In the summary section, I try to come up with a way to show how different GA combinations can change the simulations results. In all of these plots snakes GA is represented by color and newt GA is represented by shape. Shape size represents the cost value (the larger the cost value the larger the shape). There 16 color-shape combinations (with 4 repeats for trials). There are two sets of plots: 1) newt by snake population size, 2) phenotype difference by snake population size. These are whole population calculations and are done for the least 5,000 generations. 
 
 
 
-### Cost: 50 Late-Sim Population Size Summary 
+### Cost: Late-Sim Population Size Summary 
 ```{r, 50 plots summary 2}
 # summary
 
 min_gen=25000
 max_gen=30000
-cost=50
 
 # summary
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize", cost)
-```
-
-### Cost: 100 Late-Sim Population Size Summary 
-```{r, 100 plots summary 2}
-# summary
-
-min_gen=25000
-max_gen=30000
-cost=100
-
-# summary
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize", cost)
-```
-
-### Cost: 150 Late-Sim Population Size Summary 
-```{r, 150 plots summary 2}
-# summary
-
-min_gen=25000
-max_gen=30000
-cost=150
-
-# summary
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize", cost)
-```
-
-### Cost: 200 Late-Sim Population Size Summary 
-```{r, 200 plots summary 2}
-# summary
-
-min_gen=25000
-max_gen=30000
-cost=200
-
-# summary
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize", cost)
+GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize")
 ```
 
 
-### Cost: 250 Late-Sim Population Size Summary 
-```{r, 250 plots summary 2}
-# summary
-
-min_gen=25000
-max_gen=30000
-cost=250
-
-# summary
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="Newt_pop_size", y_line="Snake_pop_size", title="Space: Newt VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize", cost)
-```
-
-
-### Cost: 50 Late Difference Summary
+### Cost: Late Difference Summary
 ```{r, 50 dif plots summary 2}
 min_gen=25000
 max_gen=30000
-cost=50
 
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif", cost)
-
-```
-
-
-### Cost: 100 Late Difference Summary
-```{r, 100 dif plots summary 2}
-min_gen=25000
-max_gen=30000
-cost=100
-
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif", cost)
-
-```
-
-
-### Cost: 150 Late Difference Summary
-```{r, 150 dif plots summary 2}
-min_gen=25000
-max_gen=30000
-cost=150
-
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif", cost)
-
-```
-
-
-
-### Cost: 200 Late Difference Summary
-```{r, 200 dif plots summary 2}
-min_gen=25000
-max_gen=30000
-cost=200
-
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif", cost)
-
-```
-
-### Cost: 250 Late Difference Summary
-```{r, 250 dif plots summary 2}
-min_gen=25000
-max_gen=30000
-cost=250
-
-GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif", cost)
+GA_summary(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, x_line="dif", y_line="Snake_pop_size", title="Space: Dif VS Snake Population Size", subt="Gen 16sims", y_label="Snake Popsize", x_label="Dif")
 
 ```
 
 ## {-}
 
+There seems to be some pattern between the different GA combinations and cost values. Previously I noted, that there is both shape and color separation, and that intermediate GA do better (1e-09_0.05 & 1e-10_0.5) in a co-evolutionary arms race. Here that is still true but it is more difficult to see when I change the cost values. A higher cost value increases the difference in population size and phenotype difference, it exaggerates the difference. When the cost values and the mutational variance of at lease one of the species are high they cluster (both newts and snakes have close phenotypes and population sizes, snakes tend to always have a slightly larger population size and newts are slightly more toxic). If given more time, I think there would be greater separation of colors, shapes, and cost values.
+
 ## Heatmap {.tabset}
 
+In the heatmap plots each GA combination and cost is presented by combining newt GA in the x-axis to snake GA and cost value in the y-axis. There are two types of heatmap plots shown below. One shows the average snake population size for a time chunk with darker colors indicating a smaller snake population and lighter colors indicating a larger snake population. The other heatmap shows the average difference between snake and newt mean phenotype (red=newts had a higher phenotype, blue=snakes had a higher phenotype). I fist look at early and then late simulation data.
 
 ### Cost: Population Size (Early)  
 ```{r, cost earlyplots Heatmap}
@@ -1301,11 +1238,10 @@ max_gen=30000
 build_heatmap(GA1_lit_cost_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 ```
 
-
-
 ## {-}
 
-##Grid 
+There is some cool population size and phenotype variation between different cost values within the same GA combination. The lowest cost value was always more neutral. As the cost value increased both the snake population size and mean phenotype diverged to either end. Sometimes it was not the highest cost values that resulted in the most dramatic out come. I saw more dramatic outcomes when the mutation variance was lower. My summary for this experiment is that increasing the cost value will only highlight the differences caused by the GA combinations. The ending results will remain the same, but may take longer to reach.
+
 
 
 
@@ -1324,12 +1260,13 @@ GA1_grid_cost_file$grid_num = 5
 
 ## Grid Figs {.tabset}
 
+This last section looks at the local population phenotype for newts and snakes (circles and squares). I plot the results from generation 9981 for the GA combination 1e-10_0.5_1e-10_0.5_0. Color represents both toxicity and resistance. The sub plot is the phenotype for the newt by the phenotype for the snake, color indicates the location on the map (red=corner, green=edge, blue=middle).  
 
 ### 50
 ```{r, cor grid 2 high cor mean}
 
 file=GA1_grid_cost_file
-file_name=GA1_pattern[myrandomlist[1]]
+file_name="1e-10_0.5_1e-10_0.5_0"
 spegen=9981
 type="mean"
 col_num=5
@@ -1343,7 +1280,7 @@ grid_plot(file_name, spegen, file, type, row_num, col_num, cost)
 ```{r, cost 100 high cor mean}
 
 file=GA1_grid_cost_file
-file_name=GA1_pattern[myrandomlist[1]]
+file_name="1e-10_0.5_1e-10_0.5_0"
 spegen=9981
 type="mean"
 col_num=5
@@ -1358,7 +1295,7 @@ grid_plot(file_name, spegen, file, type, row_num, col_num, cost)
 ```{r, cost 150 high cor mean}
 
 file=GA1_grid_cost_file
-file_name=GA1_pattern[myrandomlist[1]]
+file_name="1e-10_0.5_1e-10_0.5_0"
 spegen=9981
 type="mean"
 col_num=5
@@ -1372,7 +1309,7 @@ grid_plot(file_name, spegen, file, type, row_num, col_num, cost)
 ```{r, cost 200 high cor mean}
 
 file=GA1_grid_cost_file
-file_name=GA1_pattern[myrandomlist[1]]
+file_name="1e-10_0.5_1e-10_0.5_0"
 spegen=9981
 type="mean"
 col_num=5
@@ -1386,7 +1323,7 @@ grid_plot(file_name, spegen, file, type, row_num, col_num, cost)
 ```{r, cost 250 high cor mean}
 
 file=GA1_grid_cost_file
-file_name=GA1_pattern[myrandomlist[1]]
+file_name="1e-10_0.5_1e-10_0.5_0"
 spegen=9981
 type="mean"
 col_num=5
