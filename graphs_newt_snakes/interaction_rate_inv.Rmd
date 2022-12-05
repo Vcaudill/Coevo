@@ -310,35 +310,40 @@ var_cor <- function(file, cfile, title, subt, x_label, y_label, min_gen, max_gen
 
 
 
-cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern){
+cor_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern,interrate_cap){
 #file=GA1_lit_interrate_file
 #cfile=GA1_cor_interrate_file 
  # pattern="1e-11_5_1e-11_5_0"
  # pattern="1e-11_5_1e-11_5_0"  
  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
   cfile$snake_newt_rep <- paste0(cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$rep)
+  last_point <- file %>% group_by(group_rate) %>% slice_max(generation, with_ties = FALSE)
+  lp_trial = last_point[which(last_point$snake_newt_rep==pattern &last_point$interrate<=interrate_cap),]
   
-  plot_1 <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
+  plot_1 <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern & file$interrate<=interrate_cap),]) +
+    
     #geom_line(aes(generation, dif, group=rep, col="dif"))+
     ggtitle(title, subtitle = paste0(subt," pattern ", pattern, " From ", min_gen, " gen to ", max_gen, " gen"))+
     geom_line(aes(generation, Snake_mean_Pheno, group=interrate, color="Snake_mean_Pheno"),)+
     geom_line(aes(generation, Newt_mean_Pheno, group=interrate, color="Newt_mean_Pheno"))+
+    geom_point(data=lp_trial, aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno", shape=factor(interrate)),size = 3)+ 
+
+    geom_point(data=lp_trial, aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno", shape=factor(interrate)),size = 3)+ 
     #ylim(0,10)+
     #xlab(x_label) + ylab(y_label)+
     scale_color_manual(name = "Type",
 values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred"),
 labels = c("Snake", "Newt"))+
-    theme_bw() +theme(legend.position="none",
-                      strip.background = element_blank(), strip.text.x = element_blank(),
+    theme_bw() +theme(strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_blank(),
                       plot.margin=unit(c(1,1,+0.3,1), "cm"))
-cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]) +
+cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern & file$interrate<=interrate_cap),]) +
     geom_line(aes(generation, mean_newt_pheno_By_mean_snake_pheno, col=factor(interrate)))+
     #ggtitle(title, subtitle = subt) +
     ylim(-1.1, 1.1)+
     #xlab(x_label_cor) + ylab(y_label)+
-    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank(),
@@ -350,7 +355,7 @@ cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$s
 }
 
 
-pop_size_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern){
+pop_size_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_cor, y_label, min_gen, max_gen, pattern, interrate_cap){
 #file=GA1_lit_interrate_file
 #cfile=GA1_cor_interrate_file 
  # pattern="1e-11_5_1e-11_5_0"
@@ -358,27 +363,34 @@ pop_size_trends_by_gen <- function(file, cfile, title, subt, x_label, x_label_co
  file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd,"_", file$rep)
   cfile$snake_newt_rep <- paste0(cfile$snake_mu_rate, "_", cfile$snake_mu_effect_sd, "_", cfile$newt_mu_rate, "_", cfile$newt_mu_effect_sd, "_", cfile$rep)
   
-  plot_1 <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern),]) +
+  last_point <- file %>% group_by(group_rate) %>% slice_max(generation, with_ties = FALSE)
+  lp_trial = last_point[which(last_point$snake_newt_rep==pattern &last_point$interrate<=interrate_cap),]
+  
+  
+  plot_1 <- ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen & file$snake_newt_rep==pattern & file$interrate<=interrate_cap),]) +
     #geom_line(aes(generation, dif, group=rep, col="dif"))+
     ggtitle(title, subtitle = paste0(subt," pattern ", pattern, " From ", min_gen, " gen to ", max_gen, " gen"))+
     geom_line(aes(generation, Snake_pop_size, group=interrate, color="Snake"),)+
     geom_line(aes(generation, Newt_pop_size, group=interrate, color="Newt"))+
+    
+    geom_point(data=lp_trial, aes(generation, Snake_pop_size, color="Snake", shape=factor(interrate)),size = 3)+ 
+
+    geom_point(data=lp_trial, aes(generation, Newt_pop_size, color="Newt", shape=factor(interrate)),size = 3)+ 
     #ylim(0,10)+
     #xlab(x_label) + ylab(y_label)+
     scale_color_manual(name = "Type",
 values = c( "Snake" = "steelblue", "Newt" = "darkred"),
 labels = c("Snake", "Newt"))+
-    theme_bw() +theme(legend.position="none",
-                      strip.background = element_blank(), strip.text.x = element_blank(),
+    theme_bw() +theme(strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_blank(),
                       plot.margin=unit(c(1,1,+0.3,1), "cm"))
-cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern),]) +
+cor_plot <- ggplot(cfile[which(cfile$gen>=min_gen & cfile$gen<=max_gen & cfile$snake_newt_rep==pattern & file$interrate<=interrate_cap),]) +
     geom_line(aes(generation, num_newts_By_num_snakes, col=factor(interrate)))+
     #ggtitle(title, subtitle = subt) +
     ylim(-1.1, 1.1)+
     #xlab(x_label_cor) + ylab(y_label)+
-    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+    theme_bw() +theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
                       strip.background = element_blank(), strip.text.x = element_blank(),
                       title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
                       axis.title.y = element_blank(),
@@ -489,11 +501,11 @@ return(my_plot)
 }
 
 build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, title, subt, y_label, x_label, red_blue=F){
+
+    params<-create_parm_file_nc(file, min_gen, max_gen)
   
-  params<-create_parm_file_nc(file, min_gen, max_gen)
   
-  
- my_plot <- ggplot(params, aes(newt,  paste0(interrate, "_", snake, "_", rep))) +    # Create heatmap with ggplot2
+ my_plot <- ggplot(params, aes(newt, paste0(snake, "_", interrate))) +    # Create heatmap with ggplot2
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
   xlab(x_label) + ylab(y_label)+
   geom_tile(aes(fill = get(fill_line)))+theme(axis.text.x = element_text(angle = 45, hjust=1, size = 10), axis.text.y = element_text(size = 10))
@@ -539,11 +551,11 @@ labels = c("Snake", "Newt", "Dif"))+
 }
 
 
-whale_gen <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep){
+whale_gen <- function(file, title, subt, x_label, y_label,min_gen, max_gen, rep, interrate_cap){
   #file$rep==rep
   file$snake_GA<-paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
   file$newt_GA<-paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
-dif <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep),]) +
+dif <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==rep & file$interrate<=interrate_cap),]) +
   #xlim(0, 1000)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen, rep ",rep)) +
   xlab(x_label) + ylab(y_label)+
@@ -816,9 +828,9 @@ main_plot<- main_plot + labs(title = paste0(str_to_title(type)," Phenotype of Lo
  scale_fill_viridis_c()
 }
 if(type == "num_ind"){
-main_plot<- main_plot + labs(title = paste0(str_to_title(type)," Phenotype of Locations"),
+main_plot<- main_plot + labs(title = paste0("Number of Individuals at Locations ", str_to_title(type)),
               subtitle = paste0(file_name, ", Generation: ", spegen),
-              fill = "Newt/Snake Phenotype")+
+              fill = "Newt/Snake PopSize")+
 scale_fill_viridis_c(option = "plasma")
 } 
   
@@ -829,11 +841,11 @@ newt$snake_value <- snake$measurement
 print(cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs"))
 
 newt$info <- "middle"
-newt$info[newt$location %in% c(0, col_num-1, col_num*row_num-1-col_num, col_num*row_num-1)] <- "corner"
 
-newt$info[newt$location %in% c(c(1:(col_num-2)), seq(col_num, (col_num*row_num-col_num-2), col_num), seq((col_num-1+col_num), (col_num*row_num-1-col_num-col_num), col_num),  c((col_num*row_num-col_num):(col_num*row_num-2)))]   <- "edge"
+#need to look into, coloring problem
+newt$info[newt$location %in% c(0, row_num-1, col_num*row_num-row_num, col_num*row_num-1)] <- "corner"
 
-
+newt$info[newt$location %in% c(c(1:(row_num-2)), seq(row_num, (col_num*row_num-row_num-2), row_num), seq((row_num-1+row_num), (col_num*row_num-1-row_num), row_num),  c((col_num*row_num-row_num+1):(col_num*row_num-2)))]   <- "edge"
 
 
 extra_plot <- ggplot(newt)+
@@ -857,66 +869,15 @@ return(final_plot)}
 
 ```
 
-## How Often do Newts and Snakes Interact
+## How Often do Newts and Snakes Interact {.tabset}
+First, I wanted to do some data exploration! So I examined how manipulating the interaction rate would effect some population dynamics. I wanted to pin-point how often snakes could potentially and actuality interact with newts (one is looping through snakes with newts near by and one is counting the amount of times a snake encountered a newt, respectively). These are presented as histograms colored by the interaction rate (look closely at title). I also wanted to explore how interaction rate could impact the population size and mean phenotype of snakes and newts. These are also shown as histograms where color indicates the interaction rate. I also looked for an interaction between interaction rate, the population size of newts and snakes, and the number of interactions that occurred within a generation.
 
-```{r, how oftern do they interact}
-
-#GA1_lit_interrate_file$newt_found
-
+### Potential Interaction
+```{r, how oftern do they interact Potential Interaction}
 ggplot(GA1_lit_interrate_file)+
-  ggtitle("snake_found_newt") +
-  xlab("Generations") + ylab("snake_found_newt")+
-  geom_point(aes(x = as.numeric(generation), y = as.numeric(snake_found_newt), color=factor(interrate)), size = 1 )+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
-                      # strip.background = element_blank(), 
-                      # strip.text.x = element_blank(), 
-                      # panel.grid.major = element_blank(), 
-                      # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
-                      axis.line = element_line(colour = "black")) 
-
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("snake_found_newt") +
-  xlab("Generations") + ylab("snake_found_newt")+
-  facet_wrap(~group)+
-  geom_point(aes(x = as.numeric(generation), y = as.numeric(snake_found_newt), color=factor(interrate)), size = 1 )+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
-                      # strip.background = element_blank(), 
-                      # strip.text.x = element_blank(), 
-                      # panel.grid.major = element_blank(), 
-                      # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
-                      axis.line = element_line(colour = "black")) 
-
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("newt_found") +
-  xlab("Generations") + ylab("newt_found")+
-  facet_wrap(~group)+
-  geom_point(aes(x = as.numeric(generation), y = as.numeric(newt_found), color=factor(interrate)), size = 1 )+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
-                      # strip.background = element_blank(), 
-                      # strip.text.x = element_blank(), 
-                      # panel.grid.major = element_blank(), 
-                      # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
-                      axis.line = element_line(colour = "black")) 
-
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("newt_found") +
-  xlab("Generations") + ylab("newt_found")+
-  geom_point(aes(x = as.numeric(generation), y = as.numeric(newt_found), color=factor(interrate)), size = 1 )+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
-                      # strip.background = element_blank(), 
-                      # strip.text.x = element_blank(), 
-                      # panel.grid.major = element_blank(), 
-                      # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
-                      axis.line = element_line(colour = "black")) 
-
-
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("Snake can potentially find a newt") +
-  xlab("snake_found_newt") +
+  ggtitle("Potential Interaction") +
+  xlab("Snake can Potentially Find a Newt, Param: snake_found_newt") +
+  ylab("Count") +
   geom_histogram(aes(x = as.numeric(snake_found_newt), fill=factor(interrate)),  alpha = 0.65, position="identity")+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       # strip.background = element_blank(), 
@@ -925,23 +886,15 @@ ggplot(GA1_lit_interrate_file)+
                       # panel.grid.minor = element_blank(),
                       # panel.background = element_blank(), 
                       axis.line = element_line(colour = "black")) 
+```
 
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("Snake can potentially find a newt") +
-  xlab("snake_found_newt") +
-  geom_histogram(aes(x = as.numeric(snake_found_newt), fill=factor(interrate)),  alpha = 0.65, position="identity")+
-  facet_wrap(~group)+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
-                      # strip.background = element_blank(), 
-                      # strip.text.x = element_blank(), 
-                      # panel.grid.major = element_blank(), 
-                      # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
-                      axis.line = element_line(colour = "black")) 
 
+### True Number of Interactions
+```{r, True Number of Interactions}
 ggplot(GA1_lit_interrate_file)+
-  ggtitle("Snake found a Newt") +
-  xlab("newt_found") +
+  ggtitle("Number of Interactions") +
+  xlab("Snake found a Newt, Param: newt_found") +
+  ylab("Count") +
   geom_histogram(aes(x = as.numeric(newt_found), fill=factor(interrate)), alpha = 0.65, position="identity") +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       # strip.background = element_blank(), 
@@ -950,50 +903,13 @@ ggplot(GA1_lit_interrate_file)+
                       # panel.grid.minor = element_blank(),
                       # panel.background = element_blank(), 
                       axis.line = element_line(colour = "black")) 
+```
 
 
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("Snake age") +
-  xlab("Snake_age") +
-  geom_histogram(aes(x = as.numeric(Snake_age), fill=factor(interrate)), alpha = 0.65, position="identity") +
-  xlim(0, 10)+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
-                      # strip.background = element_blank(), 
-                      # strip.text.x = element_blank(), 
-                      # panel.grid.major = element_blank(), 
-                      # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
-                      axis.line = element_line(colour = "black")) 
-
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("Newt age") +
-  xlab("Newt_age") +
-  geom_histogram(aes(x = as.numeric(Newt_age), fill=factor(interrate)), alpha = 0.65, position="identity") +
-  xlim(0, 10)+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
-                      # strip.background = element_blank(), 
-                      # strip.text.x = element_blank(), 
-                      # panel.grid.major = element_blank(), 
-                      # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
-                      axis.line = element_line(colour = "black")) 
-
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("Snake found a Newt") +
-  xlab("newt_found") +
-  geom_histogram(aes(x = as.numeric(newt_found), fill=factor(interrate)), alpha = 0.65, position="identity") +
-  facet_wrap(~group)+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
-                      # strip.background = element_blank(), 
-                      # strip.text.x = element_blank(), 
-                      # panel.grid.major = element_blank(), 
-                      # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
-                      axis.line = element_line(colour = "black")) 
-
-
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("Newt_pop_size") +
+### Newt and Snake Population Size
+```{r, newt and snake pop size by interaction rate}
+newtfig <- ggplot(GA1_lit_interrate_file)+
+  ggtitle("Newt Population Size") +
   xlab("Newt_pop_size") +
   geom_histogram(aes(x = as.numeric(Newt_pop_size), fill=factor(interrate)), alpha = 0.65, position="identity") +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
@@ -1002,10 +918,11 @@ ggplot(GA1_lit_interrate_file)+
                       # panel.grid.major = element_blank(), 
                       # panel.grid.minor = element_blank(),
                       # panel.background = element_blank(), 
+                      legend.position='none',
                       axis.line = element_line(colour = "black")) 
 
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("Snake_pop_size") +
+snakefig <- ggplot(GA1_lit_interrate_file)+
+  ggtitle("Snake Population Size") +
   xlab("Snake_pop_size") +
   geom_histogram(aes(x = as.numeric(Snake_pop_size), fill=factor(interrate)), alpha = 0.65, position="identity") +
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
@@ -1013,60 +930,278 @@ ggplot(GA1_lit_interrate_file)+
                       # strip.text.x = element_blank(), 
                       # panel.grid.major = element_blank(), 
                       # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
+                      # panel.background = element_blank(),
+                      legend.position='none',
                       axis.line = element_line(colour = "black")) 
 
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("Newt_mean_Pheno") +
-  xlab("Newt_mean_Pheno") +
-  geom_histogram(aes(x = as.numeric(Newt_mean_Pheno), fill=factor(interrate)), alpha = 0.65, position="identity") +
-  xlim(0, 12)+
+grid.arrange(newtfig, snakefig, ncol = 2)
+```
+
+### Newt and Snake Mean Phenotype
+```{r, newt and snake meanphenotype by interaction rate}
+newtfig <- ggplot(GA1_lit_interrate_file)+
+  ggtitle("Newt Mean Phenotype") +
+  xlab("Average Newt Phenotype") +
+  geom_histogram(aes(x = as.numeric(Newt_mean_Pheno), fill=factor(interrate)), alpha = 0.65, position="identity") + xlim(0, 12)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       # strip.background = element_blank(), 
                       # strip.text.x = element_blank(), 
                       # panel.grid.major = element_blank(), 
                       # panel.grid.minor = element_blank(),
                       # panel.background = element_blank(), 
+                      legend.position='none',
                       axis.line = element_line(colour = "black")) 
 
-ggplot(GA1_lit_interrate_file)+
-  ggtitle("Snake_mean_Pheno") +
-  xlab("Snake_mean_Pheno") +
-  geom_histogram(aes(x = as.numeric(Snake_mean_Pheno), fill=factor(interrate)), alpha = 0.65, position="identity") +
-  xlim(0, 12)+
+snakefig <- ggplot(GA1_lit_interrate_file)+
+  ggtitle("Snake Mean Phenotype") +
+  xlab("Average Snake Phenotype") +
+  geom_histogram(aes(x = as.numeric(Snake_mean_Pheno), fill=factor(interrate)), alpha = 0.65, position="identity") + xlim(0, 12)+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       # strip.background = element_blank(), 
                       # strip.text.x = element_blank(), 
                       # panel.grid.major = element_blank(), 
                       # panel.grid.minor = element_blank(),
-                      # panel.background = element_blank(), 
+                      # panel.background = element_blank(),
+                      legend.position='none',
                       axis.line = element_line(colour = "black")) 
 
+grid.arrange(newtfig, snakefig, ncol = 2)
+```
+
+### How Interaction rate changes the population size
+```{r, tale of the interaction rate and pop size}
 ggplot(GA1_lit_interrate_file)+
-  ggtitle("Interactions by population size") +
-  xlab("newt pop size") + ylab("snake popsize")+
+  ggtitle("Number of Interactions by Newt and Snake Population Size") +
+  xlab("Newt Population Size") + ylab("Snake Population Size")+
   facet_wrap(~interrate)+
   geom_point(aes(x = as.numeric(Newt_pop_size), y = as.numeric(Snake_pop_size), color=newt_found), size = 1 )+
   scale_color_viridis_c(name = "newt_found")+
   theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="right")
 GA1_lit_interrate_file$group_rate<- paste0(GA1_lit_interrate_file$group, "_", GA1_lit_interrate_file$interrate)
 last_point <- GA1_lit_interrate_file %>% group_by(group_rate) %>% slice_max(generation, with_ties = FALSE)
+```
+
+## {-}
 
 
-ggplot(last_point)+
-  ggtitle("How long did the sim last") +
-  xlab("newt popsize") + ylab("snake popsize")+
-  facet_wrap(~interrate)+
-  geom_point(aes(x = as.numeric(Newt_pop_size), y = as.numeric(Snake_pop_size), color=generation), size = 1 )+
-  scale_color_viridis_c(name = "generation")+
-  theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="right")
+Changing the interaction rate has major consequences for my simulation. If the interaction rate is too low there is not enough selection to increase the mean phenotype of newts and snakes. If the interaction rate is too large there is too much competition between newts and snakes leading to an extinction of one of the species. In my simulation the potential interaction is noted if there is a newt near a snake. This measurement is a combination of the snakes population size and how close the species are to each other. The true number of interactions is based on a mathematical formula that increases the probably of interaction with increasing the interaction rate, but also decreases the probability of interaction with an increase in distance to a newt. This explains why low interaction rates have less interactions, while also explaining why higher interaction rates also have less interactions. Interaction rate has consequences for newt and snake population size and phenotype. At lower interaction rates newts and snakes have a higher population size, but lower mean phenotype. At slightly larger interaction rates newts and snakes have a lower population size, but a higher mean phenotype. At the largest interaction rates the newt and snake populations reach extreme population sizes and high mean phenotypes as one of the species goes extinct. For fun, I explored how each  interaction rate changed the population sizes of newts and snakes and the number of interaction that occurred. I found that an interaction rate that is too low or too high ends up having less interactions overall. There is small area of parameter space where interaction rate can be set to (0.025 to 0.075).      
+
+surs = 0.5
+mPoint = c(ind_snake.x,ind_snake.y);
+newtNeighbors = i1.nearestNeighborsOfPoint(p1, mPoint, count=1000000);// could make count smaller (limit the number of newts nearby)
+distance = i1.distanceToPoint(newtNeighbors, mPoint);// vector of distances 
+probablity = interaction_rate * exp(-(distance^2)/(2*(surs^2)))
+newt_meet_snake = newtNeighbors[runif(length(newtNeighbors)) < probablity]
+distance might go up and down based on how close newts and snakes
+
+```{r, extra plots that deminstrate that it is consistance across the GA combos}
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("snake_found_newt") +
+#   xlab("Generations") + ylab("snake_found_newt")+
+#   geom_point(aes(x = as.numeric(generation), y = as.numeric(snake_found_newt), color=factor(interrate)), size = 1 )+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("snake_found_newt") +
+#   xlab("Generations") + ylab("snake_found_newt")+
+#   facet_wrap(~group)+
+#   geom_point(aes(x = as.numeric(generation), y = as.numeric(snake_found_newt), color=factor(interrate)), size = 1 )+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("newt_found") +
+#   xlab("Generations") + ylab("newt_found")+
+#   facet_wrap(~group)+
+#   geom_point(aes(x = as.numeric(generation), y = as.numeric(newt_found), color=factor(interrate)), size = 1 )+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("newt_found") +
+#   xlab("Generations") + ylab("newt_found")+
+#   geom_point(aes(x = as.numeric(generation), y = as.numeric(newt_found), color=factor(interrate)), size = 1 )+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Snake can potentially find a newt") +
+#   xlab("snake_found_newt") +
+#   geom_histogram(aes(x = as.numeric(snake_found_newt), fill=factor(interrate)),  alpha = 0.65, position="identity")+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Snake can potentially find a newt") +
+#   xlab("snake_found_newt") +
+#   geom_histogram(aes(x = as.numeric(snake_found_newt), fill=factor(interrate)),  alpha = 0.65, position="identity")+
+#   facet_wrap(~group)+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Snake found a Newt") +
+#   xlab("newt_found") +
+#   geom_histogram(aes(x = as.numeric(newt_found), fill=factor(interrate)), alpha = 0.65, position="identity") +
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Snake age") +
+#   xlab("Snake_age") +
+#   geom_histogram(aes(x = as.numeric(Snake_age), fill=factor(interrate)), alpha = 0.65, position="identity") +
+#   xlim(0, 10)+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Newt age") +
+#   xlab("Newt_age") +
+#   geom_histogram(aes(x = as.numeric(Newt_age), fill=factor(interrate)), alpha = 0.65, position="identity") +
+#   xlim(0, 10)+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Snake found a Newt") +
+#   xlab("newt_found") +
+#   geom_histogram(aes(x = as.numeric(newt_found), fill=factor(interrate)), alpha = 0.65, position="identity") +
+#   facet_wrap(~group)+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Newt_pop_size") +
+#   xlab("Newt_pop_size") +
+#   geom_histogram(aes(x = as.numeric(Newt_pop_size), fill=factor(interrate)), alpha = 0.65, position="identity") +
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Snake_pop_size") +
+#   xlab("Snake_pop_size") +
+#   geom_histogram(aes(x = as.numeric(Snake_pop_size), fill=factor(interrate)), alpha = 0.65, position="identity") +
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Newt_mean_Pheno") +
+#   xlab("Newt_mean_Pheno") +
+#   geom_histogram(aes(x = as.numeric(Newt_mean_Pheno), fill=factor(interrate)), alpha = 0.65, position="identity") +
+#   xlim(0, 12)+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Snake_mean_Pheno") +
+#   xlab("Snake_mean_Pheno") +
+#   geom_histogram(aes(x = as.numeric(Snake_mean_Pheno), fill=factor(interrate)), alpha = 0.65, position="identity") +
+#   xlim(0, 12)+
+#   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+#                       # strip.background = element_blank(), 
+#                       # strip.text.x = element_blank(), 
+#                       # panel.grid.major = element_blank(), 
+#                       # panel.grid.minor = element_blank(),
+#                       # panel.background = element_blank(), 
+#                       axis.line = element_line(colour = "black")) 
+# 
+# ggplot(GA1_lit_interrate_file)+
+#   ggtitle("Interactions by population size") +
+#   xlab("newt pop size") + ylab("snake popsize")+
+#   facet_wrap(~interrate)+
+#   geom_point(aes(x = as.numeric(Newt_pop_size), y = as.numeric(Snake_pop_size), color=newt_found), size = 1 )+
+#   scale_color_viridis_c(name = "newt_found")+
+#   theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="right")
+# GA1_lit_interrate_file$group_rate<- paste0(GA1_lit_interrate_file$group, "_", GA1_lit_interrate_file$interrate)
+# last_point <- GA1_lit_interrate_file %>% group_by(group_rate) %>% slice_max(generation, with_ties = FALSE)
+# 
+# 
+# ggplot(last_point)+
+#   ggtitle("How long did the sim last") +
+#   xlab("newt popsize") + ylab("snake popsize")+
+#   facet_wrap(~interrate)+
+#   geom_point(aes(x = as.numeric(Newt_pop_size), y = as.numeric(Snake_pop_size), color=generation), size = 1 )+
+#   scale_color_viridis_c(name = "generation")+
+#   theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="right")
 
 ```
 
-## Mean Phenotype Whole Simulation
+## Mean Phenotype Whole Simulation & The Interaction With Population size  {.tabset}
 
-First, I will look at a plot of how the mean phenotype of the entire population of newts and snakes changes overtime. Each of these plots has three colored lines, red for the mean newt phenotype, blue for the mean snake phenotype, and black for the difference between mean snake and mean newt phenotype. There are 11 line per color that represent the different interaction rates that I ran. Note this is a mean for the entire population. Mutational variance increases for the snakes as you go down the figure (top to bottom) and increases for the newts as you go across (left to right). 
+Next, I will look at a plot of how the mean phenotype of the entire population of newts and snakes changes overtime. Each of these plots has three colored lines, red for the mean newt phenotype, blue for the mean snake phenotype, and black for the difference between mean snake and mean newt phenotype. There are 11 lines per color with a shape at the last data point collected that represent the different interaction rates. Note this is a mean for the entire population. Mutational variance increases for the snakes as you go down the figure (top to bottom) and increases for the newts as you go across (left to right). 
 
+In previous experiments, I saw a connection between newt/snake phenotype and population size. Typically, when a species had a higher phenotype they also had a larger population size. This relation between phenotype and population size had specific outcomes that depended on the GA of newts and snakes. In this plot I look at how interaction rate might change this observation. Here some of the interaction rates are shown as shapes (I choose to limit the number of interaction rayes I was looking at).
+
+### Mean Phenotype As Time Increases
 ```{r, graphing by gen}
 
 
@@ -1074,33 +1209,38 @@ trends_by_gen(GA1_lit_interrate_file, title="Space Tall: Newt VS Snake Populatio
 
 ```
 
-
+### Relationship Between Popsize and Phenotype
 ```{r, whale}
 min_gen=5000
 max_gen=10000
 rep=0
 
 
-whale_gen(GA1_lit_interrate_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
+whale_gen(GA1_lit_interrate_file, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize", min_gen=min_gen, max_gen=max_gen, rep=rep, interrate_cap=0.125)
 ```
 
+## {-}
+
+As I have mentioned before, higher interaction rates lead to a populations extinction (for many of them the extinction happens very early > 5,000 generations). However, it does seem that higher interaction rates can lead to a higher mean phenotype. Higher interaction rates seem to run in simulation where both newts and snakes have a larger amount of mutational variance. 
+
+The relationship between newt and snake population sizes and the difference between mean phenotype is affected by a change in the interaction rate. A lower interaction rate has higher population sizes and lower mean phenotype differences. I found that as the interaction rate increases the larger the range in population sizes became. I also noticed that larger interaction rates tended to have a larger difference between mean phenotypes and that newts seemed to have larger phenotypes.
 
 
 ```{r, combo myplots}
 
 
-ginmin = 0
-ginmax = 50000
-#thecolors=c("#F8766D", "#B79F00", "#00BA38", "#00BFC4", "#619CFF", "#F564E3")
-
-boxplot_cors_by_gen(GA1_cor_interrate_file, "interrate: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
+# ginmin = 0
+# ginmax = 50000
+# #thecolors=c("#F8766D", "#B79F00", "#00BA38", "#00BFC4", "#619CFF", "#F564E3")
+# 
+# boxplot_cors_by_gen(GA1_cor_interrate_file, "interrate: Simulation Correlation By Grid Number Comparied to Real Correlation Trials", "GA1", "newt/snake GAs&rep", "Cor", ginmin, ginmax)
 
 ```
 
 
-## Correlation Histograms  {.tabset}
+## Correlation Across Time  {.tabset}
 
-In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at all four trials correlation values. Each color is a different trial per GA combination. The histogram values are stacked. This section only looks at the 5 sections.
+In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at all correlation values for each of the different interaction rate. Each color is a different interaction rate. Each plot is one GA combination. Mutational variance increases for the snakes as you go down the figure (top to bottom) and increases for the newts as you go across (left to right). 
 
 ### Plot 1
 ```{r, GA1 cor by dif windows1}
@@ -1175,62 +1315,70 @@ boxplot_cors_by_gen(GA1_cor_interrate_file, "interrate: Simulation Correlation B
 
 ## {-}
 
+The range of colors in these plots is so pretty! There was no interaction rate that lead to my simulated newts and snakes having a high correlated phenotype similar to the real newt and snake (dashed line) correlation. As the interaction rate increased there was more variation in spatial phenotype correlation. I think this might be due to major decreases in a species population size that occurred when interaction rates were large. Simulations that had one or more species with a higher level of mutational variance were able to persist larger interaction rates.
 
 ## Phenotype Correlation across time {.tabset}
 
-Next, we will examine three randomly chosen plots from both the 5 section and 7 section experiment. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis. Newt whole population mean phenotype is red, while snake mean phenotype is blue. The pink line is the phenotype spatial correlation.  
+Next, we will examine three randomly chosen plots from this experiment. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis. Newt whole population mean phenotype is red, while snake mean phenotype is blue. The multi-colored line line is the phenotype spatial correlation at different interaction rates.  
 
 
-### Random 1 (5 sec)
+### Random 1 
 ```{r, GA1 cor and pheno}
 GA1_pattern <- unique(paste0(GA1_lit_interrate_file$snake_mu_rate, "_", GA1_lit_interrate_file$snake_mu_effect_sd,"_",GA1_lit_interrate_file$newt_mu_rate, "_", GA1_lit_interrate_file$newt_mu_effect_sd, "_", GA1_lit_interrate_file$rep))
 
 myrandomlist=sample.int(length(GA1_pattern), 3)
 
 
-cor_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[1]])
+cor_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[1]], interrate_cap= 0.125)
 
 ```
 
-### Random 2 (5 sec)
+### Random 2 
 ```{r, random cor-pheno plot 2}
 
-cor_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[2]])
+cor_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[2]], interrate_cap= 0.125)
 ```
 
-### Random 3 (5 sec)
+### Random 3 
 ```{r, random cor-pheno plot 3}
 
-cor_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[3]])
+cor_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[3]], interrate_cap= 0.125)
 ```
 
 ## {-}
 
+There is no relationship between mean phenotype and phenotype spatial correlations. The mean phenotype of newts and snakes goes up over time, but the spatial correlation seems to randomly go up and down. Simulations with a high interaction rate typically end up with higher phenotypes, but when the interaction rate is too high a species will die out. The higher the interaction rate the more variable the spatial correlation may get.  
+
 ## Population Size Correlation across time {.tabset}
 
-
+Now, we will examine the population size of the three randomly chosen plots from this experiment. Time (in generations) in on the x-axis and both population size and population size spatial correlation in on the y-axis. Newt population size is red, while snake population size is blue. The multi-colored line line is the population spatial correlation at different interaction rates.
 
 ### Random 1 
 ```{r, GA1 pop size 1}
-pop_size_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[1]])
+pop_size_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[1]], interrate_cap= 0.125)
 
 ```
 
 ### Random 2 
 ```{r, random pop size plot 2}
 
-pop_size_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[2]])
+pop_size_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[2]],interrate_cap= 0.125)
 ```
 
 ### Random 3 
 ```{r, random pop size plot 3}
 
-pop_size_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[3]])
+pop_size_trends_by_gen(GA1_lit_interrate_file, GA1_cor_interrate_file, "test", "GA1", "newt/snake GAs&rep","other", "Cor", min_gen=100, max_gen=50000, pattern=GA1_pattern[myrandomlist[3]],interrate_cap= 0.125)
 ```
 
 ## {-}
 
+There is a connection between population size and interaction rate. The interaction rate has an effect on the population size, but it is difficult to tell because the how different the population sizes are at the smaller sized edges and corners. If all of the measured areas were the same size I predict that there would be more negative correlation. 
+
 ## What happens over time (looking at the beginning and late part of my simulations) {.tabset}
+
+This section explores how changing the interaction rate affects the first and last 5,000 generations of my co-evolution simulation. Newt and snake population size are on the x and y axis and the point color is the difference between snake and newt mean phenotype. Each plot contains many time points from one simulation with a set GA combination. Mutational variance increases for the snakes as you go down the figure (top to bottom) and increases for the newts as you go across (left to right).   
+
 
 ### Pheno Beginning 0.01
 
@@ -1505,12 +1653,14 @@ whale_gen_by_interrate(GA1_lit_interrate_file, title="Space: Newt VS Snake Popul
 
 ## {-}
 
+In the early part of my simulation I noticed that as the interaction rate because larger the population size drastically turns in one species favor. A higher interaction rate led to a larger difference between mean phenotype. In the last part of my simulation there are less and less simulations that reach the last 5,000 generations. There is also more difference between GA combinations as the interaction rate increases. For example, each of the the GA combinations ending up having very different population sizes (when compared to lower interaction rates). Some intermediate interaction rates ended up having the largest phenotype differences (potentially due to having more interactions do to the immersion of both species).
 
 ## Heatmap {.tabset}
 
+This section explores the heatmap plots where the GA of the newt is on the x-axins and the GA of the snake along with the interaction rate for the simulation is on the y-axis. There are two types of heatmap plots shown below. One shows the average snake population size for a time chunk with darker colors indicating a smaller snake population and lighter colors indicating a larger snake population. The other heatmap shows the average difference between snake and newt mean phenotype (red=newts had a higher phenotype, blue=snakes had a higher phenotype). The simulation result is the color in that section. 
 
 ### interrate: Population Size (Early)  
-```{r, interrate earlyplots Heatmap1, fig.height=4}
+```{r, interrate earlyplots Heatmap1, fig.height=6, out.height=6}
 min_gen=100
 max_gen=5000
 
@@ -1518,74 +1668,11 @@ build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_lin
 
 ```
 
-### interrate: Population Size (EM1)  
-```{r, interrate earlyplots Heatmap2, fig.height=4}
-min_gen=5000
-max_gen=10000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
-
-```
-
-### interrate: Population Size (EM2)  
-```{r, interrate earlyplots Heatmap3, fig.height=4}
-min_gen=10000
-max_gen=15000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
-
-```
-
-### interrate: Population Size (EM3)  
-```{r, interrate earlyplots Heatmap4, fig.height=4}
-min_gen=15000
-max_gen=20000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
-
-```
-
-### interrate: Population Size (EM4)  
-```{r, interrate earlyplots Heatmap5, fig.height=4}
-min_gen=20000
-max_gen=25000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
-
-```
 
 ### interrate: Population Size (Mid)  
 ```{r, interrate midplots Heatmap6, fig.height=4}
 min_gen=25000
 max_gen=30000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
-
-```
-
-### interrate: Population Size (ML1)  
-```{r, interrate midplots Heatmap7, fig.height=4}
-min_gen=30000
-max_gen=35000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
-
-```
-
-
-### interrate: Population Size (ML2)  
-```{r, interrate midplots Heatmap8, fig.height=4}
-min_gen=35000
-max_gen=40000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
-
-```
-
-### interrate: Population Size (ML3)  
-```{r, interrate midplots Heatmap9, fig.height=4}
-min_gen=40000
-max_gen=45000
 
 build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 
@@ -1611,42 +1698,6 @@ max_gen=5000
 build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 ```
 
-### interrate: Phenotype (EM1) 
-```{r, interrate earlyplots Heatmap2 pheno, fig.height=4}
-
-min_gen=5000
-max_gen=10000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
-```
-
-### interrate: Phenotype (EM2) 
-```{r, interrate earlyplots Heatmap3 pheno, fig.height=4}
-
-min_gen=10000
-max_gen=15000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
-```
-
-### interrate: Phenotype (EM3) 
-```{r, interrate earlyplots Heatmap4 pheno, fig.height=4}
-
-min_gen=15000
-max_gen=20000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
-```
-
-### interrate: Phenotype (EM4) 
-```{r, interrate earlyplots Heatmap5 pheno, fig.height=4}
-
-min_gen=20000
-max_gen=25000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
-```
-
 
 ### interrate: Phenotype (Mid) 
 ```{r, interrate earlyplots Heatmap6 pheno, fig.height=4}
@@ -1657,33 +1708,6 @@ max_gen=30000
 build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 ```
 
-### interrate: Phenotype (ML1) 
-```{r, interrate earlyplots Heatmap7 pheno, fig.height=4}
-
-min_gen=30000
-max_gen=35000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
-```
-
-### interrate: Phenotype (ML2) 
-```{r, interrate earlyplots Heatmap8 pheno, fig.height=4}
-
-min_gen=35000
-max_gen=40000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
-```
-
-
-### interrate: Phenotype (ML3) 
-```{r, interrate earlyplots Heatmap9 pheno, fig.height=4}
-
-min_gen=40000
-max_gen=45000
-
-build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
-```
 
 ### interrate: Phenotype (Late) 
 ```{r, interrate plots Heatmap10 pheno, fig.height=4}
@@ -1696,7 +1720,7 @@ build_heatmap(GA1_lit_interrate_file, min_gen=min_gen, max_gen=max_gen, fill_lin
 
 ## {-}
 
-##Grid {.tabset}
+It seems like higher interaction rates can lead to more differences in snake population size and a larger mean phenotype differences. These results depend on the GA of both the newt and snake, with more variable results appearing when the GA have intermediate phenotype variance (medium mu rate and effect size). It is difficult to tell what is occurring overtime due to the simulations ending early.    
 
 
 
@@ -1716,6 +1740,7 @@ GA1_grid_interrate_file$snake_newt_rep <- paste0(GA1_grid_interrate_file$snake_m
 
 ## Grid Figs {.tabset}
 
+This last section will explore how large a snake/newt phenotype or population size is at a certain local region. The squares represent local snakes population values, while the circles represent local newt values. The sub-plots show how the values play out over the samples being located on an edge, corner, or middle of the map. In my true simulation there is no space all of these should be touching.
 
 ### 0.01
 ```{r, cor 0.01 high cor mean}
@@ -1729,6 +1754,11 @@ row_num=col_num*4
 interrate=0.01
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),])
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
+
+type="num_ind"
 if(value!=0){
 grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
 }
@@ -1749,6 +1779,10 @@ value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep
 if(value!=0){
  grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
 }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.05
@@ -1764,6 +1798,10 @@ interrate=0.05
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.075
@@ -1779,6 +1817,10 @@ interrate=0.075
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.10
@@ -1794,6 +1836,10 @@ interrate=0.10
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),])
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.125
@@ -1810,7 +1856,12 @@ interrate=0.125
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ 
   grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
-  }
+}
+
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 
@@ -1827,6 +1878,11 @@ interrate=0.15
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.20
@@ -1842,6 +1898,11 @@ interrate=0.20
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.25
@@ -1857,6 +1918,11 @@ interrate=0.25
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.30
@@ -1872,6 +1938,11 @@ interrate=0.30
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.35
@@ -1887,6 +1958,11 @@ interrate=0.35
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
+
 ```
 
 ## {-}
@@ -1907,6 +1983,10 @@ interrate=0.01
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.025
@@ -1922,6 +2002,10 @@ interrate=0.025
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.05
@@ -1937,6 +2021,10 @@ interrate=0.05
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.075
@@ -1952,6 +2040,10 @@ interrate=0.075
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.10
@@ -1967,6 +2059,10 @@ interrate=0.10
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.125
@@ -1982,6 +2078,10 @@ interrate=0.125
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 
@@ -1998,6 +2098,10 @@ interrate=0.15
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.20
@@ -2014,6 +2118,10 @@ interrate=0.20
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.25
@@ -2029,6 +2137,10 @@ interrate=0.25
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.30
@@ -2044,6 +2156,10 @@ interrate=0.30
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.35
@@ -2059,11 +2175,15 @@ interrate=0.35
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ## {-}
 
-## Grid Figs {.tabset}
+## Grid Figs 3 {.tabset}
 
 
 ### 0.01
@@ -2079,6 +2199,10 @@ interrate=0.01
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.025
@@ -2094,6 +2218,10 @@ interrate=0.025
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.05
@@ -2109,6 +2237,10 @@ interrate=0.05
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.075
@@ -2124,6 +2256,10 @@ interrate=0.075
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.10
@@ -2139,6 +2275,10 @@ interrate=0.10
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.125
@@ -2154,6 +2294,10 @@ interrate=0.125
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 
@@ -2170,6 +2314,10 @@ interrate=0.15
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.20
@@ -2185,6 +2333,10 @@ interrate=0.20
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.25
@@ -2200,6 +2352,10 @@ interrate=0.25
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.30
@@ -2215,6 +2371,10 @@ interrate=0.30
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),])
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ### 0.35
@@ -2230,6 +2390,10 @@ interrate=0.35
 
 value<-nrow(GA1_grid_interrate_file[which(GA1_grid_interrate_file$snake_newt_rep==file_name & GA1_grid_interrate_file$generation==spegen & GA1_grid_interrate_file$interrate==interrate),]) 
 if(value!=0){ grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) }
+type="num_ind"
+if(value!=0){
+grid_plot(file_name, spegen, file, type, row_num, col_num, interrate) 
+}
 ```
 
 ## {-}
