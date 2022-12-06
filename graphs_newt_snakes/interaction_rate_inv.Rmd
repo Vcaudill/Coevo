@@ -1660,7 +1660,7 @@ In the early part of my simulation I noticed that as the interaction rate becaus
 This section explores the heatmap plots where the GA of the newt is on the x-axins and the GA of the snake along with the interaction rate for the simulation is on the y-axis. There are two types of heatmap plots shown below. One shows the average snake population size for a time chunk with darker colors indicating a smaller snake population and lighter colors indicating a larger snake population. The other heatmap shows the average difference between snake and newt mean phenotype (red=newts had a higher phenotype, blue=snakes had a higher phenotype). The simulation result is the color in that section. 
 
 ### interrate: Population Size (Early)  
-```{r, interrate earlyplots Heatmap1, fig.height=6, out.height=6}
+```{r, interrate earlyplots Heatmap1, fig.height=6}
 min_gen=100
 max_gen=5000
 
