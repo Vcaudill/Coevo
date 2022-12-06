@@ -692,6 +692,7 @@ return(dif)
 #two_hist_death_all_rep(cost_grade_lit, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Phenotype (purple) & Snake-Newt Popsize/100 (green)",  min_gen=20000, max_gen=25000)
 
 grid_plot<- function(file_name, spegen, file, type, row_num, col_num){
+
 file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd,"_",file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
 
 GA1<-file[which(file$snake_newt_rep==file_name & file$generation==spegen),]
@@ -724,9 +725,9 @@ main_plot<- main_plot + labs(title = paste0(str_to_title(type)," Phenotype of Lo
  scale_fill_viridis_c()
 }
 if(type == "num_ind"){
-main_plot<- main_plot + labs(title = paste0(str_to_title(type)," Phenotype of Locations"),
+main_plot<- main_plot + labs(title = paste0("Number of Individuals at Locations ", str_to_title(type)),
               subtitle = paste0(file_name, ", Generation: ", spegen),
-              fill = "Newt/Snake Phenotype")+
+              fill = "Newt/Snake PopSize")+
 scale_fill_viridis_c(option = "plasma")
 } 
   
@@ -737,12 +738,11 @@ newt$snake_value <- snake$measurement
 print(cor(as.numeric(snake$measurement), as.numeric(newt$measurement), use="complete.obs"))
 
 newt$info <- "middle"
-newt$info[newt$location %in% c(0, row_num-1, col_num*row_num-1-row_num, col_num*row_num-1)] <- "corner"
 
+#need to look into, coloring problem
+newt$info[newt$location %in% c(0, row_num-1, col_num*row_num-row_num, col_num*row_num-1)] <- "corner"
 
-newt$info[newt$location %in% c(c(1:(row_num-2)), seq(row_num, (col_num*row_num-row_num-2), row_num), seq((row_num-1+row_num), (col_num*row_num-1-row_num-row_num), row_num),  c((col_num*row_num-row_num):(col_num*row_num-2)))]   <- "edge"
-
-
+newt$info[newt$location %in% c(c(1:(row_num-2)), seq(row_num, (col_num*row_num-row_num-2), row_num), seq((row_num-1+row_num), (col_num*row_num-1-row_num), row_num),  c((col_num*row_num-row_num+1):(col_num*row_num-2)))]   <- "edge"
 
 
 extra_plot <- ggplot(newt)+
@@ -774,7 +774,7 @@ return(final_plot)}
 
 ### Phenotype differences 
 ```{r, graphing by gen}
-trends_by_gen(cost_grade_lit, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 100, 50000, rep=1)
+trends_by_gen(cost_grade_lit, title="Space Tall: Newt VS Snake Population Size GA1", subt="Gen 16sims", y_label="Mean Phenotype", x_label="Generations", 250, 50000, rep=1)
 
 
 #aggregate(cost_grade_lit[which(cost_grade_lit$generation>=100 & cost_grade_lit$generation<=50000),]$dif, list(cost_grade_lit[which(cost_grade_lit$generation>=100 & cost_grade_lit$generation<=50000),]$group_rep), FUN=mean) 

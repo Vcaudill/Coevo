@@ -1,0 +1,111 @@
+---
+title: "byindvidual"
+output: html_document
+date: '2022-08-03'
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
+
+library(ggplot2)
+library(viridis)
+library(colorspace)
+library(gridExtra)
+library(tidyverse)
+require(reshape2)
+library(plyr)
+library(gridGraphics)
+library(grid)
+library(knitr)
+library(kableExtra)
+library("reshape")
+library(ggplot2)
+library(ggpubr)
+theme_set(theme_pubr())
+library(stringr)
+library(patchwork)
+```
+
+
+
+```{r, data gathering}
+
+info <- read.table("~/Desktop/test.txt", header=TRUE)
+
+f <- function(x, y, ph, xbreaks, ybreaks){
+  xb <- cut(x, xbreaks)
+  yb <- cut(y, ybreaks)
+  phb <- tapply(ph, list(xb, yb), mean)
+  return(phb)
+}
+
+```
+
+```{r, data plotting tall}
+
+width=35
+height=35*4
+n=5
+m=20
+xbreaks <- seq(0, width, length.out=n)
+ybreaks <- seq(0, height, length.out=m)
+
+s <- with(info[info$species=="S",], f(loc_x, loc_y, phenotype, xbreaks, ybreaks))
+n <- with(info[info$species=="N",], f(loc_x, loc_y, phenotype, xbreaks, ybreaks))
+
+stopifnot(all(colnames(s)==colnames(n)) && all(rownames(s)==rownames(n)))
+
+cor(as.vector(s),as.vector(n), use="pairwise")
+
+n=7
+m=28
+xbreaks <- seq(0, width, length.out=n)
+ybreaks <- seq(0, height, length.out=m)
+
+s <- with(info[info$species=="S",], f(loc_x, loc_y, phenotype, xbreaks, ybreaks))
+n <- with(info[info$species=="N",], f(loc_x, loc_y, phenotype, xbreaks, ybreaks))
+
+stopifnot(all(colnames(s)==colnames(n)) && all(rownames(s)==rownames(n)))
+
+cor(as.vector(s),as.vector(n), use="pairwise")
+
+image(ybreaks,xbreaks, t(n))
+with(info[info$species=="N",], points(loc_y, loc_x, pch=20,cex=0.5, col=rev(heat.colors(24))[as.numeric(cut(phenotype,24))]))
+
+image(ybreaks,xbreaks, t(s))
+with(info[info$species=="S",], points(loc_y, loc_x, pch=20,cex=0.5, col=rev(heat.colors(24))[as.numeric(cut(phenotype,24))]))
+
+
+```
+
+```{r, plotting long}
+
+width=35
+height=35*4
+n=5
+m=20
+xbreaks <- seq(0, width, length.out=n)
+ybreaks <- seq(0, height, length.out=m)
+
+s <- with(info[info$species=="S",], f(loc_x, loc_y, phenotype, xbreaks, ybreaks))
+n <- with(info[info$species=="N",], f(loc_x, loc_y, phenotype, xbreaks, ybreaks))
+
+stopifnot(all(colnames(s)==colnames(n)) && all(rownames(s)==rownames(n)))
+
+cor(as.vector(s),as.vector(n), use="pairwise")
+
+image(ybreaks,xbreaks, t(n))
+with(info[info$species=="N",], points(loc_y, loc_x, pch=20,cex=0.5, col=rev(heat.colors(24))[as.numeric(cut(phenotype,24))]))
+
+image(ybreaks,xbreaks, t(s))
+with(info[info$species=="S",], points(loc_y, loc_x, pch=20,cex=0.5, col=rev(heat.colors(24))[as.numeric(cut(phenotype,24))]))
+
+
+```
+
+```{r, find the nearest neghbor}
+
+
+
+```
