@@ -338,7 +338,10 @@ early() {
 					//Did the snake eat the newt?
 					//potential outcomes are death for newt or snake, how do we make the survival curve? 
 					prob_of_survive = 1.0/(1+exp(-((compair_pheno-c)/w)));// snakes probablity of survival 
-					//catn(prob_of_survive);
+					//catn(prob_of_survive); // what would happen when w becomes larger or smaller
+					//large w things will be decoumple
+					// smaller w would be better for examing coevoulation
+					//decresing w is decresing will increse the varity of outcomes
 					survive = runif(1) < prob_of_survive; //did the snake survive? //one will die for sure 
 					
 					//Future more selections where there is a chance that both survive or die???
