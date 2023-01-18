@@ -4,11 +4,6 @@ output: html_document
 date: '2023-01-10'
 ---
 
----
-title: "Moving Together"
-output: html_document
-date: '2023-01-10'
----
 ```{r setup, include=FALSE}
 #knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(warning = FALSE, message = FALSE,echo = FALSE) 
@@ -308,7 +303,7 @@ both_lower_w_no_exp_lit$sim=LETTERS[factor(both_lower_w_no_exp_lit$group)]
 both_lower_w_no_exp_lit$dif <- both_lower_w_no_exp_lit$Snake_mean_Pheno-both_lower_w_no_exp_lit$Newt_mean_Pheno
 
 
-both_lower_w_no_exp_cor<- read.csv("~/Desktop/both_lower_w_no_exp/all_cor.txt" , header = TRUE)
+both_lower_w_no_exp_cor<- read.csv("~/Desktop/bob_suggestion/both_lower_w_no_exp/all_cor.txt" , header = TRUE)
 both_lower_w_no_exp_cor$group_rep <- paste0(both_lower_w_no_exp_cor$snake_mu_rate, "_", both_lower_w_no_exp_cor$snake_mu_effect_sd,"_",both_lower_w_no_exp_cor$newt_mu_rate, "_", both_lower_w_no_exp_cor$newt_mu_effect_sd, "_", both_lower_w_no_exp_cor$rep)
 both_lower_w_no_exp_cor$group <- paste0(both_lower_w_no_exp_cor$snake_mu_rate, "_", both_lower_w_no_exp_cor$snake_mu_effect_sd,"_",both_lower_w_no_exp_cor$newt_mu_rate, "_", both_lower_w_no_exp_cor$newt_mu_effect_sd)
 both_lower_w_no_exp_cor$sim=LETTERS[factor(both_lower_w_no_exp_cor$group)]
@@ -325,7 +320,7 @@ lower_w_lit$sim=LETTERS[factor(lower_w_lit$group)]
 lower_w_lit$dif <- lower_w_lit$Snake_mean_Pheno-lower_w_lit$Newt_mean_Pheno
 
 
-lower_w_cor<- read.csv("~/Desktop/lower_w/all_cor.txt" , header = TRUE)
+lower_w_cor<- read.csv("~/Desktop/bob_suggestion/lower_w/all_cor.txt" , header = TRUE)
 lower_w_cor$group_rep <- paste0(lower_w_cor$snake_mu_rate, "_", lower_w_cor$snake_mu_effect_sd,"_",lower_w_cor$newt_mu_rate, "_", lower_w_cor$newt_mu_effect_sd, "_", lower_w_cor$rep)
 lower_w_cor$group <- paste0(lower_w_cor$snake_mu_rate, "_", lower_w_cor$snake_mu_effect_sd,"_",lower_w_cor$newt_mu_rate, "_", lower_w_cor$newt_mu_effect_sd)
 lower_w_cor$sim=LETTERS[factor(lower_w_cor$group)]
@@ -342,7 +337,7 @@ no_exp_lit$sim=LETTERS[factor(no_exp_lit$group)]
 no_exp_lit$dif <- no_exp_lit$Snake_mean_Pheno-no_exp_lit$Newt_mean_Pheno
 
 
-no_exp_cor<- read.csv("~/Desktop/no_exp/all_cor.txt" , header = TRUE)
+no_exp_cor<- read.csv("~/Desktop/bob_suggestion/no_exp/all_cor.txt" , header = TRUE)
 no_exp_cor$group_rep <- paste0(no_exp_cor$snake_mu_rate, "_", no_exp_cor$snake_mu_effect_sd,"_",no_exp_cor$newt_mu_rate, "_", no_exp_cor$newt_mu_effect_sd, "_", no_exp_cor$rep)
 no_exp_cor$group <- paste0(no_exp_cor$snake_mu_rate, "_", no_exp_cor$snake_mu_effect_sd,"_",no_exp_cor$newt_mu_rate, "_", no_exp_cor$newt_mu_effect_sd)
 no_exp_cor$sim=LETTERS[factor(no_exp_cor$group)]
@@ -582,12 +577,50 @@ params$snake_newt <- paste0(params$snake, "_", params$newt)
 return(params)
 }
 
-GA_summary <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label){
+
+ create_parm_file_nc <- function(file, min_gen, max_gen){
+   
+   file$test_factor <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
+   
+params <- data_frame()
+
+for(i in 1:length(unique(file$test_factor))){
+
+  pattern=unique(file$test_factor)[i]
+  
+  sumitup <- file[which(file$gen>=min_gen & file$gen<=max_gen & file$test_factor ==pattern),]
+
+  params_temp<- data_frame(Newt_mean_Pheno=mean(sumitup$Newt_mean_Pheno),
+                           Snake_mean_Pheno=mean(sumitup$Snake_mean_Pheno), 
+                           Newt_mean_Pheno_sd=sd(sumitup$Newt_mean_Pheno),
+                           Snake_mean_Pheno_sd=sd(sumitup$Snake_mean_Pheno),
+                           Newt_pop_size=mean(sumitup$Newt_pop_size),
+                           Snake_pop_size=mean(sumitup$Snake_pop_size),
+                           dif=mean(sumitup$dif),
+                           snake_mu_rate=unlist(strsplit(pattern, "_"))[2],
+                           newt_mu_rate=unlist(strsplit(pattern, "_"))[4],
+                           snake_mu_effect_sd=unlist(strsplit(pattern, "_"))[3],
+                           newt_mu_effect_sd=unlist(strsplit(pattern, "_"))[5],
+                           rep=unlist(strsplit(pattern, "_"))[6],
+                           test_factor=pattern)
+  
+  
+  params <- rbind(params, params_temp)
+}
+
+params$snake <- paste0(params$snake_mu_rate, "_",params$snake_mu_effect_sd)
+params$newt <- paste0(params$newt_mu_rate, "_",params$newt_mu_effect_sd)
+params$snake_newt <- paste0(params$snake, "_", params$newt)
+return(params)
+}
+
+
+GA_summary <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label ){
 
 file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
 
 params<-create_parm_file(file, min_gen, max_gen)
-
+params = na.omit(params)
 my_plot <- ggplot(params) +
   #xlim(0, 1000)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
@@ -602,12 +635,13 @@ my_plot <- ggplot(params) +
 
 return(my_plot)
 }
+
 GA_summary_by_species <- function(file, min_gen, max_gen, x_line, y_line, title, subt, y_label, x_label){
 
 file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
 
 params<-create_parm_file(file, min_gen, max_gen)
-
+params = na.omit(params)
 my_plot <- ggplot(params) +
   #xlim(0, 1000)+
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
@@ -623,9 +657,11 @@ my_plot <- ggplot(params) +
 return(my_plot)
 }
 
+
 build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, title, subt, y_label, x_label, red_blue=F){
   file$snake_newt_rep <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd, "_", file$rep)
   params<-create_parm_file(file, min_gen, max_gen)
+  params = na.omit(params)
   
  my_plot <- ggplot(params, aes(newt, paste0(snake, "_", rep))) +    # Create heatmap with ggplot2
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
@@ -641,6 +677,7 @@ build_heatmap <- function(file, min_gen, max_gen, fill_line, fill_line_text, tit
  
   return(my_plot)
 }
+
 
 trends_by_gen <- function(file, title, subt, x_label, y_label, min_gen, max_gen, rep){
  
@@ -1027,19 +1064,19 @@ suppressMessages(print(two_hist(both_lower_w_no_exp_lit, title="Snake-Newt Winni
 
 ```
 
-### Phenotype differences (lower_wp)
+### Phenotype differences (lower_w)
 ```{r, whale lw}
 min_gen=5000
 max_gen=10000
 rep=1
 
-whale_gen(lower_wp_lit, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
+whale_gen(lower_w_lit, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
 ```
 
-### Phenotype & Populationsize differences (lower_wp)
+### Phenotype & Populationsize differences (lower_w)
 ```{r, popsize and pheno lw}
 
-suppressMessages(print(two_hist(lower_wp_lit, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Popsize/1000 (green) & Snake-Newt Phenotype (purple)",  min_gen=min_gen, max_gen=max_gen, rep=rep )))
+suppressMessages(print(two_hist(lower_w_lit, title="Snake-Newt Winning Hist", subt="Gen 16sims", y_label="Count", x_label="Snake-Newt Popsize/1000 (green) & Snake-Newt Phenotype (purple)",  min_gen=min_gen, max_gen=max_gen, rep=rep )))
 
 
 ```
@@ -1067,6 +1104,7 @@ suppressMessages(print(two_hist(no_exp_lit, title="Snake-Newt Winning Hist", sub
 
 ## Correlation{.tabset}
 HEREREERERERER
+
 ### cor (both_lower_w_no_exp)
 ```{r, combo myplots}
 
@@ -2012,7 +2050,7 @@ GA_summary_by_species(lower_w_lit, min_gen=min_gen, max_gen=max_gen, x_line="dif
 
 
 
-### Early-Sim Population Size Summary 
+### Early-Sim Population Size Summary
 
 ```{r, early plots summary ne}
 
@@ -2137,7 +2175,7 @@ GA_summary_by_species(no_exp_lit, min_gen=min_gen, max_gen=max_gen, x_line="dif"
 
 
 
-### Population Size (Early) 
+### Population Size (Early)
 
 ```{r, early plots Heatmap}
 
@@ -2147,7 +2185,7 @@ max_gen=5000
 build_heatmap(both_lower_w_no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 ```
 
-### Population Size (Mid)  
+### Population Size (Mid)
 ```{r, early plots Heatmap 2}
 min_gen=25000
 max_gen=30000
@@ -2156,7 +2194,7 @@ build_heatmap(both_lower_w_no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_li
 
 ```
 
-### Population Size (Late) 
+### Population Size (Late)
 ```{r, early plots Heatmap 3}
 min_gen=45000
 max_gen=50000
@@ -2164,14 +2202,14 @@ max_gen=50000
 build_heatmap(both_lower_w_no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 ```
 
-### Phenotype (Early) 
+### Phenotype (Early)
 ```{r, early plots Heatmap pheno 1}
 min_gen=100
 max_gen=5000
 build_heatmap(both_lower_w_no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 ```
 
-### Phenotype (Mid) 
+### Phenotype (Mid)
 ```{r, early plots Heatmap pheno 2}
 
 min_gen=25000
@@ -2181,7 +2219,7 @@ max_gen=30000
 build_heatmap(both_lower_w_no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 ```
 
-### Phenotype (Late) 
+### Phenotype (Late)
 ```{r, early plots Heatmap pheno 3}
 min_gen=45000
 max_gen=50000
@@ -2197,7 +2235,7 @@ build_heatmap(both_lower_w_no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_li
 
 
 
-### Population Size (Early) 
+### Population Size (Early)
 
 ```{r, early plots Heatmap lw}
 
@@ -2207,7 +2245,7 @@ max_gen=5000
 build_heatmap(lower_w_lit, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 ```
 
-### Population Size (Mid)  
+### Population Size (Mid)
 ```{r, early plots Heatmap 2 lw}
 min_gen=25000
 max_gen=30000
@@ -2216,7 +2254,7 @@ build_heatmap(lower_w_lit, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_po
 
 ```
 
-### Population Size (Late) 
+### Population Size (Late)
 ```{r, early plots Heatmap 3 lw}
 min_gen=45000
 max_gen=50000
@@ -2224,14 +2262,14 @@ max_gen=50000
 build_heatmap(lower_w_lit, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 ```
 
-### Phenotype (Early) 
+### Phenotype (Early)
 ```{r, early plots Heatmap pheno 1 lw}
 min_gen=100
 max_gen=5000
 build_heatmap(lower_w_lit, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 ```
 
-### Phenotype (Mid) 
+### Phenotype (Mid)
 ```{r, early plots Heatmap pheno 2 lw}
 
 min_gen=25000
@@ -2241,7 +2279,7 @@ max_gen=30000
 build_heatmap(lower_w_lit, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 ```
 
-### Phenotype (Late) 
+### Phenotype (Late)
 ```{r, early plots Heatmap pheno 3 lw}
 min_gen=45000
 max_gen=50000
@@ -2257,7 +2295,7 @@ build_heatmap(lower_w_lit, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fi
 
 
 
-### Population Size (Early) 
+### Population Size (Early)
 
 ```{r, early plots Heatmap ne}
 
@@ -2267,7 +2305,7 @@ max_gen=5000
 build_heatmap(no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 ```
 
-### Population Size (Mid)  
+### Population Size (Mid)
 ```{r, early plots Heatmap 2 ne}
 min_gen=25000
 max_gen=30000
@@ -2276,7 +2314,7 @@ build_heatmap(no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop
 
 ```
 
-### Population Size (Late) 
+### Population Size (Late)
 ```{r, early plots Heatmap 3 ne}
 min_gen=45000
 max_gen=50000
@@ -2284,14 +2322,14 @@ max_gen=50000
 build_heatmap(no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="Snake_pop_size", fill_line_text="Snake Population Size", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA", red_blue=F)
 ```
 
-### Phenotype (Early) 
+### Phenotype (Early)
 ```{r, early plots Heatmap pheno 1 ne}
 min_gen=100
 max_gen=5000
 build_heatmap(no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 ```
 
-### Phenotype (Mid) 
+### Phenotype (Mid)
 ```{r, early plots Heatmap pheno 2 ne}
 
 min_gen=25000
@@ -2301,7 +2339,7 @@ max_gen=30000
 build_heatmap(no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fill_line_text="Snake-Newt", title="Newt GA by Snake GA", subt="16 Sim Heatmap", y_label="Snake GA", x_label="Newt GA",red_blue=T)
 ```
 
-### Phenotype (Late) 
+### Phenotype (Late)
 ```{r, early plots Heatmap pheno 3 ne}
 min_gen=45000
 max_gen=50000
@@ -2315,410 +2353,410 @@ build_heatmap(no_exp_lit, min_gen=min_gen, max_gen=max_gen, fill_line="dif", fil
 
 
 
-```{r, red in grid files}
-require(readr)
-both_lower_w_no_exp_grid<- read.csv("~/Desktop/both_lower_w_no_exp/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 9000, 10000))
-both_lower_w_no_exp_grid$group_rep <- paste0(both_lower_w_no_exp_grid$snake_mu_rate, "_", both_lower_w_no_exp_grid$snake_mu_effect_sd,"_",both_lower_w_no_exp_grid$newt_mu_rate, "_", both_lower_w_no_exp_grid$newt_mu_effect_sd, "_", both_lower_w_no_exp_grid$rep)
-both_lower_w_no_exp_grid$group <- paste0(both_lower_w_no_exp_grid$snake_mu_rate, "_", both_lower_w_no_exp_grid$snake_mu_effect_sd,"_",both_lower_w_no_exp_grid$newt_mu_rate, "_", both_lower_w_no_exp_grid$newt_mu_effect_sd)
-both_lower_w_no_exp_grid$sim=LETTERS[factor(both_lower_w_no_exp_grid$group)]
-both_lower_w_no_exp_grid$grid_num = 5
+<!-- ```{r, red in grid files} -->
+<!-- require(readr) -->
+<!-- both_lower_w_no_exp_grid<- read.csv("~/Desktop/bob_suggestion/both_lower_w_no_exp/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 9000, 10000)) -->
+<!-- both_lower_w_no_exp_grid$group_rep <- paste0(both_lower_w_no_exp_grid$snake_mu_rate, "_", both_lower_w_no_exp_grid$snake_mu_effect_sd,"_",both_lower_w_no_exp_grid$newt_mu_rate, "_", both_lower_w_no_exp_grid$newt_mu_effect_sd, "_", both_lower_w_no_exp_grid$rep) -->
+<!-- both_lower_w_no_exp_grid$group <- paste0(both_lower_w_no_exp_grid$snake_mu_rate, "_", both_lower_w_no_exp_grid$snake_mu_effect_sd,"_",both_lower_w_no_exp_grid$newt_mu_rate, "_", both_lower_w_no_exp_grid$newt_mu_effect_sd) -->
+<!-- both_lower_w_no_exp_grid$sim=LETTERS[factor(both_lower_w_no_exp_grid$group)] -->
+<!-- both_lower_w_no_exp_grid$grid_num = 5 -->
 
-```
+<!-- ``` -->
 
 
-```{r, red in grid files lw}
-require(readr)
-lower_w_grid<- read.csv("~/Desktop/lower_w/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 9000, 10000))
-lower_w_grid$group_rep <- paste0(lower_w_grid$snake_mu_rate, "_", lower_w_grid$snake_mu_effect_sd,"_",lower_w_grid$newt_mu_rate, "_", lower_w_grid$newt_mu_effect_sd, "_", lower_w_grid$rep)
-lower_w_grid$group <- paste0(lower_w_grid$snake_mu_rate, "_", lower_w_grid$snake_mu_effect_sd,"_",lower_w_grid$newt_mu_rate, "_", lower_w_grid$newt_mu_effect_sd)
-lower_w_grid$sim=LETTERS[factor(lower_w_grid$group)]
-lower_w_grid$grid_num = 5
+<!-- ```{r, red in grid files lw} -->
+<!-- require(readr) -->
+<!-- lower_w_grid<- read.csv("~/Desktop/bob_suggestion/lower_w/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 9000, 10000)) -->
+<!-- lower_w_grid$group_rep <- paste0(lower_w_grid$snake_mu_rate, "_", lower_w_grid$snake_mu_effect_sd,"_",lower_w_grid$newt_mu_rate, "_", lower_w_grid$newt_mu_effect_sd, "_", lower_w_grid$rep) -->
+<!-- lower_w_grid$group <- paste0(lower_w_grid$snake_mu_rate, "_", lower_w_grid$snake_mu_effect_sd,"_",lower_w_grid$newt_mu_rate, "_", lower_w_grid$newt_mu_effect_sd) -->
+<!-- lower_w_grid$sim=LETTERS[factor(lower_w_grid$group)] -->
+<!-- lower_w_grid$grid_num = 5 -->
 
-```
+<!-- ``` -->
 
-```{r, red in grid files ne}
-require(readr)
-no_exp_grid<- read.csv("~/Desktop/no_exp/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 9000, 10000))
-no_exp_grid$group_rep <- paste0(no_exp_grid$snake_mu_rate, "_", no_exp_grid$snake_mu_effect_sd,"_",no_exp_grid$newt_mu_rate, "_", no_exp_grid$newt_mu_effect_sd, "_", no_exp_grid$rep)
-no_exp_grid$group <- paste0(no_exp_grid$snake_mu_rate, "_", no_exp_grid$snake_mu_effect_sd,"_",no_exp_grid$newt_mu_rate, "_", no_exp_grid$newt_mu_effect_sd)
-no_exp_grid$sim=LETTERS[factor(no_exp_grid$group)]
-no_exp_grid$grid_num = 5
+<!-- ```{r, red in grid files ne} -->
+<!-- require(readr) -->
+<!-- no_exp_grid<- read.csv("~/Desktop/bob_suggestion/no_exp/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 9000, 10000)) -->
+<!-- no_exp_grid$group_rep <- paste0(no_exp_grid$snake_mu_rate, "_", no_exp_grid$snake_mu_effect_sd,"_",no_exp_grid$newt_mu_rate, "_", no_exp_grid$newt_mu_effect_sd, "_", no_exp_grid$rep) -->
+<!-- no_exp_grid$group <- paste0(no_exp_grid$snake_mu_rate, "_", no_exp_grid$snake_mu_effect_sd,"_",no_exp_grid$newt_mu_rate, "_", no_exp_grid$newt_mu_effect_sd) -->
+<!-- no_exp_grid$sim=LETTERS[factor(no_exp_grid$group)] -->
+<!-- no_exp_grid$grid_num = 5 -->
 
-```
+<!-- ``` -->
 
-## What is up with the correlations
+<!-- ## What is up with the correlations -->
 
-## Early Simulation Correlation (both_lower_w_no_exp)  {.tabset}
+<!-- ## Early Simulation Correlation (both_lower_w_no_exp)  {.tabset} -->
 
 
-### Mean 
-```{r, cor grid high cor mean}
+<!-- ### Mean  -->
+<!-- ```{r, cor grid high cor mean} -->
 
-file=both_lower_w_no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="mean"
-row_num=20
-col_num=5
+<!-- file=both_lower_w_no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="mean" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Max 
-```{r, cor grid high cor max}
+<!-- ### Max  -->
+<!-- ```{r, cor grid high cor max} -->
 
-file=both_lower_w_no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="max"
-row_num=20
-col_num=5
+<!-- file=both_lower_w_no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="max" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Min 
-```{r, cor grid high cor min}
+<!-- ### Min  -->
+<!-- ```{r, cor grid high cor min} -->
 
-file=both_lower_w_no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="min"
-row_num=20
-col_num=5
+<!-- file=both_lower_w_no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="min" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### popsize
-```{r, cor grid high cor popsize}
+<!-- ### popsize -->
+<!-- ```{r, cor grid high cor popsize} -->
 
-file=both_lower_w_no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="num_ind"
-row_num=20
-col_num=5
-grid_plot(file_name, spegen, file, type, row_num, col_num)
+<!-- file=both_lower_w_no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="num_ind" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
 
-```
+<!-- ``` -->
 
-## {-}
+<!-- ## {-} -->
 
 
-## Early Simulation Correlation (lower_w)  {.tabset}
+<!-- ## Early Simulation Correlation (lower_w)  {.tabset} -->
 
 
-### Mean 
-```{r, cor grid high cor mean}
+<!-- ### Mean  -->
+<!-- ```{r, cor grid high cor mean lw} -->
 
-file=lower_w_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="mean"
-row_num=20
-col_num=5
+<!-- file=lower_w_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="mean" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Max 
-```{r, cor grid high cor max}
+<!-- ### Max  -->
+<!-- ```{r, cor grid high cor max lw} -->
 
-file=lower_w_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="max"
-row_num=20
-col_num=5
+<!-- file=lower_w_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="max" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Min 
-```{r, cor grid high cor min}
-
-file=lower_w_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="min"
-row_num=20
-col_num=5
+<!-- ### Min  -->
+<!-- ```{r, cor grid high cor min lw} -->
+
+<!-- file=lower_w_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="min" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### popsize
-```{r, cor grid high cor popsize}
+<!-- ### popsize -->
+<!-- ```{r, cor grid high cor popsize lw} -->
 
-file=lower_w_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="num_ind"
-row_num=20
-col_num=5
-grid_plot(file_name, spegen, file, type, row_num, col_num)
+<!-- file=lower_w_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="num_ind" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
 
-```
+<!-- ``` -->
 
-## {-}
+<!-- ## {-} -->
 
-## Early Simulation Correlation (no_exp)  {.tabset}
+<!-- ## Early Simulation Correlation (no_exp)  {.tabset} -->
 
 
-### Mean 
-```{r, cor grid high cor mean}
+<!-- ### Mean  -->
+<!-- ```{r, cor grid high cor mean ne} -->
 
-file=no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="mean"
-row_num=20
-col_num=5
+<!-- file=no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="mean" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Max 
-```{r, cor grid high cor max}
+<!-- ### Max  -->
+<!-- ```{r, cor grid high cor max  ne} -->
 
-file=no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="max"
-row_num=20
-col_num=5
+<!-- file=no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="max" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Min 
-```{r, cor grid high cor min}
+<!-- ### Min  -->
+<!-- ```{r, cor grid high cor min ne} -->
 
-file=no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="min"
-row_num=20
-col_num=5
+<!-- file=no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="min" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
-
-### popsize
-```{r, cor grid high cor popsize}
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
+
+<!-- ### popsize -->
+<!-- ```{r, cor grid high cor popsize ne} -->
 
-file=no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=9501
-type="num_ind"
-row_num=20
-col_num=5
-grid_plot(file_name, spegen, file, type, row_num, col_num)
+<!-- file=no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=9501 -->
+<!-- type="num_ind" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
 
-```
+<!-- ``` -->
 
-## {-}
+<!-- ## {-} -->
 
 
-```{r, red in grid files 2}
-require(readr)
-both_lower_w_no_exp_grid<- read.csv("~/Desktop/both_lower_w_no_exp/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 40000, 50000))
-both_lower_w_no_exp_grid$group_rep <- paste0(both_lower_w_no_exp_grid$snake_mu_rate, "_", both_lower_w_no_exp_grid$snake_mu_effect_sd,"_",both_lower_w_no_exp_grid$newt_mu_rate, "_", both_lower_w_no_exp_grid$newt_mu_effect_sd, "_", both_lower_w_no_exp_grid$rep)
-both_lower_w_no_exp_grid$group <- paste0(both_lower_w_no_exp_grid$snake_mu_rate, "_", both_lower_w_no_exp_grid$snake_mu_effect_sd,"_",both_lower_w_no_exp_grid$newt_mu_rate, "_", both_lower_w_no_exp_grid$newt_mu_effect_sd)
-both_lower_w_no_exp_grid$sim=LETTERS[factor(both_lower_w_no_exp_grid$group)]
-both_lower_w_no_exp_grid$grid_num = 5
+<!-- ```{r, red in grid files 2} -->
+<!-- require(readr) -->
+<!-- both_lower_w_no_exp_grid<- read.csv("~/Desktop/both_lower_w_no_exp/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 40000, 50000)) -->
+<!-- both_lower_w_no_exp_grid$group_rep <- paste0(both_lower_w_no_exp_grid$snake_mu_rate, "_", both_lower_w_no_exp_grid$snake_mu_effect_sd,"_",both_lower_w_no_exp_grid$newt_mu_rate, "_", both_lower_w_no_exp_grid$newt_mu_effect_sd, "_", both_lower_w_no_exp_grid$rep) -->
+<!-- both_lower_w_no_exp_grid$group <- paste0(both_lower_w_no_exp_grid$snake_mu_rate, "_", both_lower_w_no_exp_grid$snake_mu_effect_sd,"_",both_lower_w_no_exp_grid$newt_mu_rate, "_", both_lower_w_no_exp_grid$newt_mu_effect_sd) -->
+<!-- both_lower_w_no_exp_grid$sim=LETTERS[factor(both_lower_w_no_exp_grid$group)] -->
+<!-- both_lower_w_no_exp_grid$grid_num = 5 -->
 
-```
+<!-- ``` -->
 
-```{r, red in grid files 2 lw}
-require(readr)
-lower_w_grid<- read.csv("~/Desktop/lower_w/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 40000, 50000))
-lower_w_grid$group_rep <- paste0(lower_w_grid$snake_mu_rate, "_", lower_w_grid$snake_mu_effect_sd,"_",lower_w_grid$newt_mu_rate, "_", lower_w_grid$newt_mu_effect_sd, "_", lower_w_grid$rep)
-lower_w_grid$group <- paste0(lower_w_grid$snake_mu_rate, "_", lower_w_grid$snake_mu_effect_sd,"_",lower_w_grid$newt_mu_rate, "_", lower_w_grid$newt_mu_effect_sd)
-lower_w_grid$sim=LETTERS[factor(lower_w_grid$group)]
-lower_w_grid$grid_num = 5
+<!-- ```{r, red in grid files 2 lw} -->
+<!-- require(readr) -->
+<!-- lower_w_grid<- read.csv("~/Desktop/lower_w/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 40000, 50000)) -->
+<!-- lower_w_grid$group_rep <- paste0(lower_w_grid$snake_mu_rate, "_", lower_w_grid$snake_mu_effect_sd,"_",lower_w_grid$newt_mu_rate, "_", lower_w_grid$newt_mu_effect_sd, "_", lower_w_grid$rep) -->
+<!-- lower_w_grid$group <- paste0(lower_w_grid$snake_mu_rate, "_", lower_w_grid$snake_mu_effect_sd,"_",lower_w_grid$newt_mu_rate, "_", lower_w_grid$newt_mu_effect_sd) -->
+<!-- lower_w_grid$sim=LETTERS[factor(lower_w_grid$group)] -->
+<!-- lower_w_grid$grid_num = 5 -->
 
-```
+<!-- ``` -->
 
 
-```{r, red in grid files 2 ne}
-require(readr)
-no_exp_grid<- read.csv("~/Desktop/no_exp/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 40000, 50000))
-no_exp_grid$group_rep <- paste0(no_exp_grid$snake_mu_rate, "_", no_exp_grid$snake_mu_effect_sd,"_",no_exp_grid$newt_mu_rate, "_", no_exp_grid$newt_mu_effect_sd, "_", no_exp_grid$rep)
-no_exp_grid$group <- paste0(no_exp_grid$snake_mu_rate, "_", no_exp_grid$snake_mu_effect_sd,"_",no_exp_grid$newt_mu_rate, "_", no_exp_grid$newt_mu_effect_sd)
-no_exp_grid$sim=LETTERS[factor(no_exp_grid$group)]
-no_exp_grid$grid_num = 5
+<!-- ```{r, red in grid files 2 ne} -->
+<!-- require(readr) -->
+<!-- no_exp_grid<- read.csv("~/Desktop/no_exp/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 40000, 50000)) -->
+<!-- no_exp_grid$group_rep <- paste0(no_exp_grid$snake_mu_rate, "_", no_exp_grid$snake_mu_effect_sd,"_",no_exp_grid$newt_mu_rate, "_", no_exp_grid$newt_mu_effect_sd, "_", no_exp_grid$rep) -->
+<!-- no_exp_grid$group <- paste0(no_exp_grid$snake_mu_rate, "_", no_exp_grid$snake_mu_effect_sd,"_",no_exp_grid$newt_mu_rate, "_", no_exp_grid$newt_mu_effect_sd) -->
+<!-- no_exp_grid$sim=LETTERS[factor(no_exp_grid$group)] -->
+<!-- no_exp_grid$grid_num = 5 -->
 
-```
+<!-- ``` -->
 
-## Late Simulation Correlation (both_lower_w_no_exp) {.tabset}
+<!-- ## Late Simulation Correlation (both_lower_w_no_exp) {.tabset} -->
 
 
-### Mean 
-```{r, cor grid high cor mean late}
+<!-- ### Mean  -->
+<!-- ```{r, cor grid high cor mean late} -->
 
-file=both_lower_w_no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="mean"
-row_num=20
-col_num=5
+<!-- file=both_lower_w_no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="mean" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Max 
-```{r, cor grid high cor max late}
+<!-- ### Max  -->
+<!-- ```{r, cor grid high cor max late} -->
 
-file=both_lower_w_no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="max"
-row_num=20
-col_num=5
+<!-- file=both_lower_w_no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="max" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Min 
-```{r, cor grid high cor min late}
+<!-- ### Min  -->
+<!-- ```{r, cor grid high cor min late} -->
 
-file=both_lower_w_no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="min"
-row_num=20
-col_num=5
+<!-- file=both_lower_w_no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="min" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Pop size
-```{r, cor grid high cor popsize late}
+<!-- ### Pop size -->
+<!-- ```{r, cor grid high cor popsize late} -->
 
-file=both_lower_w_no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="num_ind"
-row_num=20
-col_num=5
-grid_plot(file_name, spegen, file, type, row_num, col_num)
+<!-- file=both_lower_w_no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="num_ind" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
 
-```
+<!-- ``` -->
 
-## {-}
+<!-- ## {-} -->
 
-## Late Simulation Correlation (lower_w) {.tabset}
+<!-- ## Late Simulation Correlation (lower_w) {.tabset} -->
 
 
-### Mean 
-```{r, cor grid high cor mean late}
+<!-- ### Mean  -->
+<!-- ```{r, cor grid high cor mean late lw} -->
 
-file=lower_w_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="mean"
-row_num=20
-col_num=5
+<!-- file=lower_w_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="mean" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Max 
-```{r, cor grid high cor max late}
+<!-- ### Max  -->
+<!-- ```{r, cor grid high cor max late lw} -->
 
-file=lower_w_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="max"
-row_num=20
-col_num=5
+<!-- file=lower_w_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="max" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Min 
-```{r, cor grid high cor min late}
+<!-- ### Min  -->
+<!-- ```{r, cor grid high cor min late lw} -->
 
-file=lower_w_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="min"
-row_num=20
-col_num=5
+<!-- file=lower_w_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="min" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Pop size
-```{r, cor grid high cor popsize late}
+<!-- ### Pop size -->
+<!-- ```{r, cor grid high cor popsize late lw} -->
 
-file=lower_w_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="num_ind"
-row_num=20
-col_num=5
-grid_plot(file_name, spegen, file, type, row_num, col_num)
+<!-- file=lower_w_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="num_ind" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
 
-```
+<!-- ``` -->
 
-## {-}
+<!-- ## {-} -->
 
-## Late Simulation Correlation (no_exp) {.tabset}
+<!-- ## Late Simulation Correlation (no_exp) {.tabset} -->
 
 
-### Mean 
-```{r, cor grid high cor mean late}
+<!-- ### Mean  -->
+<!-- ```{r, cor grid high cor mean late ne} -->
 
-file=no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="mean"
-row_num=20
-col_num=5
+<!-- file=no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="mean" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Max 
-```{r, cor grid high cor max late}
+<!-- ### Max  -->
+<!-- ```{r, cor grid high cor max late ne} -->
 
-file=no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="max"
-row_num=20
-col_num=5
+<!-- file=no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="max" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Min 
-```{r, cor grid high cor min late}
+<!-- ### Min  -->
+<!-- ```{r, cor grid high cor min late ne} -->
 
-file=no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="min"
-row_num=20
-col_num=5
+<!-- file=no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="min" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
 
-grid_plot(file_name, spegen, file, type, row_num, col_num)
-```
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
+<!-- ``` -->
 
-### Pop size
-```{r, cor grid high cor popsize late}
+<!-- ### Pop size -->
+<!-- ```{r, cor grid high cor popsize late ne} -->
 
-file=no_exp_grid
-file_name="1e-11_5_1e-10_0.5_0"
-spegen=44501
-type="num_ind"
-row_num=20
-col_num=5
-grid_plot(file_name, spegen, file, type, row_num, col_num)
+<!-- file=no_exp_grid -->
+<!-- file_name="1e-11_5_1e-10_0.5_0" -->
+<!-- spegen=44501 -->
+<!-- type="num_ind" -->
+<!-- row_num=20 -->
+<!-- col_num=5 -->
+<!-- grid_plot(file_name, spegen, file, type, row_num, col_num) -->
 
-```
+<!-- ``` -->
 
-## {-}
+<!-- ## {-} -->
