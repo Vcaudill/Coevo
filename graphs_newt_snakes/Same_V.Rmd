@@ -28,12 +28,13 @@ library(stringr)
 library(patchwork)
 ```
 
-## Goal:
+## Goal: 
 
+Run four sets of simulations each with 16 different genetic architectures (GA), to explore how changing mutation rate and the standard deviation of mutation effect size can impact how traits coevolve. Each GA within a simulation set will have the same mutational variance. 
 
 ### Questions:
 
-What does it mean to be correlated? 
+What does it mean to be correlated and can I get spatial phenotypic correlation when populations of newts and snakes are coevolving? 
 
 ## Background
 
@@ -45,8 +46,33 @@ I created a simulation study to observe the co-evolutionary outcome of the newt-
 
 Experiment values:
 
+V = 2.5e^-13: 
 
+- mu = 1e^-8 sig = 0.005
+- mu = 1e^-9 sig = 0.0158
+- mu = 1e^-10 sig = 0.05
+- mu = 1e^-11 sig = 0.158
 
+V = 2.5e^-12:
+
+- mu = 1e^-8 sig = 0.0158
+- mu = 1e^-9 sig = 0.05
+- mu = 1e^-10 sig = 0.158
+- mu = 1e^-11 sig = 0.5
+
+V = 2.5e^-11:
+
+- mu = 1e^-8 sig = 0.05
+- mu = 1e^-9 sig = 0.158
+- mu = 1e^-10 sig = 0.5
+- mu = 1e^-11 sig = 1.58
+
+V = 2.5e^-10:
+
+- mu = 1e^-8 sig = 0.158
+- mu = 1e^-9 sig = 0.5
+- mu = 1e^-10 sig = 1.58
+- mu = 1e^-11 sig = 5.0
 
 
 

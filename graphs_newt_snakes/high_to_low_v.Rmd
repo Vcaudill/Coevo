@@ -30,10 +30,11 @@ library(patchwork)
 
 ## Goal:
 
+I ran 4 simulation sets, where in each set the mutation rate stayed constant and I changed the mutation effect size to create varying levels of mutational variance. 
 
 ### Questions:
 
-What does it mean to be correlated? 
+What does it mean to be correlated? How much of an advantage is an increase in mutational variance for a species involved in an coevolutionary race? 
 
 ## Background
 
@@ -45,9 +46,33 @@ I created a simulation study to observe the co-evolutionary outcome of the newt-
 
 Experiment values:
 
+mu = 1e^-8:
 
+ - sig = 0.005, MV = 2.5e^-13
+ - sig = 0.0158, MV = 2.5e^-12
+ - sig = 0.05, MV = 2.5e^-11
+ - sig = 0.158, MV = 2.5e^-10
+ 
+ mu = 1e^-9:
 
+ - sig = 0.0158, MV = 2.5e^-13
+ - sig = 0.05, MV = 2.5e^-12
+ - sig = 0.158, MV = 2.5e^-11
+ - sig = 0.5, MV = 2.5e^-10
+ 
+ mu = 1e^-10:
 
+ - sig = 0.05, MV = 2.5e^-13
+ - sig = 0.158, MV = 2.5e^-12
+ - sig = 0.5, MV = 2.5e^-11
+ - sig = 1.58, MV = 2.5e^-10
+
+ mu = 1e^-11:
+
+ - sig = 0.158, MV = 2.5e^-13
+ - sig = 0.5, MV = 2.5e^-12
+ - sig = 1.58, MV = 2.5e^-11
+ - sig = 5.0, MV = 2.5e^-10
 
 
 ### The data

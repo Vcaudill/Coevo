@@ -28,13 +28,15 @@ library(patchwork)
 
 ## Goal:
 
+Start populations in the lower third of the simulation and let them move as they co-evolve. It is possible that as newts and snakes move into new territory they might create more spatial phenotype correlation. 
 
 ### Questions:
 
-What does it mean to be correlated? Might this occur if I simulatate some controlled movement?
+What does it mean to be correlated? Might this occur if I simulate some controlled movement?
 
 ## Background
 
+I am running a coevolution experiment where newts and snakes interaction with each other over long periods of time. When they interact the newt or snake with the highest level of toxicity or resistance will survive. As newts and snake interact across space, they develop exaggerated traits that can become spatial correlated. My experiments examine when traits became exaggerated or correlated. 
 
 
 ## Experiment
@@ -1422,18 +1424,34 @@ move_together_lit$Nstr_gen <- genstart_newt[match(move_together_lit$group_rep, g
 move_together_lit$Sstr_gen <- genstart_snake[match(move_together_lit$group_rep, genstart_snake$group_rep),'Sstr_gen']
 
 
-genend_newt = aggregate(move_together_lit[which(move_together_lit$generation>=move_together_lit$Nstr_gen  & move_together_lit$Newt_mean_Pheno>=(move_together_lit$Nend)) ,]$generation, list(move_together_lit[which( move_together_lit$generation>=move_together_lit$Nstr_gen  & move_together_lit$Newt_mean_Pheno>=(move_together_lit$Nend)),]$group_rep), FUN=min)
+genend_newt = aggregate(move_together_lit[which(move_together_lit$generation>=move_together_lit$Nstr_gen  & move_together_lit$Newt_mean_Pheno>=(.98*(move_together_lit$Nend))) ,]$generation, list(move_together_lit[which( move_together_lit$generation>=move_together_lit$Nstr_gen  & move_together_lit$Newt_mean_Pheno>=(.98*move_together_lit$Nend)),]$group_rep), FUN=min)
 
-genend_snake = aggregate(move_together_lit[which(move_together_lit$generation>=move_together_lit$Sstr_gen  & move_together_lit$Snake_mean_Pheno>=(move_together_lit$Send)) ,]$generation, list(move_together_lit[which(move_together_lit$generation>=move_together_lit$Sstr_gen  & move_together_lit$Snake_mean_Pheno>=(move_together_lit$Send)),]$group_rep), FUN=min)
+genend_snake = aggregate(move_together_lit[which(move_together_lit$generation>=move_together_lit$Sstr_gen  & move_together_lit$Snake_mean_Pheno>=(.98*move_together_lit$Send)) ,]$generation, list(move_together_lit[which(move_together_lit$generation>=move_together_lit$Sstr_gen  & move_together_lit$Snake_mean_Pheno>=(.98*move_together_lit$Send)),]$group_rep), FUN=min)
 
 move_together_lit$genend_newt <- genend_newt[match(move_together_lit$group_rep, genend_newt$Group.1),'x']
 move_together_lit$genend_snake <- genend_snake[match(move_together_lit$group_rep, genend_snake$Group.1),'x']
 
 # get the difference in generation time and the difference in phenotype
 
+npt<-ggplot(move_together_lit) +
+geom_boxplot(aes(sim, genend_newt), color="darkred")
+spt<-ggplot(move_together_lit) +
+geom_boxplot(aes(sim, genend_snake), color="steelblue")
+#  geom_point(aes(group_rep, genend_newt), color="darkred")+
+ # geom_point(aes(group_rep, genend_snake), color="steelblue")
+grid.arrange(npt, spt, ncol=1)
+ggplot(move_together_lit) +
+  facet_wrap(~sim)+
+geom_point(aes(rep, genend_newt), color="darkred")+
+geom_point(aes(rep, genend_snake), color="steelblue")
+
+ggplot(move_together_lit) +
+geom_boxplot(aes(sim, genend_snake-genend_newt), color="black")
+
+
 ```
 
-```{r, making newts and snakes in grid form}
+```{r, making newts and snakes in grid form look nice}
 
 duo_grid_plot<- function(file_name, spegen, file, type, row_num, col_num){
   
@@ -1456,10 +1474,16 @@ data_long_type_comp$x_loc<- sort(rep.int(1:col_num, row_num*2))
 main_plot<-ggplot(data_long_type_comp, aes(x = x_loc, y = y_loc))+
   geom_tile(aes(fill = as.numeric(measurement)))+
   facet_wrap(~species)+
-
+  coord_fixed() +
   theme_bw()+
-  theme(legend.justification = "top")
-
+  #margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")+
+  theme( legend.justification = "top", 
+         plot.margin = margin(t = 0.3,  # Top margin
+                             r = 0,  # Right margin
+                             b = 0.3,  # Bottom margin
+                             l = 0,  # Left margin
+                             unit = "cm")  ) # legend.position ="bottom"
+#plot.margin = unit(c(1, 1, 3, 1), "cm"),
 if(type != "num_ind"){
   main_plot<- main_plot + labs(title = paste0(str_to_title(type)," Phenotype of Locations"),
                                subtitle = paste0(file_name, ", Generation: ", spegen),
@@ -1503,8 +1527,64 @@ extra_plot <- ggplot(newt)+
 
 
 
-final_plot <- main_plot +  inset_element(extra_plot, left = 1., bottom = -0.10, right = 1.35, top = 0.5)
+
+bloan <- ggplot() + theme_void()
+final_plot <- grid.arrange(main_plot, arrangeGrob(bloan, extra_plot), ncol = 2)
+
+
+
+grid.arrange(main_plot, bloan, extra_plot, ncol = 2, 
+             layout_matrix=cbind(c(1,1),c(2,3)))
+
+#final_plot <- main_plot +  inset_element(extra_plot, left = 1., bottom = -0.10, right = 1.35, top = 0.5)
 
 return(final_plot)}
 
+
+file=move_together_grid
+file_name="1e-11_5_1e-10_0.5_0"
+spegen=44501
+type="min"
+row_num=20
+col_num=5
+
+duo_grid_plot(file_name, spegen, file, type, row_num, col_num)
 ```
+
+```{r, looking at the slop}
+
+
+file = move_together_lit
+title = "test"
+subt = "test"
+x_label ="xx"
+y_label = "yy"
+min_gen = 100
+max_gen = 50000
+
+  ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen),]) +
+    facet_wrap(~sim)+
+    #geom_line(aes(generation, dif, group=rep, col="dif"))+
+    ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+    geom_line(aes(generation, Snake_mean_Pheno, group=rep, color="Snake_mean_Pheno"),)+
+    geom_line(aes(generation, Newt_mean_Pheno, group=rep, color="Newt_mean_Pheno"))+
+    #geom_hline(yintercept=0, linetype="dashed", color="gray54")+
+    #coord_trans(y="log2")+
+    scale_y_continuous(trans = "log2")+
+    #ylim(-1.,2.5)+
+    xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Type",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred", "dif" = "black"),
+labels = c("Snake", "Newt", "Dif"))+
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), legend.position="none",
+                      strip.background = element_blank(), strip.text.x = element_blank(),
+                      title =element_text(size=8, face='bold'), axis.title.x = element_blank(),
+                      axis.title.y = element_blank())
+
+
+
+```
+
+
+
+
