@@ -493,19 +493,25 @@ boxplot_cors_by_gen_col_rep <- function(file1, file2, file3, title, subt, x_labe
    file3$snake_newt <- paste0(file3$snake_mu_rate, "_", file3$snake_mu_effect_sd, "_", file3$newt_mu_rate, "_", file3$newt_mu_effect_sd)
 file <- rbind(file1, file2, file3)
 
-file$cor_score <- ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
+file$sim <- str_replace_all(file$sim, "[ABCDEIM]", 'Sims')
+#c("A"='Low Mu Var', "B"='Low Mu Var', "C"='Low Mu Var', "D"='Low Mu Var', "E"='Low Mu Var', "I"='Low Mu Var', "M"='Low Mu Var'))
+
+file$cor_score <- ifelse(file$sim == "Sims", "False","True")
+
+#file$cor_score <- ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
+
 
 file$exp = factor(file$exp, levels=c("Flat Map", "Cost Gradent Map", "Interaction Gradent Map"))
 
   plot <-  ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
   xlab(x_label) + ylab(y_label)+
-  geom_boxplot(aes(x=factor(sim, level=c("A","B", "C", "D", "E", "I", "M", "F","G","H","J","K","L","N","O","P")), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), fill=factor(cor_score)))+
+  geom_boxplot(aes(x=factor(sim, level=c('Sims', "F","G","H","J","K","L","N","O","P")), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), fill=factor(cor_score)))+
   theme(plot.title = element_text(size=5)) +
   #xlim(-1.1, 1.1)+
     geom_hline(yintercept=real_snewt_cor, linetype="dashed")+
   facet_wrap(~exp, ncol=1)+
-  scale_fill_manual(values =c("darkolivegreen3", "cadetblue2"), labels=c('No Coevolution', 'Coevolution'))+
+  scale_fill_manual(values =c("darkolivegreen3", "cadetblue2"), labels=c('Low Mutatinal Variance', 'Coevolution'))+
     labs(fill = " ")+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       title =element_text(size=8, face='bold'))
@@ -514,7 +520,7 @@ file$exp = factor(file$exp, levels=c("Flat Map", "Cost Gradent Map", "Interactio
   return(plot)
 }
 
-file1 = GA1_cor
+file1 = GA1_cor[which(1:nrow(GA1_cor) %% 2 != 0) , ]
 file2 = cost_grade_cor
 file3 = interrate_grade
 title = "Spatial Phenotype Correlation Across Different Simulation Conditions"
@@ -633,8 +639,8 @@ file$exp = factor(file$exp, levels=c("No Interaction", "No Heritability", "Coevo
 file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
   
 
-  plot <-  ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
-  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  plot <-  ggplot(file) +
+  ggtitle(title, subtitle = subt)+
   xlab(x_label) + ylab(y_label)+
   geom_boxplot(aes(x=factor(sim, level=c("A","B", "C", "D", "E", "I", "M", "F","G","H","J","K","L","N","O","P")), y=as.numeric(newt_snake_pheno_avg), fill=factor(cor_score)))+
   theme(plot.title = element_text(size=5)) +
@@ -676,8 +682,8 @@ file$coevo_score[file$sim %in% snake_adv] = "Snake Advantage"
 file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
   
 
-  plot <-  ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
-  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  plot <-  ggplot(file) +
+  ggtitle(title, subtitle = subt)+
   xlab(x_label) + ylab(y_label)+
   geom_boxplot(aes(x=factor(sim, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "I", "J", "M", "N", "O")), y=as.numeric(newt_snake_pheno_avg), fill=factor(coevo_score)))+
   
@@ -686,7 +692,92 @@ file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
   theme(plot.title = element_text(size=5)) +
   #xlim(-1.1, 1.1)+
   facet_wrap(~exp, ncol=1)+
-  scale_fill_manual(values =c("red", "purple", "blue"), labels=c('Newt Advantage', 'No Advantage', 'Snake Advantage'))+
+  scale_fill_manual(values =c("darkred", "purple", "steelblue"), labels=c('Newt Advantage', 'No Advantage', 'Snake Advantage'))+
+    labs(fill = " ")+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      title =element_text(size=8, face='bold'))
+  
+
+  return(plot)
+}
+
+boxplot_coevo_slope_flat_map <- function(file, title, subt, x_label, y_label){
+ 
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+
+file$newt_pheno_change=file$N_pheno_end - file$N_pheno_start
+file$snake_pheno_change=file$S_pheno_end - file$S_pheno_start
+#file$newt_coevo_slope = (file$N_pheno_end - file$N_pheno_start)/ (file$N_end_gen - file$N_str_gen)
+#file$snake_coevo_slope = (file$S_pheno_end - file$S_pheno_start)/ (file$S_end_gen - file$S_str_gen)
+
+newt_adv= c("D", "C", "B", "H", "G", "L")
+mid= c("A", "F", "K", "P")
+snake_adv = c("E", "I", "J", "M", "N", "O")
+
+file$coevo_score = 0
+
+file$coevo_score[file$sim %in% newt_adv] = "Newt Advantage"
+file$coevo_score[file$sim %in% mid] = "No Advantage"
+file$coevo_score[file$sim %in% snake_adv] = "Snake Advantage"
+file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
+
+file_long <- tidyr::pivot_longer(file, c(newt_pheno_change, snake_pheno_change))
+
+  plot <-  ggplot(file_long) +
+  ggtitle(title, subtitle = subt)+
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(sim, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")), y=as.numeric(value), fill=factor(name)))+
+  theme(plot.title = element_text(size=5)) +
+  #xlim(-1.1, 1.1)+
+  scale_fill_manual(values =c("darkred", "steelblue"), labels=c('Newt', 'Snake'))+
+    labs(fill = " ")+
+    #scale_fill_manual(values =c("darkred", "purple", "steelblue"), labels=c('Newt Advantage', 'No Advantage', 'Snake Advantage'))+
+    labs(fill = " ")+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      title =element_text(size=8, face='bold'))
+  
+
+  return(plot)
+}
+
+
+boxplot_coevo_slope_small <- function(file1, file2, file3, title, subt, x_label, y_label){
+ 
+   file1$snake_newt <- paste0(file1$snake_mu_rate, "_", file1$snake_mu_effect_sd, "_", file1$newt_mu_rate, "_", file1$newt_mu_effect_sd)
+   file2$snake_newt <- paste0(file2$snake_mu_rate, "_", file2$snake_mu_effect_sd, "_", file2$newt_mu_rate, "_", file2$newt_mu_effect_sd)
+   file3$snake_newt <- paste0(file3$snake_mu_rate, "_", file3$snake_mu_effect_sd, "_", file3$newt_mu_rate, "_", file3$newt_mu_effect_sd)
+   
+file <- rbind(file1, file2, file3)
+file$newt_pheno_change=file$N_pheno_end - file$N_pheno_start
+file$snake_pheno_change=file$S_pheno_end - file$S_pheno_start
+#file$newt_coevo_slope = (file$N_pheno_end - file$N_pheno_start)/ (file$N_end_gen - file$N_str_gen)
+#file$snake_coevo_slope = (file$S_pheno_end - file$S_pheno_start)/ (file$S_end_gen - file$S_str_gen)
+
+file$exp = factor(file$exp, levels=c("No Interaction", "No Heritability", "Coevolution Flat Map"))
+
+newt_adv= c("D", "C", "B", "H", "G", "L")
+mid= c("A", "F", "K", "P")
+snake_adv = c("E", "I", "J", "M", "N", "O")
+
+file$coevo_score = 0
+
+file$coevo_score[file$sim %in% newt_adv] = "Newt Advantage"
+file$coevo_score[file$sim %in% mid] = "No Advantage"
+file$coevo_score[file$sim %in% snake_adv] = "Snake Advantage"
+
+file<- subset(file, !sim %in% c("A", "B", "C", "D", "E", "I", "M"))
+
+file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
+  
+
+  plot <-  ggplot(file) +
+  ggtitle(title, subtitle = subt)+
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(newt_snake_pheno_avg), fill=factor(coevo_score)))+
+  theme(plot.title = element_text(size=5)) +
+  #xlim(-1.1, 1.1)+
+  facet_wrap(~exp, ncol=1)+
+  scale_fill_manual(values =c("darkred", "purple", "steelblue"), labels=c('Newt Advantage', 'No Advantage', 'Snake Advantage'))+
     labs(fill = " ")+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       title =element_text(size=8, face='bold'))
@@ -748,8 +839,8 @@ file2=find_coevo_slope(file, coevo_begin_start_gen, coevo_begin_end_gen, coevo_e
 file=GA1_lit
 file3=find_coevo_slope(file, coevo_begin_start_gen, coevo_begin_end_gen, coevo_endlength_gen, close_percent)
 
-title = "test"
-subt = "test4"
+title = "Whole Simulation Phenotype Change"
+subt = "Three Experiments"
 x_label = "SIM"
 y_label = "Change in Phenotype"
 
@@ -759,6 +850,12 @@ boxplot_coevo_slope(file1, file2, file3, title, subt, x_label, y_label)
 boxplot_coevo_slope_spec_avg(file1, file2, file3, title, subt, x_label, y_label)
 
 boxplot_coevo_slope_spec_avg_advantage(file1, file2, file3, title, subt, x_label, y_label)
+
+boxplot_coevo_slope_small(file1, file2, file3, title, subt, x_label, y_label)
+
+
+title = "Phenotype Change Coevolution FLat Map"
+boxplot_coevo_slope_flat_map(file3, title, subt, x_label, y_label)
 ```
 
 
@@ -924,9 +1021,9 @@ GA_stage$snake_gen_change = (GA_stage$S_end_gen - GA_stage$S_str_gen)
 
 ```{r, plotting all of the changes}
 title = "Coevolution Slope (Phenotype Change/ Time)"
-subt = "Simulation F, G, F, H"
+subt = "Simulation F, J, G, K"
 GA_stage_long <- tidyr::pivot_longer(GA_stage, c(newt_coevo_slope, snake_coevo_slope))
-y_label="change in phenotype/change in generations"
+y_label="Coevolution Speed"
 x_label="Genetic Architectures (red=newt, blue=snake)"
 ggplot(GA_stage_long) +
   ggtitle(title, subtitle = paste0(subt))+
@@ -938,7 +1035,7 @@ ggplot(GA_stage_long) +
   facet_wrap(~exp, ncol=2, dir="v")+
   scale_fill_manual(values =c("darkred", "steelblue"), labels=c('Newt', 'Snake'))+ #
   #  labs(fill = " ")
-  scale_x_discrete(labels=c('A/A', 'A/B', 'B/A','B/B'))+
+  scale_x_discrete(labels=c('low/low', 'low/high', 'low/high','high/high'))+
   theme_bw() +  #theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                  #     title =element_text(size=8, face='bold'))+
     theme(legend.position = "none")
@@ -947,7 +1044,7 @@ ggplot(GA_stage_long) +
 
 
 title = "Coevolution Phenotype Change"
-subt = "Simulation F, G, F, H"
+subt = "Simulation F, J, G, K"
 GA_stage_long <- tidyr::pivot_longer(GA_stage, c(newt_pheno_change, snake_pheno_change))
 y_label="change in phenotype"
 x_label="Genetic Architectures (red=newt, blue=snake)"
@@ -960,13 +1057,13 @@ ggplot(GA_stage_long) +
   facet_wrap(~exp, ncol=2, dir="v")+
   scale_fill_manual(values =c("darkred", "steelblue"), labels=c('Newt', 'Snake'))+ #
   #  labs(fill = " ")
-  scale_x_discrete(labels=c('A/A', 'A/B', 'B/A','B/B'))+
+  scale_x_discrete(labels=c('low/low', 'low/high', 'low/high','high/high'))+
   theme_bw() +  #theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                  #     title =element_text(size=8, face='bold'))+
     theme(legend.position = "none")
 
 title = "Coevolution Change in Time"
-subt = "Simulation F, G, F, H"
+subt = "Simulation F, J, G, K"
 GA_stage_long <- tidyr::pivot_longer(GA_stage, c(newt_gen_change, snake_gen_change))
 y_label="change in geneerations"
 x_label="Genetic Architectures (red=newt, blue=snake)"
@@ -979,7 +1076,7 @@ ggplot(GA_stage_long) +
   facet_wrap(~exp, ncol=2, dir="v")+
   scale_fill_manual(values =c("darkred", "steelblue"), labels=c('Newt', 'Snake'))+ #
   #  labs(fill = " ")
-  scale_x_discrete(labels=c('A/A', 'A/B', 'B/A','B/B'))+
+  scale_x_discrete(labels=c('low/low', 'low/high', 'low/high','high/high'))+
   theme_bw() #+  #theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                  #     title =element_text(size=8, face='bold'))+
     #theme(legend.position = "none")
