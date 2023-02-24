@@ -1035,7 +1035,7 @@ ggplot(GA_stage_long) +
   facet_wrap(~exp, ncol=2, dir="v")+
   scale_fill_manual(values =c("darkred", "steelblue"), labels=c('Newt', 'Snake'))+ #
   #  labs(fill = " ")
-  scale_x_discrete(labels=c('low/low', 'low/high', 'low/high','high/high'))+
+  scale_x_discrete(labels=c('low/low', 'low/high', 'high/low','high/high'))+
   theme_bw() +  #theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                  #     title =element_text(size=8, face='bold'))+
     theme(legend.position = "none")
@@ -1057,7 +1057,7 @@ ggplot(GA_stage_long) +
   facet_wrap(~exp, ncol=2, dir="v")+
   scale_fill_manual(values =c("darkred", "steelblue"), labels=c('Newt', 'Snake'))+ #
   #  labs(fill = " ")
-  scale_x_discrete(labels=c('low/low', 'low/high', 'low/high','high/high'))+
+  scale_x_discrete(labels=c('low/low', 'low/high', 'high/low','high/high'))+
   theme_bw() +  #theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                  #     title =element_text(size=8, face='bold'))+
     theme(legend.position = "none")
@@ -1076,7 +1076,7 @@ ggplot(GA_stage_long) +
   facet_wrap(~exp, ncol=2, dir="v")+
   scale_fill_manual(values =c("darkred", "steelblue"), labels=c('Newt', 'Snake'))+ #
   #  labs(fill = " ")
-  scale_x_discrete(labels=c('low/low', 'low/high', 'low/high','high/high'))+
+  scale_x_discrete(labels=c('low/low', 'low/high', 'high/low','high/high'))+
   theme_bw() #+  #theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                  #     title =element_text(size=8, face='bold'))+
     #theme(legend.position = "none")
