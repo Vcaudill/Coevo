@@ -30,6 +30,7 @@ library(patchwork)
 
 ## Goal:
 
+The goal of this experiment was to create a gradient picture and to assign different interaction values to areas of the map
 
 ### Questions:
 
@@ -37,7 +38,7 @@ What does it mean to be correlated?
 
 ## Background
 
-
+Previously I have been looking at how newts and snakes can co-evolve under different genetic architectures (mutation rate and mutation effect size), and have found that while the mean phenotype increases there is no spatial phenotype correlation. After adding a cost gradient map and seeing high phenotype spatial correlations I wondered if there were other things that could vary and still create spatial phenotype correlation.
 
 ## Experiment
 
@@ -52,10 +53,7 @@ GA1 experiment values:
 
 
 
-Each GA combination and trial has its own msprime simulation, but the msprime file is shared between the 5 section and 7 section slim runs.
-
-### The data
-
+Each GA combination and trial has its own msprime simulation. I created a gradient map where at the top there is a lower rate of newt and snake interaction (0.01) and at the bottom there is a higher rate of newt/snake interaction (0.1 so high that there might be local species extinction). My simulation typically use 0.05 as an interaction rate (interaction rate was explores in the interaction rate simulations) 
 
 
 ```{bash, data file gathering}
@@ -770,8 +768,7 @@ return(final_plot)}
 
 ## Mean Phenotype Whole Simulation {.tabset}
 
-
-
+In this first section I look at the entire populations mean phenotype for both snakes (blue) and newts (red). The difference between mean snake and mean newt phenotype is shown on the black line. For each GA combination there are 4 sets of lines (red, blue, black). Each line is a different trial with the same simulation parameters. I also present the average difference (of the trials) between snake and newt phenotype in the table of average differences.
 
 ### Phenotype differences 
 ```{r, graphing by gen}
@@ -791,10 +788,13 @@ aggregate(interrate_grade_lit[which(interrate_grade_lit$generation>=100 & interr
 
 ## {-}
 
+These results follow a similar pattern to what I have seen in other simulations. Both newt and snake mean phenotype go up, but they go up slowly and reach a low equilibrium. The traits do not seem exaggerated, but they do not head towards zero. In simulations with a low mutational variance GA one of the species mean phenotype flat line.  I wonder if the results would change if the interaction rate was different.
 
 ## Connection between higher phenotype and population{.tabset}
 
+Here I plot the interaction between newt/snake phenotype and population size. Typically, when a species had a higher phenotype they also had a larger population size. This relation between phenotype and population size had specific outcomes that depended on the GA of newts and snakes.
 
+The first figure compares the population size of newts and snakes to the difference between mean snake and mean newt phenotype for a time slice (5,000-10,000 generations). Color in this plot is the difference between snake and newt phenotype, with blue indicating snakes have a larger phenotype and red indicating newts have a larger phenotype. Cream color points indicate that the two phenotypes are nearly the same. The second figure present the histograms of the difference between snake and newt population size (green) and phenotype (purple) for a time slice (5,000-10,000 generations).
 
 ### Phenotype differences 
 ```{r, whale}
@@ -802,7 +802,7 @@ min_gen=5000
 max_gen=10000
 rep=1
 
-whale_gen(interrate_grade_lit, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Phenotype", min_gen=min_gen, max_gen=max_gen, rep=rep )
+whale_gen(interrate_grade_lit, title="Space: Newt VS Snake Population Size Color=S-N Phenotype", subt="Gen 16sims", y_label="Snake Popsize", x_label="Newt Popsize", min_gen=min_gen, max_gen=max_gen, rep=rep )
 ```
 
 ### Phenotype & Populationsize differences
@@ -818,11 +818,12 @@ suppressMessages(print(two_hist(interrate_grade_lit, title="Snake-Newt Winning H
 
 ## {-}
 
-
+The overall meaning of these plots suggest that a higher phenotype leads to more individuals. The dot smear is longer than what I have seen in my other simulations. I wonder if the varying the interaction rate leads to more stocatic values.
 
 ## Correlation
 
-### cor
+The next section I am examining the spatial correlation between newt and snake phenotypes and I predicted that there would be a positive correlation between the phenotypes. I first look at the correlation between mean newt phenotype and mean snake phenotype for each of the four trials in every GA combination from 10,000-15,000 generations. The solid line is a 0 with a dashed line at the level of correlation seen in natural newt-snake population(s).
+
 ```{r, combo myplots}
 
 ginmin = 10000
@@ -837,12 +838,12 @@ boxplot_cors_by_gen(interrate_grade_cor, "Simulation Correlation Comparied to Re
 ```
 
 
-
+The spatial phenotype correlations of this simulation set are positive (when excluding low mutational variance GA sims). Many of the spatial phenotype correlation values are near the real newt/snake phenotype correlation.
 
 
 ## Correlation Histograms{.tabset}
 
-
+In order to understand how spatial correlations where changing with time I took 5,000 generation time slices to look at all four trials correlation values. Each color is a different trial per GA combination. The histogram values are stacked.
 
 ### Plot 1
 ```{r, GA1 cor by dif windows}
@@ -917,11 +918,11 @@ suppressMessages(print(hist_cors_by_gen_col_rep(interrate_grade_cor, "Simulation
 
 ## {-}
 
-   
+These plots reveal that the spatial phenotype correlation between snakes and newts increase with time and end up being close to the empirical newt snake spatial phenotype correlation. These correlation values are higher than when there is no gradient map, but lower then the cost gradient map. There is no spatial phenotype correlation when the GA has low mutational variance. 
 
 ## Correlation across time {.tabset}
 
-
+Next, I examine three randomly chosen plots. Time (in generations) in on the x-axis and both mean phenotype and phenotype spatial correlation in on the y-axis. Newt whole population mean phenotype is red, while snake mean phenotype is blue. The pink line is the phenotype spatial correlation.
 
 ### Random 1  
 ```{r, GA1 cor and pheno}
@@ -952,10 +953,11 @@ cor_trends_by_gen(interrate_grade_lit, interrate_grade_cor, "test", "GA1", "newt
 
 ## {-}
 
-
+Most of these plots show that as time increases both the mean newt & snake phenotype (read and blue lines) as well as the spatial phenotype correlation (pink line) increase (very few show no change). Spatial phenotype correlation increases the gradually as the newt and snake mean phenotypes gradually increases. There is a lot of variation of the spatial phenotype correlation between different time points (every 20 generations) (it seems to go up and down quiet a bit). 
 
 ## What happens over time (looking at the beginning, middle, and late part of my simulations) {.tabset}
 
+his next section is just getting a glimpse at how newt & snake phenotype and population size differ over time. The populations start off with about 250 individuals each. Each individual has a different genetic background created from msprime. Then each msprime simulation is put into slim and data is generated. Plots show newt by snake population size, with the point color representing the difference between mean snake and newt phenotype (red=newts have a higher phenotype and blue=snakes have a higher phenotype). The other plots show histograms of difference between snakes and newts phenotype and population size (purple and green).
 
 ### Pheno Beginning 
 
@@ -1061,11 +1063,11 @@ two_hist(interrate_grade_lit, title="Snake-Newt Winning Hist", subt="Gen 16sims"
 
 ## {-}
 
-
+In the beginning of the simulation both newt and snake population grows. The difference in phenotype quickly becomes polarized. The population size reaches a steady point as the newts and snakes co-evolve. In this experiment set the point clusters are more elongated, which suggests that the newt and snake population size flucates more than what I have seen in my other experiments. When the GA has a high mutation rate and low mutation effect size (GA 1), the difference in mean phenotype grows. This leads to the species with GA 1 losing the co-evolutionary arms race. The histograms reflect what is seen in the scatter plots.
 
 ## Summary {.tabset}
 
-
+n the summary section, I try to come up with a way to show how different GA combinations can change the simulations results. In all of these plots snakes GA is represented by color and newt GA is represented by shape. There 16 color-shape combinations (with 4 repeats for trials). There are four sets of plots: 1) newt by snake population size, 2) phenotype difference by snake population size, 3) phenotype difference by snake GA, and 4) phenotype difference by newt GA. There are three figures in each set, taken at the begging, middle, and end time chunks.
 
 ### Early-Sim Population Size Summary 
 
@@ -1188,10 +1190,11 @@ GA_summary_by_species(interrate_grade_lit, min_gen=min_gen, max_gen=max_gen, x_l
 
 ## {-}
 
+These plots mimic the plots seen with and without a cost gradient map, where clusters of points create lines of shapes and lines of colors, but there are some differences. In the late newt popsize by snake popsize the points seem to be spread out more (like more extreme population sizes). In the late phenotype difference and snake population size there is more of a difference between snake population size and the difference between snake and newt mean phenotype (most other plots things are more linear). For GA 1e-11_5 (purple points for snakes and plus points for newts) seem to have lead to a lower phenotype (or larger phenotype difference, i.e. when snakes have this GA newts tend to have a higher mean phenotype). These results puzzles me.
 
 ## Heatmap {.tabset}
 
-
+In the heatmap plots each GA combination and trails is presented by combining newt GA in the x-axis to snake GA and trial number in the y-axis. The result is the color in that section. There are two types of heatmap plots shown below. One shows the average snake population size for a time chunk with darker colors indicating a smaller snake population and lighter colors indicating a larger snake population. The other heatmap shows the average difference between snake and newt mean phenotype (red=newts had a higher phenotype, blue=snakes had a higher phenotype). I look at 3 time slices for both types of heatmaps.
 
 ### Population Size (Early) 
 
@@ -1249,8 +1252,7 @@ build_heatmap(interrate_grade_lit, min_gen=min_gen, max_gen=max_gen, fill_line="
 
 ## {-}
 
-
-
+In the heat maps there is more variance between in both snake population size and phenotype difference simulation trials. The results tell similar stories when the GA of a species is 1e-09_0.05 the population size and phenotype are higher. Something is going on that is changing the difference between snake and newt phenotype in simulations with a GA 1e-11_5. These phenotype results are similar to the results seen when a species has a GA 1e-09_0.05. Something about a gradient interaction rate is changing the phenotype results. I think it might be the way things are averaged across the entire population. For example, if mutation that have a high cost lead to the individual to not reproducing, we lose out on higher phenotypes (for GA=1e-11_5) which we would see in areas of higher interaction. If we average between areas with few interactions (low phenotype) at the top and more interactions at the bottom (higher phenotype), but there are less individuals with a higher phenotype due to cost, the over all population average would be smaller.
 
 ```{r, red in grid files}
 require(readr)
@@ -1263,6 +1265,9 @@ interrate_grade_grid$grid_num = 5
 ```
 
 ## What is up with the correlations
+
+This section goes over the results from the local measurements (grid calculations). I divided my map up into smaller area (grids) and calculated mean phenotype, max phenotype, min phenotype, and population size. In each of these plots newts are represented by circles and snakes are represented by squares. Parameter values increase from a dark color to a lighter color (green-blue themed for phenotype, orange-pinked themed for population size) There is also a subplot that plots each parameter (mean, max, …) of newt by snake colored by map location (red=corner, green=edge, blue=middle). I look at the one simulation at one time in the begging and end.
+
 
 ## Early Simulation Correlation {.tabset}
 
@@ -1391,3 +1396,5 @@ grid_plot(file_name, spegen, file, type, row_num, col_num)
 ```
 
 ## {-}
+
+In the beginning of this particular simulations results look very spatially correlated, but later in this simulation there are not enough newts at the bottom of the map to make a good spacial correlation calculation so results look uncorrelated.

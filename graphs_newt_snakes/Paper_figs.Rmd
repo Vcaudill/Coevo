@@ -48,6 +48,13 @@ move_together_grid$group <- paste0(move_together_grid$snake_mu_rate, "_", move_t
 move_together_grid$sim=LETTERS[factor(move_together_grid$group)]
 move_together_grid$grid_num = 5
 
+
+GA1_final_csv<- read.csv("~/Desktop/GA1_final_csv/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 40000, 50000))
+GA1_final_csv$group_rep <- paste0(GA1_final_csv$snake_mu_rate, "_", GA1_final_csv$snake_mu_effect_sd,"_",GA1_final_csv$newt_mu_rate, "_", GA1_final_csv$newt_mu_effect_sd, "_", GA1_final_csv$rep)
+GA1_final_csv$group <- paste0(GA1_final_csv$snake_mu_rate, "_", GA1_final_csv$snake_mu_effect_sd,"_",GA1_final_csv$newt_mu_rate, "_", GA1_final_csv$newt_mu_effect_sd)
+GA1_final_csv$sim=LETTERS[factor(GA1_final_csv$group)]
+GA1_final_csv$grid_num = 5
+
 cost_grade_grid<- read.csv("~/Desktop/cost_grade/all_grid.txt" , header = TRUE) %>%  filter(between(generation, 40000, 50000))
 cost_grade_grid$group_rep <- paste0(cost_grade_grid$snake_mu_rate, "_", cost_grade_grid$snake_mu_effect_sd,"_",cost_grade_grid$newt_mu_rate, "_", cost_grade_grid$newt_mu_effect_sd, "_", cost_grade_grid$rep)
 cost_grade_grid$group <- paste0(cost_grade_grid$snake_mu_rate, "_", cost_grade_grid$snake_mu_effect_sd,"_",cost_grade_grid$newt_mu_rate, "_", cost_grade_grid$newt_mu_effect_sd)
@@ -414,6 +421,15 @@ col_num=5
 
 duo_grid_plot(file_name, spegen, file, type, row_num, col_num)
 
+file=GA1_final_csv
+file_name="1e-11_5_1e-10_0.5_0"
+spegen=44501
+type="mean"
+row_num=20
+col_num=5
+
+duo_grid_plot(file_name, spegen, file, type, row_num, col_num)
+
 file=cost_grade_grid
 file_name="1e-11_5_1e-10_0.5_0"
 spegen=44501
@@ -467,7 +483,7 @@ labels = c("Snake", "Newt", "Dif"))+
 
 snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
 
-GA1_cor<- read.csv("~/Desktop/GA1_tall_redo/all_cor.txt" , header = TRUE)
+GA1_cor<- read.csv("~/Desktop/GA1_final_csv/all_cor.txt" , header = TRUE)
 GA1_cor$group_rep <- paste0(GA1_cor$snake_mu_rate, "_", GA1_cor$snake_mu_effect_sd,"_",GA1_cor$newt_mu_rate, "_", GA1_cor$newt_mu_effect_sd, "_", GA1_cor$rep)
 GA1_cor$group <- paste0(GA1_cor$snake_mu_rate, "_", GA1_cor$snake_mu_effect_sd,"_",GA1_cor$newt_mu_rate, "_", GA1_cor$newt_mu_effect_sd)
 GA1_cor$sim=LETTERS[factor(GA1_cor$group)]
@@ -823,7 +839,7 @@ no_hair_lit$sim=LETTERS[factor(no_hair_lit$group)]
 no_hair_lit$dif <- no_hair_lit$Snake_mean_Pheno-no_hair_lit$Newt_mean_Pheno
 no_hair_lit$exp= "No Heritability"
 
-GA1_lit<- read.csv("~/Desktop/GA1_tall_redo/all_lit.txt" , header = TRUE)
+GA1_lit<- read.csv("~/Desktop/GA1_final_csv/all_lit.txt" , header = TRUE)
 GA1_lit$group_rep <- paste0(GA1_lit$snake_mu_rate, "_", GA1_lit$snake_mu_effect_sd,"_",GA1_lit$newt_mu_rate, "_", GA1_lit$newt_mu_effect_sd, "_", GA1_lit$rep)
 
 GA1_lit$group <- paste0(GA1_lit$snake_mu_rate, "_", GA1_lit$snake_mu_effect_sd,"_",GA1_lit$newt_mu_rate, "_", GA1_lit$newt_mu_effect_sd)
