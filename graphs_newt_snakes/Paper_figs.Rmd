@@ -402,10 +402,10 @@ extra_plot <- ggplot(newt)+
 bloan <- ggplot() + theme_void()
 final_plot <- grid.arrange(main_plot, arrangeGrob(bloan, extra_plot), ncol = 2)
 
+plot(main_plot)
 
-
-grid.arrange(main_plot, bloan, extra_plot, ncol = 2, 
-             layout_matrix=cbind(c(1,1),c(2,3)))
+#grid.arrange(main_plot, bloan, extra_plot, ncol = 2, 
+#             layout_matrix=cbind(c(1,1),c(2,3)))
 
 #final_plot <- main_plot +  inset_element(extra_plot, left = 1., bottom = -0.10, right = 1.35, top = 0.5)
 
@@ -501,6 +501,27 @@ interrate_grade$group <- paste0(interrate_grade$snake_mu_rate, "_", interrate_gr
 interrate_grade$sim=LETTERS[factor(interrate_grade$group)]
 interrate_grade$exp="Interaction Gradent Map"
 
+
+cost_grade_no_interact_cor<- read.csv("~/Desktop/no_interaction_cost_grade/all_cor.txt" , header = TRUE)
+cost_grade_no_interact_cor$group_rep <- paste0(cost_grade_no_interact_cor$snake_mu_rate, "_", cost_grade_no_interact_cor$snake_mu_effect_sd,"_",cost_grade_no_interact_cor$newt_mu_rate, "_", cost_grade_no_interact_cor$newt_mu_effect_sd, "_", cost_grade_no_interact_cor$rep)
+cost_grade_no_interact_cor$group <- paste0(cost_grade_no_interact_cor$snake_mu_rate, "_", cost_grade_no_interact_cor$snake_mu_effect_sd,"_",cost_grade_no_interact_cor$newt_mu_rate, "_", cost_grade_no_interact_cor$newt_mu_effect_sd)
+cost_grade_no_interact_cor$sim=LETTERS[factor(cost_grade_no_interact_cor$group)]
+cost_grade_no_interact_cor$exp="Cost Gradent Map No Interaction"
+
+snake_change_cor<- read.csv("~/Desktop/snake_change/all_cor.txt" , header = TRUE)
+snake_change_cor$group_rep <- paste0(snake_change_cor$snake_mu_rate, "_", snake_change_cor$snake_mu_effect_sd,"_",snake_change_cor$newt_mu_rate, "_", snake_change_cor$newt_mu_effect_sd, "_", snake_change_cor$rep)
+snake_change_cor$group <- paste0(snake_change_cor$snake_mu_rate, "_", snake_change_cor$snake_mu_effect_sd,"_",snake_change_cor$newt_mu_rate, "_", snake_change_cor$newt_mu_effect_sd)
+snake_change_cor$sim=LETTERS[factor(snake_change_cor$group)]
+snake_change_cor$exp="Snake Gradent Map"
+
+newt_change_cor<- read.csv("~/Desktop/newt_change/all_cor.txt" , header = TRUE)
+newt_change_cor$group_rep <- paste0(newt_change_cor$snake_mu_rate, "_", newt_change_cor$snake_mu_effect_sd,"_",newt_change_cor$newt_mu_rate, "_", newt_change_cor$newt_mu_effect_sd, "_", newt_change_cor$rep)
+newt_change_cor$group <- paste0(newt_change_cor$snake_mu_rate, "_", newt_change_cor$snake_mu_effect_sd,"_",newt_change_cor$newt_mu_rate, "_", newt_change_cor$newt_mu_effect_sd)
+newt_change_cor$sim=LETTERS[factor(newt_change_cor$group)]
+newt_change_cor$exp="Newt Gradent Map"
+
+
+
 boxplot_cors_by_gen_col_rep <- function(file1, file2, file3, title, subt, x_label, y_label, min_gen, max_gen){
  snewt$mean_res = snewt$mean_toxin+snewt$dif
   real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
@@ -536,9 +557,50 @@ file$exp = factor(file$exp, levels=c("Flat Map", "Cost Gradent Map", "Interactio
   return(plot)
 }
 
-file1 = GA1_cor[which(1:nrow(GA1_cor) %% 2 != 0) , ]
+boxplot_cors_by_gen_col_rep_6_file <- function(file1, file2, file3, file4, file5, file6, title, subt, x_label, y_label, min_gen, max_gen){
+ snewt$mean_res = snewt$mean_toxin+snewt$dif
+  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+   file1$snake_newt <- paste0(file1$snake_mu_rate, "_", file1$snake_mu_effect_sd, "_", file1$newt_mu_rate, "_", file1$newt_mu_effect_sd)
+   file2$snake_newt <- paste0(file2$snake_mu_rate, "_", file2$snake_mu_effect_sd, "_", file2$newt_mu_rate, "_", file2$newt_mu_effect_sd)
+   file3$snake_newt <- paste0(file3$snake_mu_rate, "_", file3$snake_mu_effect_sd, "_", file3$newt_mu_rate, "_", file3$newt_mu_effect_sd)
+    file4$snake_newt <- paste0(file4$snake_mu_rate, "_", file4$snake_mu_effect_sd, "_", file4$newt_mu_rate, "_", file4$newt_mu_effect_sd)
+   file5$snake_newt <- paste0(file5$snake_mu_rate, "_", file5$snake_mu_effect_sd, "_", file5$newt_mu_rate, "_", file5$newt_mu_effect_sd)
+   file6$snake_newt <- paste0(file6$snake_mu_rate, "_", file6$snake_mu_effect_sd, "_", file6$newt_mu_rate, "_", file6$newt_mu_effect_sd)
+file <- rbind(file1, file2, file3, file4, file5, file6)
+
+file$sim <- str_replace_all(file$sim, "[ABCDEIM]", 'Sims')
+#c("A"='Low Mu Var', "B"='Low Mu Var', "C"='Low Mu Var', "D"='Low Mu Var', "E"='Low Mu Var', "I"='Low Mu Var', "M"='Low Mu Var'))
+
+file$cor_score <- ifelse(file$sim == "Sims", "False","True")
+
+#file$cor_score <- ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
+
+
+file$exp = factor(file$exp, levels=c("Flat Map", "Cost Gradent Map No Interaction", "Cost Gradent Map", "Snake Gradent Map", "Interaction Gradent Map", "Newt Gradent Map"))
+
+  plot <-  ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
+  ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(sim, level=c('Sims', "F","G","H","J","K","L","N","O","P")), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), fill=factor(cor_score)))+
+  theme(plot.title = element_text(size=5)) +
+  #xlim(-1.1, 1.1)+
+    geom_hline(yintercept=real_snewt_cor, linetype="dashed")+
+  facet_wrap(~exp, ncol=2)+
+  scale_fill_manual(values =c("darkolivegreen3", "cadetblue2"), labels=c('Low Mutatinal Variance', 'Coevolution'))+
+    labs(fill = " ")+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      title =element_text(size=8, face='bold'))
+
+
+  return(plot)
+}
+
+file1 = GA1_cor
 file2 = cost_grade_cor
 file3 = interrate_grade
+file4 = cost_grade_no_interact_cor
+file5 = snake_change_cor
+file6 = newt_change_cor
 title = "Spatial Phenotype Correlation Across Different Simulation Conditions"
 subt = " "
 exp_labeles=c("Flat Map", "Cost Gradent Map", "Interaction Gradent Map")
@@ -547,8 +609,9 @@ y_label = "Spatila Correlation"
 min_gen = 40000
 max_gen = 50000
 
-boxplot_cors_by_gen_col_rep(file1, file2, file3, title, subt, x_label, y_label, min_gen, max_gen)
 
+boxplot_cors_by_gen_col_rep(file1, file2, file3, title, subt, x_label, y_label, min_gen, max_gen)
+boxplot_cors_by_gen_col_rep_6_file(file1, file2, file3, file4, file5, file6, title, subt, x_label, y_label, min_gen, max_gen)
 
 ```
 
@@ -736,22 +799,28 @@ file$coevo_score[file$sim %in% newt_adv] = "Newt Advantage"
 file$coevo_score[file$sim %in% mid] = "No Advantage"
 file$coevo_score[file$sim %in% snake_adv] = "Snake Advantage"
 file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
+file$rect_type = ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
+
+target=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")
+
+file$xmin = match(file$sim, target) - 0.5
+
+file$xmax = match(file$sim, target) + 0.5
+
 
 file_long <- tidyr::pivot_longer(file, c(newt_pheno_change, snake_pheno_change))
 
-  plot <-  ggplot(file_long) +
+plot <-   ggplot(file_long) +
   ggtitle(title, subtitle = subt)+
   xlab(x_label) + ylab(y_label)+
-  geom_boxplot(aes(x=factor(sim, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")), y=as.numeric(value), fill=factor(name)))+
-  theme(plot.title = element_text(size=5)) +
-  #xlim(-1.1, 1.1)+
-  scale_fill_manual(values =c("darkred", "steelblue"), labels=c('Newt', 'Snake'))+
-    labs(fill = " ")+
-    #scale_fill_manual(values =c("darkred", "purple", "steelblue"), labels=c('Newt Advantage', 'No Advantage', 'Snake Advantage'))+
+geom_boxplot(aes(x=factor(sim, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")), y=as.numeric(value), fill=factor(name)))+
+  geom_rect(aes(xmin = as.numeric(xmin), xmax = as.numeric(xmax), ymin = -Inf, ymax = Inf, fill = rect_type)) +
+  scale_fill_manual( values =c("darkred", "steelblue", "white","aliceblue" ), breaks = c('newt_pheno_change', 'snake_pheno_change', "True", "False"),  labels = c('Newt', 'Snake', "True", "False"))+ #labels=c("False",'Newt', 'Snake', "True")
+      geom_boxplot(aes(x=factor(sim, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")), y=as.numeric(value), fill=factor(name)),show.legend = FALSE)+
+     theme(plot.title = element_text(size=5)) +
     labs(fill = " ")+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       title =element_text(size=8, face='bold'))
-  
 
   return(plot)
 }
@@ -794,6 +863,41 @@ file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
   #xlim(-1.1, 1.1)+
   facet_wrap(~exp, ncol=1)+
   scale_fill_manual(values =c("darkred", "purple", "steelblue"), labels=c('Newt Advantage', 'No Advantage', 'Snake Advantage'))+
+    labs(fill = " ")+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      title =element_text(size=8, face='bold'))
+  
+
+  return(plot)
+}
+
+boxplot_coevo_slope_small_exp_color <- function(file1, file2, file3, title, subt, x_label, y_label){
+ 
+   file1$snake_newt <- paste0(file1$snake_mu_rate, "_", file1$snake_mu_effect_sd, "_", file1$newt_mu_rate, "_", file1$newt_mu_effect_sd)
+   file2$snake_newt <- paste0(file2$snake_mu_rate, "_", file2$snake_mu_effect_sd, "_", file2$newt_mu_rate, "_", file2$newt_mu_effect_sd)
+   file3$snake_newt <- paste0(file3$snake_mu_rate, "_", file3$snake_mu_effect_sd, "_", file3$newt_mu_rate, "_", file3$newt_mu_effect_sd)
+   
+file <- rbind(file1, file2, file3)
+file$newt_pheno_change=file$N_pheno_end - file$N_pheno_start
+file$snake_pheno_change=file$S_pheno_end - file$S_pheno_start
+#file$newt_coevo_slope = (file$N_pheno_end - file$N_pheno_start)/ (file$N_end_gen - file$N_str_gen)
+#file$snake_coevo_slope = (file$S_pheno_end - file$S_pheno_start)/ (file$S_end_gen - file$S_str_gen)
+
+file$exp = factor(file$exp, levels=c("No Interaction", "No Heritability", "Coevolution Flat Map"))
+
+
+file<- subset(file, !sim %in% c("A", "B", "C", "D", "E", "I", "M"))
+
+file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
+  
+
+  plot <-  ggplot(file) +
+  ggtitle(title, subtitle = subt)+
+  xlab(x_label) + ylab(y_label)+
+  geom_boxplot(aes(x=factor(sim), y=as.numeric(newt_snake_pheno_avg), fill=factor(exp)))+
+  theme(plot.title = element_text(size=5)) +
+  #xlim(-1.1, 1.1)+
+  scale_fill_manual(values =c("darkolivegreen1", "azure2", "darkorange3"), labels=c("No Interaction", "No Heritability", "Coevolution Flat Map"))+
     labs(fill = " ")+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       title =element_text(size=8, face='bold'))
@@ -869,6 +973,7 @@ boxplot_coevo_slope_spec_avg_advantage(file1, file2, file3, title, subt, x_label
 
 boxplot_coevo_slope_small(file1, file2, file3, title, subt, x_label, y_label)
 
+boxplot_coevo_slope_small_exp_color(file1, file2, file3, title, subt, x_label, y_label)
 
 title = "Phenotype Change Coevolution FLat Map"
 boxplot_coevo_slope_flat_map(file3, title, subt, x_label, y_label)
