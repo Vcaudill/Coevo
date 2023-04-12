@@ -801,11 +801,13 @@ file$coevo_score[file$sim %in% snake_adv] = "Snake Advantage"
 file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
 file$rect_type = ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
 
-target=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")
+file$rect_type_a = ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", .9,1)
 
-file$xmin = match(file$sim, target) - 0.5
+#target=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")
 
-file$xmax = match(file$sim, target) + 0.5
+#file$xmin = match(file$sim, target) - 0.5
+
+#file$xmax = match(file$sim, target) + 0.5
 
 
 file_long <- tidyr::pivot_longer(file, c(newt_pheno_change, snake_pheno_change))
@@ -813,12 +815,49 @@ file_long <- tidyr::pivot_longer(file, c(newt_pheno_change, snake_pheno_change))
 plot <-   ggplot(file_long) +
   ggtitle(title, subtitle = subt)+
   xlab(x_label) + ylab(y_label)+
-geom_boxplot(aes(x=factor(sim, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")), y=as.numeric(value), fill=factor(name)))+
-  geom_rect(aes(xmin = as.numeric(xmin), xmax = as.numeric(xmax), ymin = -Inf, ymax = Inf, fill = rect_type)) +
-  scale_fill_manual( values =c("darkred", "steelblue", "white","aliceblue" ), breaks = c('newt_pheno_change', 'snake_pheno_change', "True", "False"),  labels = c('Newt', 'Snake', "True", "False"))+ #labels=c("False",'Newt', 'Snake', "True")
-      geom_boxplot(aes(x=factor(sim, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")), y=as.numeric(value), fill=factor(name)),show.legend = FALSE)+
+geom_boxplot(aes(x=factor(sim), y=as.numeric(value), fill=factor(name), alpha = rect_type_a))+ #, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")
+  #geom_rect(aes(xmin = as.numeric(xmin), xmax = as.numeric(xmax), ymin = -Inf, ymax = Inf, fill = rect_type)) +
+  #scale_fill_manual( values =c("darkred", "steelblue", "white","aliceblue" ), breaks = c('newt_pheno_change', 'snake_pheno_change', "True", "False"),  labels = c('Newt', 'Snake', "True", "False"))+ #labels=c("False",'Newt', 'Snake', "True")
+  scale_fill_manual( values = c("darkred", "steelblue" ), breaks = c('newt_pheno_change', 'snake_pheno_change'),  labels = c('Newt', 'Snake'))+
+      #geom_boxplot(aes(x=factor(sim, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")), y=as.numeric(value), fill=factor(name)),show.legend = FALSE)+
      theme(plot.title = element_text(size=5)) +
+  scale_alpha(guide = 'none')+
     labs(fill = " ")+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
+                      title =element_text(size=8, face='bold'))
+
+  return(plot)
+}
+
+boxplot_coevo_popsize_flat_map <- function(file, title, subt, x_label, y_label){
+ 
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+
+newt_adv= c("D", "C", "B", "H", "G", "L")
+mid= c("A", "F", "K", "P")
+snake_adv = c("E", "I", "J", "M", "N", "O")
+
+file$coevo_score = 0
+
+file$coevo_score[file$sim %in% newt_adv] = "Newt Advantage"
+file$coevo_score[file$sim %in% mid] = "No Advantage"
+file$coevo_score[file$sim %in% snake_adv] = "Snake Advantage"
+file$rect_type = ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
+
+file$rect_type_a = ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", .9,1)
+
+target=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")
+
+file_long <- tidyr::pivot_longer(file, c(Newt_pop_size, Snake_pop_size))
+
+plot <-   ggplot(file_long[which(file_long$generation>=40000),]) +
+  ggtitle(title, subtitle = subt)+
+  xlab(x_label) + ylab(y_label)+
+geom_boxplot(aes(x=factor(sim, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")), y=as.numeric(value), fill=factor(name), alpha = rect_type_a))+
+  scale_fill_manual( values = c("darkred", "steelblue" ), breaks = c('Newt_pop_size', 'Snake_pop_size'),  labels = c('Newt Pop Size', 'Snake Pop Size'))+
+  theme(plot.title = element_text(size=5)) +
+  scale_alpha(guide = 'none')+
+  labs(fill = " ")+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       title =element_text(size=8, face='bold'))
 
@@ -907,6 +946,35 @@ file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
 }
 
 
+fast_slow_no_coevolution <- function(file, choices,min_gen, max_gen, title, subt, x_label, y_label){
+ 
+   file<- subset(file, sim %in% choices)
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+
+file$coevo_speed = 0
+
+file$coevo_speed[file$sim %in% choices[1]] = "Fast Coevolution"
+file$coevo_speed[file$sim %in% choices[2]] = "Slow Coevolution"
+file$coevo_speed[file$sim %in% choices[3]] = "No Coevolution"
+file$coevo_speed = factor(file$coevo_speed, levels=c("Fast Coevolution", "Slow Coevolution", "No Coevolution"))
+plot <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==0),]) +
+    facet_wrap(~coevo_speed, ncol=1)+
+    ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
+    geom_line(aes(generation, Snake_mean_Pheno, color="Snake_mean_Pheno"),)+#group=rep
+    geom_line(aes(generation, Newt_mean_Pheno, color="Newt_mean_Pheno"))+#group=rep
+    #ylim(-1.,2.5)+
+    xlab(x_label) + ylab(y_label)+
+    scale_color_manual(name = "Species",
+values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred"),
+labels = c("Snake", "Newt"))+
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
+                      title =element_text(size=8, face='bold'))
+  return(plot)
+   
+}
+  
+
+
 file=move_together_lit
 coevo_begin_start_gen=100
 coevo_begin_end_gen=1000
@@ -952,6 +1020,10 @@ GA1_lit$sim=LETTERS[factor(GA1_lit$group)]
 GA1_lit$dif <- GA1_lit$Snake_mean_Pheno-GA1_lit$Newt_mean_Pheno
 GA1_lit$exp="Coevolution Flat Map"
 
+```
+
+```{r, look at the change in phenotyp the plots}
+
 file=no_interaction_lit
 file1=find_coevo_slope(file, coevo_begin_start_gen, coevo_begin_end_gen, coevo_endlength_gen, close_percent)
 file=no_hair_lit
@@ -977,6 +1049,20 @@ boxplot_coevo_slope_small_exp_color(file1, file2, file3, title, subt, x_label, y
 
 title = "Phenotype Change Coevolution FLat Map"
 boxplot_coevo_slope_flat_map(file3, title, subt, x_label, y_label)
+
+title = "Population Size Coevolution FLat Map"
+y_label= "Population Size"
+boxplot_coevo_popsize_flat_map(file3, title, subt, x_label, y_label)
+
+file= GA1_lit
+choices=c("K", "F", "E")
+min_gen=100
+max_gen=50000
+title="Different Speeds of Coevolution" 
+subt="" 
+x_label= "Generations"
+y_label= "Phenotype"
+fast_slow_no_coevolution(file, choices, min_gen, max_gen, title, subt, x_label, y_label)
 ```
 
 
