@@ -24,6 +24,7 @@ library(ggplot2)
 library(ggpubr)
 library(stringr)
 library(patchwork)
+library(RColorBrewer)
 ```
 
 
@@ -815,7 +816,7 @@ file_long <- tidyr::pivot_longer(file, c(newt_pheno_change, snake_pheno_change))
 plot <-   ggplot(file_long) +
   ggtitle(title, subtitle = subt)+
   xlab(x_label) + ylab(y_label)+
-geom_boxplot(aes(x=factor(sim), y=as.numeric(value), fill=factor(name), alpha = rect_type_a))+ #, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")
+geom_boxplot(aes(x=factor(sim, level=c("A", "B", "E", "C", "I", "D", "M", "F", "G", "J", "H", "N", "K", "L", "O", "P")), y=as.numeric(value), fill=factor(name), alpha = rect_type_a))+ #, level=c("D", "C", "B", "H", "G", "L", "A", "F", "K", "P", "E", "J", "I", "O", "N", "M")
   #geom_rect(aes(xmin = as.numeric(xmin), xmax = as.numeric(xmax), ymin = -Inf, ymax = Inf, fill = rect_type)) +
   #scale_fill_manual( values =c("darkred", "steelblue", "white","aliceblue" ), breaks = c('newt_pheno_change', 'snake_pheno_change', "True", "False"),  labels = c('Newt', 'Snake', "True", "False"))+ #labels=c("False",'Newt', 'Snake', "True")
   scale_fill_manual( values = c("darkred", "steelblue" ), breaks = c('newt_pheno_change', 'snake_pheno_change'),  labels = c('Newt', 'Snake'))+
@@ -823,11 +824,106 @@ geom_boxplot(aes(x=factor(sim), y=as.numeric(value), fill=factor(name), alpha = 
      theme(plot.title = element_text(size=5)) +
   scale_alpha(guide = 'none')+
     labs(fill = " ")+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
-                      title =element_text(size=8, face='bold'))
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 18), 
+                      title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20))
 
   return(plot)
 }
+
+
+both_coevo_slope_flat_map <- function(file, title, subt, x_label, y_label){
+ 
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+
+file$snake_GA <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+file$newt_GA <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+file$newt_pheno_change=file$N_pheno_end - file$N_pheno_start
+file$snake_pheno_change=file$S_pheno_end - file$S_pheno_start
+#file$newt_coevo_slope = (file$N_pheno_end - file$N_pheno_start)/ (file$N_end_gen - file$N_str_gen)
+#file$snake_coevo_slope = (file$S_pheno_end - file$S_pheno_start)/ (file$S_end_gen - file$S_str_gen)
+
+
+#file_long <- tidyr::pivot_longer(file, c(newt_pheno_change, snake_pheno_change))
+cols <- brewer.pal(11, "RdBu")
+fornewt <- cols[1:4]
+forsnake <- cols[8:11]
+
+plot1 <-   ggplot(file) +
+  labs(subtitle = "Snake")+
+  geom_boxplot(aes(x=factor(snake_GA), y=snake_pheno_change, fill=newt_GA))+
+  ylab(y_label) + 
+  xlab("Snake GA")+
+  ylim(0,6)+
+ scale_x_discrete(labels=c("1e-08_0.005" = "GA 1", "1e-09_0.05" = "GA 2", "1e-10_0.5" = "GA 3",
+                             "1e-11_5" = "GA 4"))+
+     theme(plot.title = element_text(size=5)) +
+  #scale_fill_discrete(fornewt, labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
+  scale_fill_manual(values = rev(fornewt), labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
+   #scale_fill_brewer(fornewt , labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
+  #scale_alpha(guide = 'none')+
+    #labs(fill = " ")+
+  guides(fill=guide_legend(title="Newt GA"))+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 18), 
+                      title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20))
+
+plot2 <-   ggplot(file) +
+ labs(subtitle = "Newt")+
+  geom_boxplot(aes(x=factor(newt_GA), y=newt_pheno_change, fill=snake_GA))+
+  ylab(" ")+ 
+  xlab("Newt GA")+
+  ylim(0,6)+
+ scale_x_discrete(labels=c("1e-08_0.005" = "GA 1", "1e-09_0.05" = "GA 2", "1e-10_0.5" = "GA 3",
+                             "1e-11_5" = "GA 4"))+
+     theme(plot.title = element_text(size=5)) +
+  #scale_fill_discrete(labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
+  #scale_fill_brewer(forsnake)+
+  scale_fill_manual(values = forsnake, labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
+  #scale_alpha(guide = 'none')+
+    #labs(fill = " ")+
+  guides(fill=guide_legend(title="Snake GA"))+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 18), 
+                      title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20))
+
+
+leg <- get_legend(plot1)
+legp1 <- as_ggplot(leg)
+leg2 <- get_legend(plot2)
+legp2 <- as_ggplot(leg2)
+
+myplot = ggarrange(plot1+theme(legend.position = "none"), (plot2+theme(legend.position = "none")), arrangeGrob(legp1, legp2, nrow = 2), ncol = 3) + plot_annotation(title = title) & theme(title = element_text( size=18,face = 'bold')) #top=grid::textGrob("title"))
+
+  return(myplot)
+}
+
+
+newt_coevo_slope_flat_map <- function(file, title, subt, x_label, y_label){
+ 
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+
+file$snake_GA <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)
+file$newt_GA <- paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+file$newt_pheno_change=file$N_pheno_end - file$N_pheno_start
+#file$snake_pheno_change=file$S_pheno_end - file$S_pheno_start
+#file$newt_coevo_slope = (file$N_pheno_end - file$N_pheno_start)/ (file$N_end_gen - file$N_str_gen)
+#file$snake_coevo_slope = (file$S_pheno_end - file$S_pheno_start)/ (file$S_end_gen - file$S_str_gen)
+
+
+#file_long <- tidyr::pivot_longer(file, c(newt_pheno_change, snake_pheno_change))
+
+plot <-   ggplot(file) +
+  ggtitle(title, subtitle = subt)+
+  geom_boxplot(aes(x=factor(newt_GA), y=newt_pheno_change, fill=snake_GA))+
+  xlab(x_label) + ylab(y_label)+
+
+     theme(plot.title = element_text(size=5)) +
+  #scale_alpha(guide = 'none')+
+    #labs(fill = " ")+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 18), 
+                      title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20))
+
+  return(plot)
+}
+
 
 boxplot_coevo_popsize_flat_map <- function(file, title, subt, x_label, y_label){
  
@@ -967,8 +1063,8 @@ plot <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen &
     scale_color_manual(name = "Species",
 values = c( "Snake_mean_Pheno" = "steelblue", "Newt_mean_Pheno" = "darkred"),
 labels = c("Snake", "Newt"))+
-    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8),
-                      title =element_text(size=8, face='bold'))
+    theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust=1, size = 18),
+                      title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20))
   return(plot)
    
 }
@@ -1048,11 +1144,19 @@ boxplot_coevo_slope_small(file1, file2, file3, title, subt, x_label, y_label)
 boxplot_coevo_slope_small_exp_color(file1, file2, file3, title, subt, x_label, y_label)
 
 title = "Phenotype Change Coevolution FLat Map"
-boxplot_coevo_slope_flat_map(file3, title, subt, x_label, y_label)
+boxplot_coevo_slope_flat_map(file3, title, subt, x_label, y_label) #coevo_boxplot =
+#ggsave("coevo_boxplot.png", plot=coevo_boxplot, height=10, width=15, units=c("in"), dpi=600)
 
 title = "Population Size Coevolution FLat Map"
 y_label= "Population Size"
 boxplot_coevo_popsize_flat_map(file3, title, subt, x_label, y_label)
+
+title = "Phenotype Change vs Snake GA, FLat Map"
+y_label= "Phenotype Change"
+x_label = "Snake GA"
+both_coevo_slope_flat_map(file3, title, subt, x_label, y_label)
+
+
 
 file= GA1_lit
 choices=c("K", "F", "E")
@@ -1062,7 +1166,11 @@ title="Different Speeds of Coevolution"
 subt="" 
 x_label= "Generations"
 y_label= "Phenotype"
-fast_slow_no_coevolution(file, choices, min_gen, max_gen, title, subt, x_label, y_label)
+#png("image.png", width = 1600, height = 1200)
+p1=fast_slow_no_coevolution(file, choices, min_gen, max_gen, title, subt, x_label, y_label)
+ggsave("three_speeds_of_coevolution.png", plot=p1, height=10, width=10, units=c("in"), dpi=600)
+
+#dev.off()
 ```
 
 
