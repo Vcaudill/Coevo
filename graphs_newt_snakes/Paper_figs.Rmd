@@ -538,7 +538,7 @@ file$cor_score <- ifelse(file$sim == "Sims", "False","True")
 
 #file$cor_score <- ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
 
-
+#smallset = file[which(file$gen>=40000 & file$gen<=50000 & file$exp=="Cost Gradent Map" & file$cor_score=="True"),]
 file$exp = factor(file$exp, levels=c("Flat Map", "Cost Gradent Map", "Interaction Gradent Map"))
 
   plot <-  ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
@@ -830,6 +830,58 @@ geom_boxplot(aes(x=factor(sim, level=c("A", "B", "E", "C", "I", "D", "M", "F", "
   return(plot)
 }
 
+point_coevo_start_stop_flat_map <- function(file, title, subt, x_label, y_label){
+ 
+   file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
+
+file$newt_pheno_change=file$N_pheno_end - file$N_pheno_start
+file$snake_pheno_change=file$S_pheno_end - file$S_pheno_start
+#file$newt_coevo_slope = (file$N_pheno_end - file$N_pheno_start)/ (file$N_end_gen - file$N_str_gen)
+#file$snake_coevo_slope = (file$S_pheno_end - file$S_pheno_start)/ (file$S_end_gen - file$S_str_gen)
+
+newt_adv= c("D", "C", "B", "H", "G", "L")
+mid= c("A", "F", "K", "P")
+snake_adv = c("E", "I", "J", "M", "N", "O")
+
+file$coevo_score = 0
+
+file$coevo_score[file$sim %in% newt_adv] = "Newt Advantage"
+file$coevo_score[file$sim %in% mid] = "No Advantage"
+file$coevo_score[file$sim %in% snake_adv] = "Snake Advantage"
+file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
+
+plot1 <-   ggplot(file) +
+  labs(subtitle = "Start")+
+  xlab(x_label) + ylab(y_label)+
+  ylim(0,10)+
+  geom_point(aes(x=factor(sim, level=c("A", "B", "E", "C", "I", "D", "M", "F", "G", "J", "H", "N", "K", "L", "O", "P")), y=as.numeric(N_pheno_start)), color="darkred")+
+
+    geom_point(aes(x=factor(sim, level=c("A", "B", "E", "C", "I", "D", "M", "F", "G", "J", "H", "N", "K", "L", "O", "P")), y=as.numeric(S_pheno_start)), color="steelblue")+
+  
+  
+     theme(plot.title = element_text(size=5)) +
+    labs(fill = " ")+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 18), 
+                      title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20))
+
+plot2 <-   ggplot(file) +
+  labs(subtitle = "End")+
+  xlab(x_label) + ylab(y_label)+
+  ylim(0,10)+
+  geom_point(aes(x=factor(sim, level=c("A", "B", "E", "C", "I", "D", "M", "F", "G", "J", "H", "N", "K", "L", "O", "P")), y=as.numeric(N_pheno_end)), color="darkred")+
+
+  geom_point(aes(x=factor(sim, level=c("A", "B", "E", "C", "I", "D", "M", "F", "G", "J", "H", "N", "K", "L", "O", "P")), y=as.numeric(S_pheno_end)), color="steelblue")+
+  
+     theme(plot.title = element_text(size=5)) +
+    labs(fill = " ")+
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 18), 
+                      title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20))
+
+myplot = ggarrange(plot1, plot2, ncol = 2) + plot_annotation(title = title) & theme(title = element_text( size=18,face = 'bold')) #top=grid::textGrob("title"))
+
+  return(myplot)
+}
+
 
 both_coevo_slope_flat_map <- function(file, title, subt, x_label, y_label){
  
@@ -849,40 +901,40 @@ fornewt <- cols[1:4]
 forsnake <- cols[8:11]
 
 plot1 <-   ggplot(file) +
-  labs(subtitle = "Snake")+
+  labs(subtitle = "Snake Phenotype Change")+
   geom_boxplot(aes(x=factor(snake_GA), y=snake_pheno_change, fill=newt_GA))+
   ylab(y_label) + 
   xlab("Snake GA")+
   ylim(0,6)+
- scale_x_discrete(labels=c("1e-08_0.005" = "GA 1", "1e-09_0.05" = "GA 2", "1e-10_0.5" = "GA 3",
-                             "1e-11_5" = "GA 4"))+
+ scale_x_discrete(labels=c("1e-08_0.005" = "1", "1e-09_0.05" = "2", "1e-10_0.5" = "3",
+                             "1e-11_5" = "4"))+
      theme(plot.title = element_text(size=5)) +
   #scale_fill_discrete(fornewt, labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
-  scale_fill_manual(values = rev(fornewt), labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
+  scale_fill_manual(values = rev(fornewt), labels=c('1', '2', '3', '4'))+
    #scale_fill_brewer(fornewt , labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
   #scale_alpha(guide = 'none')+
     #labs(fill = " ")+
   guides(fill=guide_legend(title="Newt GA"))+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 18), 
-                      title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20))
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 14), 
+                      title =element_text(size=14, face='bold'), legend.text=element_text(size=12), strip.text.x = element_text(size = 16))
 
 plot2 <-   ggplot(file) +
- labs(subtitle = "Newt")+
+ labs(subtitle = "Newt Phenotype Change")+
   geom_boxplot(aes(x=factor(newt_GA), y=newt_pheno_change, fill=snake_GA))+
   ylab(" ")+ 
   xlab("Newt GA")+
   ylim(0,6)+
- scale_x_discrete(labels=c("1e-08_0.005" = "GA 1", "1e-09_0.05" = "GA 2", "1e-10_0.5" = "GA 3",
-                             "1e-11_5" = "GA 4"))+
+ scale_x_discrete(labels=c("1e-08_0.005" = "1", "1e-09_0.05" = "2", "1e-10_0.5" = "3",
+                             "1e-11_5" = "4"))+
      theme(plot.title = element_text(size=5)) +
   #scale_fill_discrete(labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
   #scale_fill_brewer(forsnake)+
-  scale_fill_manual(values = forsnake, labels=c('GA 1', 'GA 2', 'GA 3', 'GA 4'))+
+  scale_fill_manual(values = forsnake, labels=c('1', '2', '3', '4'))+
   #scale_alpha(guide = 'none')+
     #labs(fill = " ")+
   guides(fill=guide_legend(title="Snake GA"))+
-  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 18), 
-                      title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20))
+  theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 14), 
+                      title =element_text(size=14, face='bold'), legend.text=element_text(size=12), strip.text.x = element_text(size = 16))
 
 
 leg <- get_legend(plot1)
@@ -1049,10 +1101,10 @@ fast_slow_no_coevolution <- function(file, choices,min_gen, max_gen, title, subt
 
 file$coevo_speed = 0
 
-file$coevo_speed[file$sim %in% choices[1]] = "Fast Coevolution"
-file$coevo_speed[file$sim %in% choices[2]] = "Slow Coevolution"
-file$coevo_speed[file$sim %in% choices[3]] = "No Coevolution"
-file$coevo_speed = factor(file$coevo_speed, levels=c("Fast Coevolution", "Slow Coevolution", "No Coevolution"))
+file$coevo_speed[file$sim %in% choices[1]] = "Fast Evolution"
+file$coevo_speed[file$sim %in% choices[2]] = "Slow Evolution"
+file$coevo_speed[file$sim %in% choices[3]] = "No Evolution"
+file$coevo_speed = factor(file$coevo_speed, levels=c("Fast Evolution", "Slow Evolution", "No Evolution"))
 plot <- ggplot(file[ which(file$generation>=min_gen & file$generation<=max_gen & file$rep==0),]) +
     facet_wrap(~coevo_speed, ncol=1)+
     ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen")) +
@@ -1146,6 +1198,9 @@ boxplot_coevo_slope_small_exp_color(file1, file2, file3, title, subt, x_label, y
 title = "Phenotype Change Coevolution FLat Map"
 boxplot_coevo_slope_flat_map(file3, title, subt, x_label, y_label) #coevo_boxplot =
 #ggsave("coevo_boxplot.png", plot=coevo_boxplot, height=10, width=15, units=c("in"), dpi=600)
+
+title = "Phenotype Start and Stop Coevolution FLat Map"
+point_coevo_start_stop_flat_map(file3, title, subt, x_label, y_label)
 
 title = "Population Size Coevolution FLat Map"
 y_label= "Population Size"
