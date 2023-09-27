@@ -610,6 +610,8 @@ file$exp = factor(file$exp, levels=c("Flat Map", "Cost Gradent Map", "Interactio
   xlab(x_label) + ylab(y_label)+
   geom_boxplot(aes(x=factor(sim, level=c('Sims', "F","G","H","J","K","L","N","O","P")), y=as.numeric(mean_newt_pheno_By_mean_snake_pheno), fill=factor(cor_score)))+
   theme(plot.title = element_text(size=5)) +
+    scale_x_discrete(breaks=c('Sims',"F","G","H", "J", "K", "L", "N", "O", "P"), labels=c("1a's", "2a/2a", "2a/3a", "2a/4a", "3a/2a", "3a/3a", "3a/4a", "4a/2a", "4a/3a", "4a/4a")) + 
+  #  level=c("1a's", "2a/2a", "2a/3a", "2a/4a", "3a/2a", "3a/3a", "3a/4a", "4a/2a", "4a/3a", "4a/4a")+
   #xlim(-1.1, 1.1)+
     geom_hline(yintercept=real_snewt_cor, linetype="dashed")+
   facet_wrap(~exp, ncol=1)+
@@ -670,7 +672,7 @@ file6 = newt_change_cor
 title = "Spatial Phenotype Correlation"
 subt = " "
 exp_labeles=c("Flat Map", "Cost Gradent Map", "Interaction Gradent Map")
-x_label = "Simulations"
+x_label = "Newt/Snake Genetic Architecture"
 y_label = "Spatial Correlation"
 min_gen = 40000
 max_gen = 50000
@@ -1231,6 +1233,7 @@ file$newt_snake_pheno_avg= (file$newt_pheno_change+file$snake_pheno_change)/2
   theme(plot.title = element_text(size=5)) +
   #xlim(-1.1, 1.1)+
   scale_fill_manual(values =c("darkolivegreen1", "azure2", "darkorange3"), labels=c("No Interaction", "No Heritability", "Standard Simulation"))+
+    scale_x_discrete(breaks=c("F","G","H", "J", "K", "L", "N", "O", "P"), labels=c("2a/2a", "2a/3a", "2a/4a", "3a/2a", "3a/3a", "3a/4a", "4a/2a", "4a/3a", "4a/4a")) + # label newt/snake
     labs(fill = " ")+
   theme_bw() +  theme(title =element_text(size=18, face='bold'), legend.text=element_text(size=16), strip.text.x = element_text(size = 20)) #axis.text.x = element_text(angle = 45, hjust=1, size = 18),
 
@@ -1327,7 +1330,7 @@ file3=find_coevo_slope(file, coevo_begin_start_gen, coevo_begin_end_gen, coevo_e
 
 title = "Total Phenotype Change"
 subt = "Three Experiments"
-x_label = "Simulation"
+x_label = "Simulation Genetic Architecture"
 y_label = "Change in Phenotype"
 
 
@@ -1551,10 +1554,10 @@ GA_stage$snake_gen_change = (GA_stage$S_end_gen - GA_stage$S_str_gen)
 ```
 
 ```{r, plotting all of the changes}
-title = "Coevolution Slope (Phenotype Change/ Time)"
+title = "Coevolution Slope"
 subt = "Simulation F, J, G, K"
 GA_stage_long <- tidyr::pivot_longer(GA_stage, c(newt_coevo_slope, snake_coevo_slope))
-y_label="Coevolution Speed"
+y_label="Coevolution Speed (Phenotype Change/ Time)"
 x_label="Genetic Architectures (red=newt, blue=snake)"
 
 coevo_speed = 
