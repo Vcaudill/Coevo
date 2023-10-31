@@ -302,9 +302,9 @@ newt_info$snake_res<-snake_info$measurement
 newt_info$dif<-newt_info$snake_res-newt_info$newt_toxin
 pattern<-"Newt_1.0e-08_0.005_Snake_1.0e-08_0.005_0"
 scatter_pheno<-newt_info[which(newt_info$newt_snake_rep==pattern & newt_info$generation>14000 & newt_info$generation<15000 ),]
-scatter_pheno<-newt_info[which(newt_info$newt_snake_rep==pattern & newt_info$generation==20981 ),]
-#scatter_pheno[scatter_pheno == 0] <- NA
-#scatter_pheno[scatter_pheno == 1] <- NA
+#scatter_pheno<-newt_info[which(newt_info$newt_snake_rep==pattern & newt_info$generation==20981 ),]
+scatter_pheno[scatter_pheno == 0] <- NA
+scatter_pheno[scatter_pheno == 1] <- NA
 ggplot(scatter_pheno)+
  ggtitle(paste0(" pattern ", pattern, " From ", min(scatter_pheno$generation), " gen to ", max(scatter_pheno$generation), " gen"))+
   geom_point(aes(y = newt_toxin, x = snake_res, color=generation), size = 3) 
