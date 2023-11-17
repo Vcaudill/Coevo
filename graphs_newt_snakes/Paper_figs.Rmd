@@ -26,6 +26,7 @@ library(stringr)
 library(patchwork)
 library(RColorBrewer)
 library(scales)
+library(cowplot)
 ```
 
 
@@ -546,7 +547,7 @@ labels = c("Snake", "Newt", "Dif"))+
 
 ```{r, see the correlations}
 
-snewt <- read.csv("~/Desktop/snake_newt_real_data.csv", header = TRUE)
+snewt <- 0.71 #correlation value from https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.0060060
 
 GA1_cor<- read.csv("~/Desktop/GA1_final_csv/all_cor.txt" , header = TRUE)
 GA1_cor$group_rep <- paste0(GA1_cor$snake_mu_rate, "_", GA1_cor$snake_mu_effect_sd,"_",GA1_cor$newt_mu_rate, "_", GA1_cor$newt_mu_effect_sd, "_", GA1_cor$rep)
@@ -558,7 +559,7 @@ cost_grade_cor<- read.csv("~/Desktop/cost_grade/all_cor.txt" , header = TRUE)
 cost_grade_cor$group_rep <- paste0(cost_grade_cor$snake_mu_rate, "_", cost_grade_cor$snake_mu_effect_sd,"_",cost_grade_cor$newt_mu_rate, "_", cost_grade_cor$newt_mu_effect_sd, "_", cost_grade_cor$rep)
 cost_grade_cor$group <- paste0(cost_grade_cor$snake_mu_rate, "_", cost_grade_cor$snake_mu_effect_sd,"_",cost_grade_cor$newt_mu_rate, "_", cost_grade_cor$newt_mu_effect_sd)
 cost_grade_cor$sim=LETTERS[factor(cost_grade_cor$group)]
-cost_grade_cor$exp="Cost Gradent Map"
+cost_grade_cor$exp="Heterogeneous Cost Map"
 
 interrate_grade<- read.csv("~/Desktop/interrate_grade/all_cor.txt" , header = TRUE)
 interrate_grade$group_rep <- paste0(interrate_grade$snake_mu_rate, "_", interrate_grade$snake_mu_effect_sd,"_",interrate_grade$newt_mu_rate, "_", interrate_grade$newt_mu_effect_sd, "_", interrate_grade$rep)
@@ -571,13 +572,13 @@ cost_grade_no_interact_cor<- read.csv("~/Desktop/no_interaction_cost_grade/all_c
 cost_grade_no_interact_cor$group_rep <- paste0(cost_grade_no_interact_cor$snake_mu_rate, "_", cost_grade_no_interact_cor$snake_mu_effect_sd,"_",cost_grade_no_interact_cor$newt_mu_rate, "_", cost_grade_no_interact_cor$newt_mu_effect_sd, "_", cost_grade_no_interact_cor$rep)
 cost_grade_no_interact_cor$group <- paste0(cost_grade_no_interact_cor$snake_mu_rate, "_", cost_grade_no_interact_cor$snake_mu_effect_sd,"_",cost_grade_no_interact_cor$newt_mu_rate, "_", cost_grade_no_interact_cor$newt_mu_effect_sd)
 cost_grade_no_interact_cor$sim=LETTERS[factor(cost_grade_no_interact_cor$group)]
-cost_grade_no_interact_cor$exp="Cost Gradent Map No Interaction"
+cost_grade_no_interact_cor$exp="Heterogeneous Cost Map No Interaction"
 
 snake_change_cor<- read.csv("~/Desktop/snake_change/all_cor.txt" , header = TRUE)
 snake_change_cor$group_rep <- paste0(snake_change_cor$snake_mu_rate, "_", snake_change_cor$snake_mu_effect_sd,"_",snake_change_cor$newt_mu_rate, "_", snake_change_cor$newt_mu_effect_sd, "_", snake_change_cor$rep)
 snake_change_cor$group <- paste0(snake_change_cor$snake_mu_rate, "_", snake_change_cor$snake_mu_effect_sd,"_",snake_change_cor$newt_mu_rate, "_", snake_change_cor$newt_mu_effect_sd)
 snake_change_cor$sim=LETTERS[factor(snake_change_cor$group)]
-snake_change_cor$exp="Snake Gradent Map"
+snake_change_cor$exp="Snake Heterogeneous Cost Map"
 
 newt_change_cor<- read.csv("~/Desktop/newt_change/all_cor.txt" , header = TRUE)
 newt_change_cor$group_rep <- paste0(newt_change_cor$snake_mu_rate, "_", newt_change_cor$snake_mu_effect_sd,"_",newt_change_cor$newt_mu_rate, "_", newt_change_cor$newt_mu_effect_sd, "_", newt_change_cor$rep)
@@ -588,8 +589,8 @@ newt_change_cor$exp="Newt Gradent Map"
 
 
 boxplot_cors_by_gen_col_rep <- function(file1, file2, file3, title, subt, x_label, y_label, min_gen, max_gen){
- snewt$mean_res = snewt$mean_toxin+snewt$dif
-  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+
+  real_snewt_cor = snewt
    file1$snake_newt <- paste0(file1$snake_mu_rate, "_", file1$snake_mu_effect_sd, "_", file1$newt_mu_rate, "_", file1$newt_mu_effect_sd)
    file2$snake_newt <- paste0(file2$snake_mu_rate, "_", file2$snake_mu_effect_sd, "_", file2$newt_mu_rate, "_", file2$newt_mu_effect_sd)
    file3$snake_newt <- paste0(file3$snake_mu_rate, "_", file3$snake_mu_effect_sd, "_", file3$newt_mu_rate, "_", file3$newt_mu_effect_sd)
@@ -603,7 +604,7 @@ file$cor_score <- ifelse(file$sim == "Sims", "False","True")
 #file$cor_score <- ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
 
 #smallset = file[which(file$gen>=40000 & file$gen<=50000 & file$exp=="Cost Gradent Map" & file$cor_score=="True"),]
-file$exp = factor(file$exp, levels=c("Flat Map", "Cost Gradent Map", "Interaction Gradent Map"))
+file$exp = factor(file$exp, levels=c("Flat Map", "Heterogeneous Cost Map", "Interaction Gradent Map"))
 
   plot <-  ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, "th generation to ", max_gen, "th generation"))+
@@ -627,8 +628,7 @@ file$exp = factor(file$exp, levels=c("Flat Map", "Cost Gradent Map", "Interactio
 
 
 boxplot_cors_by_gen_col_rep_other3 <- function(file1, file2, file3, title, subt, x_label, y_label, min_gen, max_gen){
- snewt$mean_res = snewt$mean_toxin+snewt$dif
-  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+  real_snewt_cor = snewt
    file1$snake_newt <- paste0(file1$snake_mu_rate, "_", file1$snake_mu_effect_sd, "_", file1$newt_mu_rate, "_", file1$newt_mu_effect_sd)
    file2$snake_newt <- paste0(file2$snake_mu_rate, "_", file2$snake_mu_effect_sd, "_", file2$newt_mu_rate, "_", file2$newt_mu_effect_sd)
    file3$snake_newt <- paste0(file3$snake_mu_rate, "_", file3$snake_mu_effect_sd, "_", file3$newt_mu_rate, "_", file3$newt_mu_effect_sd)
@@ -642,7 +642,7 @@ file$cor_score <- ifelse(file$sim == "Sims", "False","True")
 #file$cor_score <- ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
 
 #smallset = file[which(file$gen>=40000 & file$gen<=50000 & file$exp=="Cost Gradent Map" & file$cor_score=="True"),]
-file$exp = factor(file$exp, levels=c("Cost Gradent Map No Interaction", "Snake Gradent Map", "Newt Gradent Map"))
+file$exp = factor(file$exp, levels=c("Heterogeneous Cost Map No Interaction", "Snake Heterogeneous Cost Map", "Newt Heterogeneous Cost Map"))
 
   plot <-  ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, "th generation to ", max_gen, "th generation"))+
@@ -665,8 +665,7 @@ file$exp = factor(file$exp, levels=c("Cost Gradent Map No Interaction", "Snake G
 }
 
 boxplot_cors_by_gen_col_rep_6_file <- function(file1, file2, file3, file4, file5, file6, title, subt, x_label, y_label, min_gen, max_gen){
- snewt$mean_res = snewt$mean_toxin+snewt$dif
-  real_snewt_cor = cor(snewt$mean_toxin, snewt$mean_res)
+  real_snewt_cor = snewt
    file1$snake_newt <- paste0(file1$snake_mu_rate, "_", file1$snake_mu_effect_sd, "_", file1$newt_mu_rate, "_", file1$newt_mu_effect_sd)
    file2$snake_newt <- paste0(file2$snake_mu_rate, "_", file2$snake_mu_effect_sd, "_", file2$newt_mu_rate, "_", file2$newt_mu_effect_sd)
    file3$snake_newt <- paste0(file3$snake_mu_rate, "_", file3$snake_mu_effect_sd, "_", file3$newt_mu_rate, "_", file3$newt_mu_effect_sd)
@@ -683,7 +682,7 @@ file$cor_score <- ifelse(file$sim == "Sims", "False","True")
 #file$cor_score <- ifelse(file$sim == "A" | file$sim == "B"| file$sim == "C" | file$sim == "D"| file$sim == "E"| file$sim == "I"| file$sim == "M", "False","True")
 
 
-file$exp = factor(file$exp, levels=c("Flat Map", "Cost Gradent Map No Interaction", "Cost Gradent Map", "Snake Gradent Map", "Interaction Gradent Map", "Newt Gradent Map"))
+file$exp = factor(file$exp, levels=c("Flat Map", "Heterogeneous Cost Map No Interaction", "Heterogeneous Cost Map", "Snake Heterogeneous Cost Map", "Interaction Gradent Map", "Newt Heterogeneous Cost Map"))
 
   plot <-  ggplot(file[which(file$gen>=min_gen & file$gen<=max_gen),]) +
   ggtitle(title, subtitle = paste0(subt, " From ", min_gen, " gen to ", max_gen, " gen"))+
@@ -710,7 +709,7 @@ file5 = snake_change_cor
 file6 = newt_change_cor
 title = "Spatial Phenotype Correlation"
 subt = " "
-exp_labeles=c("Flat Map", "Cost Gradent Map", "Interaction Gradent Map")
+exp_labeles=c("Flat Map", "Heterogeneous Cost Map", "Interaction Gradent Map")
 x_label = "Newt/Snake Genetic Architecture"
 y_label = "Spatial Correlation"
 min_gen = 40000
@@ -1816,11 +1815,26 @@ whale_gen(mu_a_lit, title="Newt VS Snake Population Size Color=S-N Phenotype", s
 ```{r, testing the differences between phenotypes and pop sizes for E1, E2, E3}
 
 
-boxplot_dif_in_phenotype <- function(file, title, subt, x_label, y_label,gen_l, gen_h,lowest){
+boxplot_dif_in_phenotype <- function(file, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter){
  
    file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
 file$dif = file$Snake_mean_Pheno- file$Newt_mean_Pheno
 file$mv_dif <- (log10((file$snake_mu_rate * (file$snake_mu_effect_sd)^2)) - log10((file$newt_mu_rate * (file$newt_mu_effect_sd)^2)))
+
+file$sim_snake_name = NA
+  file$sim_newt_name = NA
+  #file$sim == "A" | "B" | "C" | "D"
+  file[which(file$sim  == "A" | file$sim  == "B" | file$sim  == "C" | file$sim  == "D"), ]$sim_snake_name = paste0("1",letter)
+  file[which(file$sim  == "E" | file$sim  == "F" | file$sim  == "G" | file$sim  == "H"), ]$sim_snake_name = paste0("2",letter)
+  file[which(file$sim  == "I" | file$sim  == "J" | file$sim  == "K" | file$sim  == "L"), ]$sim_snake_name = paste0("3",letter)
+  file[which(file$sim  == "M" | file$sim  == "N" | file$sim  == "O" | file$sim  == "P"), ]$sim_snake_name =  paste0("4",letter)
+  
+  file[which(file$sim  == "A" | file$sim  == "E" | file$sim  == "I" | file$sim  == "M"), ]$sim_newt_name =  paste0("1",letter)
+  file[which(file$sim  == "B" | file$sim  == "F" | file$sim  == "J" | file$sim  == "N"), ]$sim_newt_name =  paste0("2",letter)
+  file[which(file$sim  == "C" | file$sim  == "G" | file$sim  == "K" | file$sim  == "O"), ]$sim_newt_name = paste0("3",letter)
+  file[which(file$sim  == "D" | file$sim  == "H" | file$sim  == "L" | file$sim  == "P"), ]$sim_newt_name =  paste0("4",letter)
+  file$sim_name = paste0("S:", file$sim_snake_name,"/N:", file$sim_newt_name)
+
 
 lowest_mv_gone = file[which(paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)  != lowest & paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)  != lowest),]
 
@@ -1828,7 +1842,7 @@ data <- lowest_mv_gone[order(lowest_mv_gone$mv_dif), ]
 data = data[which(data$generation>=gen_l & data$generation<=gen_h),]
 rownames(data) <- 1 : length(rownames(data))
 
-data$order = paste0("(",data$mv_dif,")", data$snake_newt)
+data$order = paste0("(",round(data$mv_dif),")", data$sim_name)
 
 data_long <- tidyr::pivot_longer(data, c(Newt_mean_Pheno, Snake_mean_Pheno,dif))
 
@@ -1839,6 +1853,7 @@ ggplot(data_long) +
   geom_boxplot(aes(x=as.factor(reorder(order, mv_dif)), y=as.numeric(value),fill=name), alpha=0.3)+
   #geom_boxplot(aes(x=as.factor(reorder(order, mv_dif)), y=as.numeric(Snake_mean_Pheno),fill=name),  alpha=0.3)+
   #geom_boxplot(aes(x=as.factor(reorder(order, mv_dif)), y=as.numeric(dif),fill=name), alpha=0.3)+ # group=paste0(mv_dif,snake_newt)
+  scale_fill_manual(values=c(Newt_mean_Pheno="red",Snake_mean_Pheno="blue",dif="purple"),breaks=c('Newt_mean_Pheno','Snake_mean_Pheno','dif'), labels=c( "Newt Phenotype", "Snake Phenotype", "Phenotype Difference (S-N)"), name="Mean")+
     theme(plot.title = element_text(size=5)) +
   scale_alpha(guide = 'none')+
   #labs(fill = " ")+
@@ -1857,11 +1872,25 @@ ggplot(data_long) +
   return(plot)
 }
 
-boxplot_dif_in_phopulationsize <- function(file, title, subt, x_label, y_label, gen_l, gen_h, lowest){
+boxplot_dif_in_phopulationsize <- function(file, title, subt, x_label, y_label, gen_l, gen_h, lowest, letter){
  
    file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
 file$dif = file$Snake_pop_size- file$Newt_pop_size
 file$mv_dif <- (log10((file$snake_mu_rate * (file$snake_mu_effect_sd)^2)) - log10((file$newt_mu_rate * (file$newt_mu_effect_sd)^2)))
+
+file$sim_snake_name = NA
+  file$sim_newt_name = NA
+  #file$sim == "A" | "B" | "C" | "D"
+  file[which(file$sim  == "A" | file$sim  == "B" | file$sim  == "C" | file$sim  == "D"), ]$sim_snake_name = paste0("1",letter)
+  file[which(file$sim  == "E" | file$sim  == "F" | file$sim  == "G" | file$sim  == "H"), ]$sim_snake_name = paste0("2",letter)
+  file[which(file$sim  == "I" | file$sim  == "J" | file$sim  == "K" | file$sim  == "L"), ]$sim_snake_name = paste0("3",letter)
+  file[which(file$sim  == "M" | file$sim  == "N" | file$sim  == "O" | file$sim  == "P"), ]$sim_snake_name =  paste0("4",letter)
+  
+  file[which(file$sim  == "A" | file$sim  == "E" | file$sim  == "I" | file$sim  == "M"), ]$sim_newt_name =  paste0("1",letter)
+  file[which(file$sim  == "B" | file$sim  == "F" | file$sim  == "J" | file$sim  == "N"), ]$sim_newt_name =  paste0("2",letter)
+  file[which(file$sim  == "C" | file$sim  == "G" | file$sim  == "K" | file$sim  == "O"), ]$sim_newt_name = paste0("3",letter)
+  file[which(file$sim  == "D" | file$sim  == "H" | file$sim  == "L" | file$sim  == "P"), ]$sim_newt_name =  paste0("4",letter)
+  file$sim_name = paste0("S:", file$sim_snake_name,"/N:", file$sim_newt_name)
 
 file = file[order(file$mv_dif, file$mv_dif),]
 lowest_mv_gone = file[which(paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd)  != lowest & paste0(file$newt_mu_rate, "_", file$newt_mu_effect_sd)  != lowest),]
@@ -1870,7 +1899,7 @@ data <- lowest_mv_gone[order(lowest_mv_gone$mv_dif) , ]
 data = data[which(data$generation>=gen_l & data$generation<=gen_h),]
 rownames(data) <- 1 : length(rownames(data))
 
-data$order = paste0("(",data$mv_dif,")", data$snake_newt)
+data$order = paste0("(",round(data$mv_dif),")", data$sim_name)
 
 data_long <- tidyr::pivot_longer(data, c(Newt_pop_size, Snake_pop_size,dif))
 
@@ -1881,6 +1910,7 @@ plot <-    ggplot(data_long) +
 geom_boxplot(aes(x=reorder(order, mv_dif), y=as.numeric(value),  fill=name), alpha=0.3)+
     theme(plot.title = element_text(size=5)) +
   scale_alpha(guide = 'none')+
+  scale_fill_manual(values=c(Newt_pop_size="red",Snake_pop_size="blue",dif="green"),breaks=c('Newt_pop_size','Snake_pop_size','dif'), labels=c( "Newt Population Size", "Snake Population Size", "Population Size Difference (S-N)"), name="Population Size")+
   #labs(fill = " ")+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       title =element_text(size=8, face='bold'))
@@ -1888,17 +1918,31 @@ geom_boxplot(aes(x=reorder(order, mv_dif), y=as.numeric(value),  fill=name), alp
   return(plot)
 }
 
-boxplot_dif_in_phenotype_less_log <- function(file, title, subt, x_label, y_label,gen_l, gen_h){
+boxplot_dif_in_phenotype_less_log <- function(file, title, subt, x_label, y_label,gen_l, gen_h, letter){
  
    file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
 file$dif = file$Snake_mean_Pheno- file$Newt_mean_Pheno
 file$mv_dif <- (log10(file$snake_mu_rate) - log10(file$newt_mu_rate))
 
+file$sim_snake_name = NA
+  file$sim_newt_name = NA
+  #file$sim == "A" | "B" | "C" | "D"
+  file[which(file$sim  == "A" | file$sim  == "B" | file$sim  == "C" | file$sim  == "D"), ]$sim_snake_name = paste0("1",letter)
+  file[which(file$sim  == "E" | file$sim  == "F" | file$sim  == "G" | file$sim  == "H"), ]$sim_snake_name = paste0("2",letter)
+  file[which(file$sim  == "I" | file$sim  == "J" | file$sim  == "K" | file$sim  == "L"), ]$sim_snake_name = paste0("3",letter)
+  file[which(file$sim  == "M" | file$sim  == "N" | file$sim  == "O" | file$sim  == "P"), ]$sim_snake_name =  paste0("4",letter)
+  
+  file[which(file$sim  == "A" | file$sim  == "E" | file$sim  == "I" | file$sim  == "M"), ]$sim_newt_name =  paste0("1",letter)
+  file[which(file$sim  == "B" | file$sim  == "F" | file$sim  == "J" | file$sim  == "N"), ]$sim_newt_name =  paste0("2",letter)
+  file[which(file$sim  == "C" | file$sim  == "G" | file$sim  == "K" | file$sim  == "O"), ]$sim_newt_name = paste0("3",letter)
+  file[which(file$sim  == "D" | file$sim  == "H" | file$sim  == "L" | file$sim  == "P"), ]$sim_newt_name =  paste0("4",letter)
+  file$sim_name = paste0("S:", file$sim_snake_name,"/N:", file$sim_newt_name)
+
 data <- file[order(file$mv_dif) , ]
 data = data[which(data$generation>=gen_l & data$generation<=gen_h),]
 rownames(data) <- 1 : length(rownames(data))
 
-data$order = paste0("(",data$mv_dif,")", data$snake_newt)
+data$order = paste0("(",data$mv_dif,")", data$sim_name)
 data_long <- tidyr::pivot_longer(data, c(Newt_mean_Pheno, Snake_mean_Pheno,dif))
 
 plot <-   
@@ -1908,17 +1952,31 @@ plot <-
 geom_boxplot(aes(x=reorder(order, mv_dif), y=as.numeric(value), fill=name), alpha=0.3)+
     theme(plot.title = element_text(size=5)) +
   scale_alpha(guide = 'none')+
+  scale_fill_manual(values=c(Newt_mean_Pheno="red",Snake_mean_Pheno="blue",dif="purple"),breaks=c('Newt_mean_Pheno','Snake_mean_Pheno','dif'), labels=c( "Newt Phenotype", "Snake Phenotype", "Phenotype Difference (S-N)"), name="Mean")+
   #labs(fill = " ")+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       title =element_text(size=8, face='bold'))
   return(plot)
 }
 
-boxplot_dif_in_phopulationsize_less_log <- function(file, title, subt, x_label, y_label, gen_l, gen_h){
+boxplot_dif_in_phopulationsize_less_log <- function(file, title, subt, x_label, y_label, gen_l, gen_h,  letter){
  
    file$snake_newt <- paste0(file$snake_mu_rate, "_", file$snake_mu_effect_sd, "_", file$newt_mu_rate, "_", file$newt_mu_effect_sd)
 file$dif = file$Snake_pop_size- file$Newt_pop_size
 file$mv_dif <- (log10(file$snake_mu_rate) - log10(file$newt_mu_rate))
+file$sim_snake_name = NA
+  file$sim_newt_name = NA
+  #file$sim == "A" | "B" | "C" | "D"
+  file[which(file$sim  == "A" | file$sim  == "B" | file$sim  == "C" | file$sim  == "D"), ]$sim_snake_name = paste0("1",letter)
+  file[which(file$sim  == "E" | file$sim  == "F" | file$sim  == "G" | file$sim  == "H"), ]$sim_snake_name = paste0("2",letter)
+  file[which(file$sim  == "I" | file$sim  == "J" | file$sim  == "K" | file$sim  == "L"), ]$sim_snake_name = paste0("3",letter)
+  file[which(file$sim  == "M" | file$sim  == "N" | file$sim  == "O" | file$sim  == "P"), ]$sim_snake_name =  paste0("4",letter)
+  
+  file[which(file$sim  == "A" | file$sim  == "E" | file$sim  == "I" | file$sim  == "M"), ]$sim_newt_name =  paste0("1",letter)
+  file[which(file$sim  == "B" | file$sim  == "F" | file$sim  == "J" | file$sim  == "N"), ]$sim_newt_name =  paste0("2",letter)
+  file[which(file$sim  == "C" | file$sim  == "G" | file$sim  == "K" | file$sim  == "O"), ]$sim_newt_name = paste0("3",letter)
+  file[which(file$sim  == "D" | file$sim  == "H" | file$sim  == "L" | file$sim  == "P"), ]$sim_newt_name =  paste0("4",letter)
+  file$sim_name = paste0("S:", file$sim_snake_name,"/N:", file$sim_newt_name)
 
 file = file[order(file$mv_dif, file$mv_dif),]
 
@@ -1926,7 +1984,7 @@ data <- file[order(file$mv_dif) , ]
 data = data[which(data$generation>=gen_l & data$generation<=gen_h),]
 rownames(data) <- 1 : length(rownames(data))
 
-data$order = paste0("(",data$mv_dif,")", data$snake_newt)
+data$order = paste0("(",data$mv_dif,")", data$sim_name)
 data_long <- tidyr::pivot_longer(data, c(Newt_pop_size, Snake_pop_size,dif))
 
 plot <-    ggplot(data_long) +
@@ -1935,6 +1993,7 @@ plot <-    ggplot(data_long) +
 geom_boxplot(aes(x=reorder(order, mv_dif), y=as.numeric(value), fill=name), alpha=0.3)+
     theme(plot.title = element_text(size=5)) +
   scale_alpha(guide = 'none')+
+  scale_fill_manual(values=c(Newt_pop_size="red",Snake_pop_size="blue",dif="green"),breaks=c('Newt_pop_size','Snake_pop_size','dif'), labels=c( "Newt Population Size", "Snake Population Size", "Population Size Difference (S-N)"), name="Population Size")+
   #labs(fill = " ")+
   theme_bw() +  theme(axis.text.x = element_text(angle = 45, hjust=1, size = 8), 
                       title =element_text(size=8, face='bold'))
@@ -1945,93 +2004,114 @@ geom_boxplot(aes(x=reorder(order, mv_dif), y=as.numeric(value), fill=name), alph
 gen_l=45000
 gen_h=50000
 lowest="1e-08_0.005"
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment GA1_lit"
-x_label = "Sanke GA - Newt GA"
-y_label = "Difference in Phenotype (Snake - Newt)"
-boxplot_dif_in_phenotype (GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size (Snake - Newt)"
-boxplot_dif_in_phopulationsize(GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+letter="a"
+x_label = "Snake GA - Newt GA"
+y_label = "Phenotype"
+ga1pp = boxplot_dif_in_phenotype (GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+ga1ps = boxplot_dif_in_phopulationsize(GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
+pg1 = plot_grid(ga1pp, ga1ps, labels = c('A', 'B'), label_size = 12, nrow =2)
+ggsave("PD_PSD.png", plot=pg1, height=7, width=7, units=c("in"), dpi=600)
 
-title="Phenotype Difference by Mutatinal Varance" 
+title="Phenotype Difference by Mutational Variance" 
 subt="Experiment mu_a_lit"
+letter="b"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-08_0.005"
-boxplot_dif_in_phenotype (mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+mu_a = boxplot_dif_in_phenotype (mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+mu_a
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment mu_b_lit"
+letter="c"
 x_label = "Simulations" 
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-09_0.0158"
-boxplot_dif_in_phenotype (mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+mu_b = boxplot_dif_in_phenotype (mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+mu_b
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment mu_c_lit" 
+letter="d"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-10_0.05"
-boxplot_dif_in_phenotype (mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+mu_c = boxplot_dif_in_phenotype (mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+mu_c
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment mu_d_lit" 
+letter="e"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-11_0.158"
-boxplot_dif_in_phenotype (mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+mu_d = boxplot_dif_in_phenotype (mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance" 
+pg1 = plot_grid(mu_a, mu_b, mu_c, mu_d, labels = c('A', 'B', "C", "D"), label_size = 12)
+ggsave("mus_app.png", plot=pg1, height=7, width=10, units=c("in"), dpi=600)
+
+title="Phenotype Difference by Mutational Variance" 
 subt="Experiment v_a_lit" 
+letter="f"
 x_label = "Simulations" 
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_a_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_a_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+v_a = boxplot_dif_in_phenotype_less_log (v_a_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+v_a
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_a_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment v_b_lit"
+letter="g"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_b_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_b_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+v_b = boxplot_dif_in_phenotype_less_log (v_b_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+v_b
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_b_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment v_c_lit"
+letter="h"
 x_label = "Simulations" 
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_c_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_c_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+v_c = boxplot_dif_in_phenotype_less_log (v_c_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+v_c
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_c_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment v_d_lit" 
+letter="i"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_d_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_d_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+v_d = boxplot_dif_in_phenotype_less_log (v_d_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_d_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-
+pg2 = plot_grid(v_a, v_b, v_c, v_d, labels = c('A', 'B', "C", "D"), label_size = 12)
+ggsave("vms_app.png", plot=pg2, height=7, width=10, units=c("in"), dpi=600)
 
 
 ```
@@ -2041,181 +2121,201 @@ boxplot_dif_in_phopulationsize_less_log(v_d_lit, title, subt, x_label, y_label,g
 gen_l=100
 gen_h=5000
 lowest="1e-08_0.005"
-title="Phenotype Difference by Mutatinal Varance"
+letter="a"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment GA1_lit"
-x_label = "Sanke GA - Newt GA"
-y_label = "Difference in Phenotype (Snake - Newt)"
-boxplot_dif_in_phenotype (GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size (Snake - Newt)"
-boxplot_dif_in_phopulationsize(GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+x_label = "Snake GA - Newt GA"
+y_label = "Phenotype"
+boxplot_dif_in_phenotype (GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
 
-title="Phenotype Difference by Mutatinal Varance" 
+title="Phenotype Difference by Mutational Variance" 
 subt="Experiment mu_a_lit"
+letter="b"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-08_0.005"
-boxplot_dif_in_phenotype (mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+boxplot_dif_in_phenotype (mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment mu_b_lit"
+letter="c"
 x_label = "Simulations" 
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-09_0.0158"
-boxplot_dif_in_phenotype (mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+boxplot_dif_in_phenotype (mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment mu_c_lit" 
+letter="d"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-10_0.05"
-boxplot_dif_in_phenotype (mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+boxplot_dif_in_phenotype (mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment mu_d_lit" 
+letter="e"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-11_0.158"
-boxplot_dif_in_phenotype (mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+boxplot_dif_in_phenotype (mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance" 
-subt="Experiment v_a_lit" 
+title="Phenotype Difference by Mutational Variance" 
+subt="Experiment v_a_lit"
+letter="f"
 x_label = "Simulations" 
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_a_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_a_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+boxplot_dif_in_phenotype_less_log (v_a_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_a_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment v_b_lit"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_b_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_b_lit, title, subt, x_label, y_label,gen_l, gen_h)
+letter="g"
+y_label = "Phenotype"
+boxplot_dif_in_phenotype_less_log (v_b_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_b_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment v_c_lit"
+letter="h"
 x_label = "Simulations" 
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_c_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_c_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+boxplot_dif_in_phenotype_less_log (v_c_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_c_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment v_d_lit" 
+letter="i"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_d_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_d_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+boxplot_dif_in_phenotype_less_log (v_d_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_d_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
 gen_l=25000
 gen_h=30000
 
 lowest="1e-08_0.005"
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment GA1_lit"
-x_label = "Sanke GA - Newt GA"
-y_label = "Difference in Phenotype (Snake - Newt)"
-boxplot_dif_in_phenotype (GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size (Snake - Newt)"
-boxplot_dif_in_phopulationsize(GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+letter="a"
+x_label = "Snake GA - Newt GA"
+y_label = "Phenotype"
+boxplot_dif_in_phenotype (GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(GA1_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
 
-title="Phenotype Difference by Mutatinal Varance" 
+title="Phenotype Difference by Mutational Variance" 
 subt="Experiment mu_a_lit"
+letter="b"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-08_0.005"
-boxplot_dif_in_phenotype (mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+boxplot_dif_in_phenotype (mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_a_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment mu_b_lit"
+letter="c"
 x_label = "Simulations" 
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-09_0.0158"
-boxplot_dif_in_phenotype (mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+boxplot_dif_in_phenotype (mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_b_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
-subt="Experiment mu_c_lit" 
+title="Phenotype Difference by Mutational Variance"
+subt="Experiment mu_c_lit"
+letter="d"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-10_0.05"
-boxplot_dif_in_phenotype (mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+boxplot_dif_in_phenotype (mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_c_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
-subt="Experiment mu_d_lit" 
+title="Phenotype Difference by Mutational Variance"
+subt="Experiment mu_d_lit"
+letter="e"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
+y_label = "Phenotype"
 lowest="1e-11_0.158"
-boxplot_dif_in_phenotype (mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize(mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest)
+boxplot_dif_in_phenotype (mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize(mu_d_lit, title, subt, x_label, y_label,gen_l, gen_h,lowest, letter)
 
-title="Phenotype Difference by Mutatinal Varance" 
+title="Phenotype Difference by Mutational Variance" 
 subt="Experiment v_a_lit" 
+letter="f"
 x_label = "Simulations" 
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_a_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_a_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+boxplot_dif_in_phenotype_less_log (v_a_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_a_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment v_b_lit"
+letter="g"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_b_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_b_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+boxplot_dif_in_phenotype_less_log (v_b_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_b_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment v_c_lit"
+letter="h"
 x_label = "Simulations" 
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_c_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_c_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+boxplot_dif_in_phenotype_less_log (v_c_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_c_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
 
-title="Phenotype Difference by Mutatinal Varance"
+title="Phenotype Difference by Mutational Variance"
 subt="Experiment v_d_lit" 
+letter="i"
 x_label = "Simulations"
-y_label = "Difference in Phenotype"
-boxplot_dif_in_phenotype_less_log (v_d_lit, title, subt, x_label, y_label,gen_l, gen_h)
-title="Populationsize Difference by Mutatinal Varance"
-y_label = "Difference in Population Size"
-boxplot_dif_in_phopulationsize_less_log(v_d_lit, title, subt, x_label, y_label,gen_l, gen_h)
+y_label = "Phenotype"
+boxplot_dif_in_phenotype_less_log (v_d_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+title="Population size Difference by Mutational Variance"
+y_label = "Population Size"
+boxplot_dif_in_phopulationsize_less_log(v_d_lit, title, subt, x_label, y_label,gen_l, gen_h, letter)
+
+
 
 
 
