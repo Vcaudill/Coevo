@@ -19,8 +19,6 @@ library(gridGraphics)
 library(grid)
 library(knitr)
 library(kableExtra)
-library(reshape2)
-library(ggplot2)
 library(ggpubr)
 library(stringr)
 library(patchwork)
@@ -584,7 +582,7 @@ newt_change_cor<- read.csv("~/Desktop/newt_change/all_cor.txt" , header = TRUE)
 newt_change_cor$group_rep <- paste0(newt_change_cor$snake_mu_rate, "_", newt_change_cor$snake_mu_effect_sd,"_",newt_change_cor$newt_mu_rate, "_", newt_change_cor$newt_mu_effect_sd, "_", newt_change_cor$rep)
 newt_change_cor$group <- paste0(newt_change_cor$snake_mu_rate, "_", newt_change_cor$snake_mu_effect_sd,"_",newt_change_cor$newt_mu_rate, "_", newt_change_cor$newt_mu_effect_sd)
 newt_change_cor$sim=LETTERS[factor(newt_change_cor$group)]
-newt_change_cor$exp="Newt Gradent Map"
+newt_change_cor$exp="Newt Heterogeneous Cost Map"
 
 
 
